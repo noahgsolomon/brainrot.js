@@ -1,0 +1,197 @@
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { brainrotusers } from "@/server/db/schemas/users/schema";
+import { eq, or } from "drizzle-orm";
+import { currentUser } from "@clerk/nextjs";
+import { z } from "zod";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Helper function to generate a random string of specified length
+function generateRandomString(length: number) {
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    result += charset.charAt(randomIndex);
+  }
+  return result;
+}
+
+export const userRouter = createTRPCRouter({
+  // Mutation to check if a user exists in the database and create a new user if not
+  exists: protectedProcedure.mutation(async ({ ctx }) => {
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      // Check if the user already exists in the database
+      const user = await ctx.db
+        .select()
+        .from(brainrotusers)
+        .where(
+          or(
+            eq(
+              brainrotusers.email,
+              clerkUser.emailAddresses[0]?.emailAddress ??
+                "empty@nonexistent.com",
+            ),
+            eq(brainrotusers.clerk_id, clerkUser.id),
+          ),
+        );
+
+      // If the user does not exist, create a new user record
+      if (user.length === 0) {
+        await ctx.db.insert(brainrotusers).values({
+          name: clerkUser.firstName + " " + clerkUser.lastName,
+          email: clerkUser.emailAddresses[0]?.emailAddress ?? clerkUser.id,
+          clerk_id: clerkUser.id,
+          username:
+            clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
+            generateRandomString(10),
+        });
+      }
+    }
+  }),
+
+  // Mutation to delete a user from the database
+  delete: protectedProcedure.mutation(async ({ ctx }) => {
+    // Use a transaction to safely delete the user
+    await ctx.db.transaction(async (trx) => {
+      await trx.delete(brainrotusers).where(eq(brainrotusers.id, ctx.user_id));
+    });
+    return { status: "OK" };
+  }),
+
+  // Query to retrieve the current user's details
+  user: protectedProcedure.query(async ({ ctx }) => {
+    console.log(`context: ${JSON.stringify(ctx.user_id)}`);
+    const user = await ctx.db.query.brainrotusers.findFirst({
+      where: eq(brainrotusers.id, ctx.user_id),
+    });
+
+    return { user: user };
+  }),
+
+  // Mutation to update the current user's username
+  setUsername: protectedProcedure
+    .input(
+      z.object({
+        username: z.string().min(3).max(20),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if username is valid
+      if (!input.username) {
+        return {
+          data: null,
+          status: "ERROR",
+          message: "Username must be at least 3 characters",
+        };
+      }
+      // Check if username already exists
+      const user = await ctx.db.query.brainrotusers.findFirst({
+        where: eq(brainrotusers.username, input.username),
+      });
+      if (user) {
+        return {
+          data: null,
+          status: "ERROR",
+          message: "Username already exists",
+        };
+      }
+      // Update the username
+      await ctx.db
+        .update(brainrotusers)
+        .set({
+          username: input.username,
+        })
+        .where(eq(brainrotusers.id, ctx.user_id));
+
+      return {
+        data: input.username,
+        status: "OK",
+        message: "username has been changed.",
+      };
+    }),
+
+  // Mutation to update the current user's name
+  setName: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(3).max(75),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if name is valid
+      if (!input.name) {
+        return {
+          data: null,
+          status: "ERROR",
+          message: "name must be at least 3 characters",
+        };
+      }
+      // Update the name
+      await ctx.db
+        .update(brainrotusers)
+        .set({
+          name: input.name,
+        })
+        .where(eq(brainrotusers.id, ctx.user_id));
+
+      return {
+        data: input.name,
+        status: "OK",
+        message: "name has been changed.",
+      };
+    }),
+
+  createVideo: protectedProcedure
+    .input(
+      z.object({ title: z.string(), agent1: z.number(), agent2: z.number() }),
+    )
+    .mutation(async ({ ctx, input: { title, agent1, agent2 } }) => {
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo-1106",
+          messages: [
+            {
+              role: "system",
+              content:
+                title !== "RANDOM"
+                  ? `Assess the user's request for an academic or educational note on the topic '${title}'. Verify if the topic is suitable for an educational context. The criteria for a valid topic include appropriateness, educational value, and the potential for an in-depth exploration of at least 1,000 words. If the topic fails to meet these criteria (i.e., it is inappropriate, offensive, lacks educational value, or is nonsensical), return a JSON object with 'valid': false. For valid topics, return a JSON object with 'valid': true, a 'description' of the topic of in 1 short sentence, the 'title' of the topic, 'nextTopic' being a topic that would be a good progression or next step from this one, and the appropriate 'category'. The category must be one of the following: ENGLISH, MATH, SCIENCE, HISTORY, ARTS, MUSIC, LITERATURE, PHILOSOPHY, GEOGRAPHY, SOCIAL STUDIES, PHYSICAL EDUCATION, COMPUTER SCIENCE, ECONOMICS, BUSINESS STUDIES, PSYCHOLOGY, LAW, POLITICAL SCIENCE, ENVIRONMENTAL SCIENCE, ENGINEERING, MEDICINE, AGRICULTURE, ASTRONOMY. Ensure the category is an exact match from these options.`
+                  : `Create a random educational topic that is detailed and precise, very specific like for example: "Encoding Sentences Using Transformer Models" or "The Assassination of Julius Caesar: A Detailed Account" or "Investigating the Gut Microbiome's Influence on Overall Wellness" or "Decoding Ancient Scripts: The Rosetta Stone's Role in Understanding Hieroglyphics" or "Delving into Chaos Theory: The Butterfly Effect and Predictability in Complex Systems" or "Unveiling Geometry in Art: The Mathematical Structure in M.C. Escher's Work" or "The Rise of Quantum Algorithms: Breaking the Boundaries of Classical Computing" or "The Intricacies of Cryptocurrency Mining and Blockchain Technology". The topic should not be broad; it must be specific and niche, offering a focused subject for in-depth exploration. It should be something hyper-specific, fascinating, and intellectually stimulating. In one of these categories: ENGLISH, MATH, SCIENCE, HISTORY, ARTS, MUSIC, LITERATURE, PHILOSOPHY, GEOGRAPHY, SOCIAL STUDIES, PHYSICAL EDUCATION, COMPUTER SCIENCE, ECONOMICS, BUSINESS STUDIES, PSYCHOLOGY, LAW, POLITICAL SCIENCE, ENVIRONMENTAL SCIENCE, ENGINEERING, MEDICINE, AGRICULTURE, ASTRONOMY. Return a JSON object with 'valid': true, a 'description' of the topic of in 1 short sentence, the 'title' of the topic, 'nextTopic' being a topic that would be a good progression or next step from this one, and the appropriate 'category'. The category must be one of the categories above. Ensure the category is an exact match from these options.`,
+            },
+          ],
+
+          response_format: { type: "json_object" },
+        });
+
+        const argumentsData = JSON.parse(
+          response.choices[0]?.message.content ?? "{}",
+        );
+
+        if (!argumentsData.valid) {
+          return { valid: false };
+        }
+
+        // const newNote = await ctx.db.insert(notes).values({
+        //   agent_id: agentId,
+        //   user_id: ctx.user_id,
+        //   title: argumentsData.title,
+        //   category: argumentsData.category,
+        //   description: argumentsData.description,
+        //   markdown: "",
+        //   emoji: getRandomEmoji(argumentsData.category),
+        //   minutes: 13,
+        //   nextTopic: argumentsData.nextTopic ?? "",
+        // });
+
+        return { valid: true };
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }),
+});

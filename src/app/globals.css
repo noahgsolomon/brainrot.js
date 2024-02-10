@@ -1,0 +1,524 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  :root {
+    --x: 0;
+    --y: 0;
+    --background: 210 10% 96%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --toast: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 93.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --english: 208 100% 65%;
+    --math: 0 100% 65%;
+    --science: 120 100% 65%;
+    --history: 30 100% 65%;
+    --arts: 300 100% 65%;
+    --music: 260 100% 65%;
+    --literature: 280 100% 65%;
+    --philosophy: 60 100% 65%;
+    --geography: 90 100% 65%;
+    --social-studies: 210 100% 65%;
+    --physical-education: 10 100% 65%;
+    --computer-science: 180 100% 65%;
+    --economics: 150 100% 65%;
+    --business-studies: 170 100% 65%;
+    --psychology: 340 100% 65%;
+    --law: 20 100% 65%;
+    --political-science: 40 100% 65%;
+    --environmental-science: 70 100% 65%;
+    --engineering: 200 100% 65%;
+    --medicine: 220 100% 65%;
+    --agriculture: 140 100% 65%;
+    --astronomy: 240 100% 65%;
+    --pastel-yellow: 60 70% 90%;
+    --pastel-red: 354 100% 90%;
+    --pastel-blue: 210 70% 90%;
+    --pastel-purple: 270 70% 90%;
+    --sticky: 670 100% 40%;
+
+    --rick: 208 100% 50%;
+    --patrick: 350 100% 71%;
+    --mrburns: 54 100% 50%;
+    --bender: 0 0% 50%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
+    --blue: 210 100% 50%;
+    --light-blue: 210 80% 85%;
+    --link: 240 100% 55%;
+    --link-hover: 240 100% 45%;
+    --progressBar: 210 25% 55%;
+    --blob1: 230 60% 75%;
+    --blob2: 260 50% 80%;
+    --blob3: 280 40% 85%;
+    --brain: 340 25% 85%;
+    --brain-foreground: 340 15% 50%;
+
+    --fish: 355 90% 55%;
+    --fish-foreground: 355 45% 45%;
+
+    --success: 120 50% 50%;
+    --success-foreground: 120 25% 40%;
+
+    --library: 28 50% 40%;
+    --library-foreground: 28 25% 30%;
+    --common: 120 25% 75%;
+    --common-foreground: 120 15% 40%;
+    --uncommon: 240 25% 75%;
+    --uncommon-foreground: 240 15% 40%;
+    --rare: 58 100% 45%;
+    --rare-foreground: 58 45% 95%;
+    --gold: 58 100% 50%;
+    --gold-foreground: 58 45% 40%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 6.9%;
+    --toast: 222.2 84% 12.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 5.9%;
+    --popover-foreground: 210 40% 99%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 18.5%;
+    --muted-foreground: 215 20.2% 66.1%;
+    --accent: 217.2 32.6% 18.5%;
+    --accent-foreground: 210 40% 99%;
+    --destructive: 0 62.8% 51.6%;
+    --destructive-foreground: 210 40% 99%;
+    --border: 217.2 32.6% 18.5%;
+    --input: 217.2 32.6% 18.5%;
+    --ring: 212.7 26.8% 84.9;
+    --blue: 210 80% 60%;
+    --light-blue: 210 60% 70%;
+    --link: 210 80% 71%;
+    --sticky: 670 100% 70%;
+    --rick: 208 100% 50%;
+    --patrick: 350 100% 71%;
+    --mrburns: 54 100% 50%;
+    --bender: 0 0% 50%;
+
+    --english: 208 100% 80%;
+    --math: 0 100% 80%;
+    --science: 120 100% 80%;
+    --history: 30 100% 80%;
+    --arts: 300 100% 80%;
+    --music: 260 100% 80%;
+    --literature: 280 100% 80%;
+    --philosophy: 60 100% 80%;
+    --geography: 90 100% 80%;
+    --social-studies: 210 100% 80%;
+    --physical-education: 10 100% 80%;
+    --computer-science: 180 100% 80%;
+    --economics: 150 100% 80%;
+    --business-studies: 170 100% 80%;
+    --psychology: 340 100% 80%;
+    --law: 20 100% 80%;
+    --political-science: 40 100% 80%;
+    --environmental-science: 70 100% 80%;
+    --engineering: 200 100% 80%;
+    --medicine: 220 100% 80%;
+    --agriculture: 140 100% 80%;
+    --astronomy: 240 100% 80%;
+    --link-hover: 210 80% 61%;
+    --progressBar: 210 10% 85%;
+    --blob1: 230 20% 50%;
+    --blob2: 260 15% 40%;
+    --blob3: 280 10% 45%;
+    --brain: 330 25% 60%;
+    --brain-foreground: 330 12% 70%;
+    --common: 120 25% 45%;
+    --common-foreground: 120 15% 70%;
+    --uncommon: 240 25% 55%;
+    --uncommon-foreground: 240 15% 70%;
+    --rare: 58 100% 40%;
+    --rare-foreground: 58 45% 85%;
+    --fish: 355 90% 40%;
+    --fish-foreground: 355 45% 50%;
+    --success: 120 50% 40%;
+    --success-foreground: 120 25% 50%;
+    --library: 28 50% 30%;
+    --library-foreground: 28 25% 40%;
+    --gold: 58 100% 40%;
+    --gold-foreground: 58 45% 60%;
+    --pastel-yellow: 60 80% 70%;
+    --pastel-red: 0 80% 70%;
+    --pastel-blue: 210 80% 70%;
+    --pastel-purple: 270 80% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+
+  }
+
+}
+
+.cl-internal-b3fm6y {
+  display: none;
+}
+
+@keyframes breathe {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* 
+.animated-feature-cards::before {
+  @apply pointer-events-none absolute select-none rounded-lg opacity-0 transition-opacity duration-300 hover:opacity-100;
+  background: radial-gradient(
+    500px circle at var(--x) var(--y),
+    #d8b4fe 0,
+    #4c1d95 25%,
+    rgba(255, 255, 255, 0) 50%,
+    transparent 80%
+  );
+  z-index: -1;
+  content: "";
+  inset: -1px;
+}
+
+@media (max-width: 768px) {
+  .animated-feature-cards::before {
+    background: none !important;
+  }
+} */
+
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradientShift {
+  background: linear-gradient(270deg,
+      hsl(var(--link)),
+      hsl(var(--link-hover)),
+      hsl(var(--link)),
+      hsl(var(--primary)));
+  background-size: 600% 600%;
+  animation: gradientShift 8s ease infinite;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@keyframes fillUp {
+  from {
+    stroke-dashoffset: 283;
+    /* Approximate value for the circumference of the circle */
+  }
+}
+
+.progress-circle {
+  animation: fillUp 0.2s ease-out forwards;
+}
+
+h1 {
+  @apply text-4xl font-bold;
+}
+
+h2 {
+  @apply text-3xl font-bold;
+}
+
+h3 {
+  @apply text-2xl font-bold;
+}
+
+h4 {
+  @apply text-xl font-bold;
+}
+
+h5 {
+  @apply text-lg font-bold;
+}
+
+h6 {
+  @apply text-base font-bold;
+}
+
+.prose p {
+  @apply text-lg;
+}
+
+.prose h1 {
+  /*add a # before the text of .prose h1*/
+  @apply text-primary border-border border-b pb-2
+}
+
+
+.prose h1 a, .prose h2 a, .prose h3 a, .prose h4 a, .prose h5 a, .prose h6 a {
+  @apply no-underline transition-all hover:opacity-90
+}
+
+.prose p a, .prose li a, .prose ul a {
+  @apply transition-all hover:opacity-90
+}
+
+/* .prose h2 a::before {
+  content: '';
+  @apply mr-2;
+} */
+
+.prose img {
+  @apply mx-auto my-0 rounded-lg w-[75%] max-w-[500px] h-auto;
+}
+
+/* .prose h2 a:hover::before {
+  content: '##';
+  @apply opacity-50
+}
+
+
+.prose h1 a::before {
+  content: '';
+  @apply mr-2;
+}
+
+.prose h1 a:hover::before {
+  content: '#';
+  @apply opacity-50
+} */
+
+:target {
+  scroll-margin-top: 75px;
+}
+
+.card-container {
+  perspective: 1000px;
+}
+
+.card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s;
+}
+
+/* The flipping state */
+.card.is-flipped {
+  transform: rotateY(-180deg);
+  /* Flip the card */
+}
+
+/* The front and back sides of the card */
+.front,
+.back {
+  @apply p-4 gap-2 flex flex-col rounded-lg border border-border bg-card
+  /* Hide the back side of the card when facing away */
+}
+
+/* Position the back side */
+.back {
+  transform: rotateY(180deg);
+}
+
+/* General styling for the code block */
+.hljs {
+  @apply overflow-x-auto font-mono !important
+}
+
+pre {
+  @apply max-w-full overflow-x-auto bg-card p-2 rounded-lg border border-border !important;
+}
+
+code {
+  @apply whitespace-pre-wrap text-primary !important;
+  /* This will wrap the text inside the code block */
+}
+
+.katex-mathml {
+  @apply text-xl
+}
+
+annotation {
+  @apply text-xl
+}
+
+mi {
+  @apply text-xl
+}
+
+.katex {
+  @apply text-xl
+}
+
+.code-language {
+  @apply font-bold text-[#555] bg-[#eee] px-2 py-1 rounded-lg text-sm mb-2 inline-block !important;
+}
+
+/* Keyword styling (like def, if, else, return) */
+.hljs-keyword {
+  @apply text-[#a626a4] font-bold !important;
+  /* Purple */
+}
+
+/* Function names */
+.hljs-title.function_ {
+  @apply text-[#e45649] !important;
+  /* Reddish */
+}
+
+/* Parameters and variables */
+.hljs-params {
+  @apply text-[#50a14f] !important;
+  /* Green */
+}
+
+/* Number styling */
+.hljs-number {
+  @apply text-[#986801] !important;
+  /* Brown */
+}
+
+/* Comments */
+.hljs-comment {
+  @apply text-[#a0a1a7] italic !important;
+  /* Light gray */
+}
+
+/* Built-in functions and strings */
+.hljs-built_in,
+.hljs-string {
+  @apply text-[#0184bb] !important;
+  /* Blue */
+}
+
+/* Substitutions in strings */
+.hljs-subst {
+  @apply text-[#c18401] !important;
+  /* Orange */
+}
+
+.hljs-variable {
+  @apply text-[#4078f2] !important;
+  /* Blue */
+}
+
+.hljs-built_in {
+  @apply text-[#4cf240] !important;
+  /* Blue */
+}
+
+.katex-html {
+  @apply hidden
+}
+
+mtext {
+  @apply text-primary text-lg mx-auto overflow-x-auto
+}
+
+mrow {
+  @apply text-primary text-lg mx-auto overflow-x-auto overflow-y-hidden max-w-[300px] sm:max-w-[500px] xl:max-w-[600px]
+}
+
+input {
+  @apply coarse:text-[18px]
+}
+
+.acss-qpkmq2 {
+  @apply bg-transparent !important;
+}
+
+.acss-284vld {
+  @apply overflow-visible !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+mrow,
+mtext {
+  @apply overflow-x-auto overflow-y-hidden
+}
+
+
+
+.background-animate {
+  background-size: 400%;
+
+  -webkit-animation: RainbowAnimation 3s ease infinite;
+  -moz-animation: RainbowAnimation 3s ease infinite;
+  animation: RainbowAnimation 3s ease infinite;
+}
+
+@keyframes RainbowAnimation {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
