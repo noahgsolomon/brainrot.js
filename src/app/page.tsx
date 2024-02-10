@@ -12,11 +12,6 @@ import { Folder, Loader2, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function Home({
   searchParams,
@@ -82,16 +77,6 @@ export default function Home({
       videoRef.current.pause();
     }
   };
-
-  const [showSkeleton, setShowSkeleton] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSkeleton(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <main className="relative mt-6 flex flex-col items-center justify-center gap-4">

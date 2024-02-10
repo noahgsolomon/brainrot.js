@@ -1,16 +1,10 @@
 "use client";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useAuth } from "@clerk/nextjs";
 import { useYourVideos } from "./useyourvideos";
-import { Button } from "@/components/ui/button";
-import { useCreateVideo } from "./usecreatevideo";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const user = useAuth();
-
   const { isOpen, setIsOpen } = useYourVideos();
-  const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
