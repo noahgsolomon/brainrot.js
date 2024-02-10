@@ -8,9 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Landmark, User2 } from "lucide-react";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import Link from "next/link";
 import { trpc } from "@/trpc/client";
 
 const UserButton = () => {
@@ -20,6 +18,7 @@ const UserButton = () => {
 
   const logOutHandler = async () => {
     await clerk.signOut();
+    window.location.reload();
   };
 
   return (
