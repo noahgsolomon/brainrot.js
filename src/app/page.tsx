@@ -8,9 +8,15 @@ import { useYourVideos } from "./useyourvideos";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Folder, Wand } from "lucide-react";
+import { Folder, Loader2, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/trpc/client";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Home({
   searchParams,
@@ -20,16 +26,33 @@ export default function Home({
   const user = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (searchParams.loggedIn === "true") {
-      setTimeout(() => {
-        toast.success(`Welcome in!`, { icon: "👋" });
-      }, 1000);
-    }
-  }, []);
+  const [pendingVideo, setPendingVideo] = useState(false);
+  const [placeInQueue, setPlaceInQueue] = useState(0);
 
-  const { setIsOpen } = useCreateVideo();
+  // useEffect(() => {
+  //   if (searchParams.loggedIn === "true") {
+  //     setTimeout(() => {
+  //       toast.success(`Welcome in!`, { icon: "👋" });
+  //     }, 1000);
+  //   }
+  // }, []);
+
+  const videoStatus = trpc.user.videoStatus.useQuery();
+  const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
   const { setIsOpen: setIsYourVideosOpen } = useYourVideos();
+
+  useEffect(() => {
+    if (user.isSignedIn) {
+      if (
+        videoStatus.data?.videos !== null &&
+        videoStatus.data?.videos !== undefined
+      ) {
+        setPlaceInQueue(videoStatus.data.queueLength);
+        setPendingVideo(true);
+        setIsInQueue(true);
+      }
+    }
+  }, [user.isSignedIn, videoStatus.data?.videos]);
 
   const videoRef1 = useRef(null);
   const videoRef2 = useRef(null);
@@ -40,6 +63,13 @@ export default function Home({
   const videoRef7 = useRef(null);
   const videoRef8 = useRef(null);
   const videoRef9 = useRef(null);
+
+  useEffect(() => {
+    if (isInQueue) {
+      toast.info("Your video is currently in queue", { icon: "🕒" });
+      setPendingVideo(true);
+    }
+  }, [isInQueue]);
 
   const handleMouseEnter = (videoRef: React.RefObject<HTMLVideoElement>) => {
     if (videoRef.current) {
@@ -87,13 +117,23 @@ export default function Home({
                 @UGAHACKS9
               </Badge>
             </h1>
+            {pendingVideo && (
+              <div className="flex flex-row items-center gap-2 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                We are currently processing your video. Current place in queue:{" "}
+                {placeInQueue}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-2">
           <Button
             className="flex flex-row items-center gap-2"
             variant={"rainbow"}
-            onClick={() => setIsOpen(true)}
+            disabled={pendingVideo}
+            onClick={() => {
+              setIsOpen(true);
+            }}
           >
             <Wand className="h-4 w-4" /> Create Video
           </Button>
