@@ -105,8 +105,11 @@ export default function Home({
             {pendingVideo && (
               <div className="flex flex-row items-center gap-2 text-sm">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                We are currently processing your video. Current place in queue:{" "}
-                {placeInQueue}
+                <div className="flex gap-2">
+                  <span className="font-bold">Place in queue:</span>{" "}
+                  {placeInQueue} <span className="font-bold">Est:</span>{" "}
+                  {placeInQueue * 10} mins
+                </div>
               </div>
             )}
           </div>
