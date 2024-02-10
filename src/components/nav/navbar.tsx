@@ -80,7 +80,6 @@ const NavBar = () => {
               </p>
             </Link>
           </div>
-
           <div className="flex items-center justify-end gap-4">
             <div className="coarse:hidden">
               <ThemeButton />
