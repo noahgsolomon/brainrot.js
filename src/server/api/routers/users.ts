@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { brainrotusers } from "@/server/db/schemas/users/schema";
+import { brainrotusers, pendingVideos } from "@/server/db/schemas/users/schema";
 import { eq, or } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs";
 import { z } from "zod";
@@ -75,6 +75,21 @@ export const userRouter = createTRPCRouter({
     return { user: user };
   }),
 
+  videoStatus: protectedProcedure.query(async ({ ctx }) => {
+    const videos = await ctx.db.query.pendingVideos.findFirst({
+      where: eq(pendingVideos.user_id, ctx.user_id),
+    });
+
+    if (videos) {
+      const allVideos = await ctx.db.query.pendingVideos.findMany({
+        orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
+      });
+      const queueLength = allVideos.filter(
+        (v) => v.timestamp! < videos.timestamp!,
+      ).length;
+      return { videos: videos, queueLength };
+    } else return { videos: null };
+  }),
   // Mutation to update the current user's username
   setUsername: protectedProcedure
     .input(
@@ -173,21 +188,11 @@ export const userRouter = createTRPCRouter({
           response.choices[0]?.message.content ?? "{}",
         );
 
+        console.log(argumentsData.valid);
+
         if (!argumentsData.valid) {
           return { valid: false };
         }
-
-        // const newNote = await ctx.db.insert(notes).values({
-        //   agent_id: agentId,
-        //   user_id: ctx.user_id,
-        //   title: argumentsData.title,
-        //   category: argumentsData.category,
-        //   description: argumentsData.description,
-        //   markdown: "",
-        //   emoji: getRandomEmoji(argumentsData.category),
-        //   minutes: 13,
-        //   nextTopic: argumentsData.nextTopic ?? "",
-        // });
 
         return { valid: true };
       } catch (error) {
