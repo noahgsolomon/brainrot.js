@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  BookMarked,
-  Flame,
-  Loader2,
-  PlusIcon,
-  Wand,
-  XIcon,
-} from "lucide-react";
+import { BookMarked, Flame, Wand, XIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -26,6 +18,9 @@ import { useRouter } from "next/navigation";
 import { useCreateVideo } from "./usecreatevideo";
 import { useAuth } from "@clerk/nextjs";
 import { trpc } from "@/trpc/client";
+//@ts-ignore
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 
 export default function CreateVideo({
   visible = false,
@@ -45,27 +40,49 @@ export default function CreateVideo({
   const [invalidTopic, setInvalidTopic] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
-    "Shared Covariance Matrix",
-    "Logistic Regression",
+    "Covariance Matrix",
+    "Alien Invasion",
     "Fall of Roman Empire",
   ]);
   const router = useRouter();
 
-  const { isOpen, setIsOpen } = useCreateVideo();
+  const dbUser = trpc.user.user.useQuery();
 
-  const createNoteMutation = trpc.user.createVideo.useMutation({
-    onSuccess: (data) => {
-      if (data) {
-        if (data.valid) {
-          console.log("Video created");
-        } else {
-          setInvalidTopic(true);
-          setVideoInput("");
-          setGenerating(false);
-        }
+  const { isOpen, setIsOpen, setIsInQueue } = useCreateVideo();
+
+  const createVideoMutation = trpc.user.createVideo.useMutation({
+    onSuccess: async (data) => {
+      if (data?.valid) {
+        const uuidVal = uuidv4();
+        await fetch("/api/create", {
+          method: "POST",
+          body: JSON.stringify({
+            userId: dbUser.data?.user?.id,
+            topic:
+              videoInput === ""
+                ? recommendedTopics[recommendedSelect]
+                : videoInput,
+            agent1: agent[0]?.name ?? "JORDAN_PETERSON",
+            agent2: agent[1]?.name ?? "BEN_SHAPIRO",
+            videoId: uuidVal,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        setIsOpen(false);
+        setGenerating(false);
+        toast.success("Video is in queue!");
+        setIsInQueue(true);
+      } else {
+        setInvalidTopic(true);
+        setVideoInput("");
+        setGenerating(false);
       }
     },
-    onError: () => {
+    onError: (e) => {
+      console.log(e);
       setGenerating(false);
     },
   });
@@ -123,10 +140,10 @@ export default function CreateVideo({
           <div className="flex flex-wrap gap-2">
             <Button
               className={`transition-all ${
-                recommendedSelect === 1 ? "border border-primary" : ""
+                recommendedSelect === 0 ? "border border-primary" : ""
               }`}
               onClick={() => {
-                setRecommendedSelect(1);
+                setRecommendedSelect(0);
                 setInvalidTopic(false);
               }}
               size={"sm"}
@@ -136,10 +153,10 @@ export default function CreateVideo({
             </Button>
             <Button
               className={`transition-all ${
-                recommendedSelect === 2 ? "border border-primary" : ""
+                recommendedSelect === 1 ? "border border-primary" : ""
               }`}
               onClick={() => {
-                setRecommendedSelect(2);
+                setRecommendedSelect(1);
                 setInvalidTopic(false);
               }}
               size={"sm"}
@@ -149,10 +166,10 @@ export default function CreateVideo({
             </Button>
             <Button
               className={`transition-all ${
-                recommendedSelect === 3 ? "border border-primary" : ""
+                recommendedSelect === 2 ? "border border-primary" : ""
               }`}
               onClick={() => {
-                setRecommendedSelect(3);
+                setRecommendedSelect(2);
                 setInvalidTopic(false);
               }}
               size={"sm"}
@@ -170,7 +187,7 @@ export default function CreateVideo({
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   setGenerating(true);
-                  createNoteMutation.mutate({
+                  createVideoMutation.mutate({
                     title:
                       (videoInput === ""
                         ? recommendedTopics[recommendedSelect]
@@ -418,7 +435,7 @@ export default function CreateVideo({
             className="flex items-center gap-2"
             onClick={() => {
               setGenerating(true);
-              createNoteMutation.mutate({
+              createVideoMutation.mutate({
                 title:
                   (videoInput === ""
                     ? recommendedTopics[recommendedSelect]
