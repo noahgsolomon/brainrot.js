@@ -88,14 +88,6 @@ const NavBar = () => {
 
             {userId ? (
               <>
-                {/* {user?.user && !user?.user?.subscribed && (
-                    <Link
-                      href={"/pricing"}
-                      className={buttonVariants({ variant: "outline" })}
-                    >
-                      UPGRADE
-                    </Link>
-                  )} */}
                 <UserButton />
               </>
             ) : (

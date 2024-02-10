@@ -1,22 +1,23 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Folder, Wand } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home({
   searchParams,
 }: {
   searchParams: { loggedIn: string };
 }) {
-  const user = useAuth();
+  const user = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -52,6 +53,16 @@ export default function Home({
     }
   };
 
+  const [showSkeleton, setShowSkeleton] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <main className="relative mt-6 flex flex-col items-center justify-center gap-4">
       <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
@@ -61,7 +72,7 @@ export default function Home({
             width={200}
             height={200}
             alt="brainrot"
-            className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%]"
+            className="cursor-pointer rounded-full border border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
           />
           <div className=" flex flex-col items-center gap-2">
             <Badge className="text-sm md:hidden" variant={"math"}>
@@ -86,14 +97,19 @@ export default function Home({
           >
             <Wand className="h-4 w-4" /> Create Video
           </Button>
-          <Button
-            variant={"outline"}
-            className="flex flex-row items-center gap-2"
-            onClick={() => setIsYourVideosOpen(true)}
-          >
-            <Folder className="h-4 w-4" />
-            Your videos
-          </Button>
+
+          {user.isSignedIn ? (
+            <Button
+              variant={"outline"}
+              className="flex flex-row items-center gap-2"
+              onClick={() => setIsYourVideosOpen(true)}
+            >
+              <Folder className="h-4 w-4" />
+              Your videos
+            </Button>
+          ) : !user.isLoaded ? (
+            <Skeleton className="h-[2.4rem] w-[8.9rem] rounded-lg"></Skeleton>
+          ) : null}
         </div>
       </div>
       <div className="pt-48 coarse:hidden">
