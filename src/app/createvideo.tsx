@@ -21,6 +21,7 @@ import { trpc } from "@/trpc/client";
 //@ts-ignore
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
+import { pendingVideos } from "@/server/db/schemas/users/schema";
 
 export default function CreateVideo({
   visible = false,
@@ -28,6 +29,8 @@ export default function CreateVideo({
   visible?: boolean;
 }) {
   const user = useAuth();
+
+  const videoStatus = trpc.user.videoStatus.useQuery();
 
   const [videoInput, setVideoInput] = useState("");
   const [agent, setAgent] = useState<
@@ -425,12 +428,18 @@ export default function CreateVideo({
             </div>
           </div>
         </div>
+        {videoStatus.data?.videos !== null && (
+          <p className="text-sm text-destructive/60">
+            Can't generate another video while one is already pending
+          </p>
+        )}
         <DialogFooter>
           <Button
             disabled={
               agent.length !== 2 ||
               (videoInput === "" && recommendedSelect === -1) ||
-              generating
+              generating ||
+              videoStatus.data?.videos !== null
             }
             className="flex items-center gap-2"
             onClick={() => {
