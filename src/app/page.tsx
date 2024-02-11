@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Folder, Loader2, Wand } from "lucide-react";
@@ -23,6 +23,9 @@ export default function Home({
 
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
+  const unsureAddition = useMemo(() => {
+    return Math.floor(Math.random() * 10);
+  }, []);
 
   // useEffect(() => {
   //   if (searchParams.loggedIn === "true") {
@@ -87,7 +90,7 @@ export default function Home({
             width={200}
             height={200}
             alt="brainrot"
-            className="cursor-pointer rounded-full border border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
+            className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
           />
           <div className=" flex flex-col items-center gap-2">
             <Badge className="text-sm md:hidden" variant={"math"}>
@@ -108,7 +111,7 @@ export default function Home({
                 <div className="flex gap-2">
                   <span className="font-bold">Place in queue:</span>{" "}
                   {placeInQueue} <span className="font-bold">Est:</span>{" "}
-                  {placeInQueue * 10} mins
+                  {placeInQueue * 10 + unsureAddition} mins
                 </div>
               </div>
             )}
