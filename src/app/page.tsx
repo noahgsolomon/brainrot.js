@@ -23,6 +23,7 @@ export default function Home({
 
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
+  const [currentlyInQueue, setCurrentlyInQueue] = useState(false);
   const unsureAddition = useMemo(() => {
     return Math.floor(Math.random() * 10);
   }, []);
@@ -40,14 +41,29 @@ export default function Home({
   const { setIsOpen: setIsYourVideosOpen } = useYourVideos();
 
   useEffect(() => {
+    const intervalId = setInterval(() => {
+      videoStatus.refetch();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [videoStatus]);
+
+  useEffect(() => {
     if (user.isSignedIn) {
       if (
         videoStatus.data?.videos !== null &&
         videoStatus.data?.videos !== undefined
       ) {
+        setCurrentlyInQueue(true);
         setPlaceInQueue(videoStatus.data.queueLength);
         setPendingVideo(true);
         setIsInQueue(true);
+      } else if (currentlyInQueue) {
+        setCurrentlyInQueue(false);
+        setPendingVideo(false);
+        setIsInQueue(false);
+        toast.success("Your video has been generated!", { icon: "🎉" });
+        setIsYourVideosOpen(true);
       }
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);
