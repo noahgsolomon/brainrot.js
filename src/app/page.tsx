@@ -38,7 +38,7 @@ export default function Home({
 
   const videoStatus = trpc.user.videoStatus.useQuery();
   const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
-  const { setIsOpen: setIsYourVideosOpen } = useYourVideos();
+  const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -59,6 +59,7 @@ export default function Home({
         setPendingVideo(true);
         setIsInQueue(true);
       } else if (currentlyInQueue) {
+        setRefetchVideos(true);
         setCurrentlyInQueue(false);
         setPendingVideo(false);
         setIsInQueue(false);

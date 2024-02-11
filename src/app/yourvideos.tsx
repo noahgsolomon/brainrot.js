@@ -10,10 +10,18 @@ import { useEffect, useState } from "react";
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
   const user = useAuth();
 
-  const { isOpen, setIsOpen } = useYourVideos();
+  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
+    useYourVideos();
   const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
 
   const userVideosQuery = trpc.user.userVideos.useQuery();
+
+  useEffect(() => {
+    if (refetchVideos) {
+      userVideosQuery.refetch();
+      setRefetchVideos(false);
+    }
+  }, [refetchVideos]);
 
   const [videos, setVideos] = useState(userVideosQuery.data?.videos ?? []);
 
