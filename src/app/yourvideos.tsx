@@ -31,9 +31,9 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className=" rounded-lg sm:max-w-[425px]">
+      <DialogContent className="max-h-[80%] overflow-y-auto rounded-lg sm:max-w-[425px]">
         {userVideosQuery.isFetched && videos.length > 0 ? (
-          <div className="flex max-h-[80%] flex-col items-center justify-center overflow-y-auto">
+          <div className="flex flex-col items-center justify-center ">
             {videos.map((video) => (
               <>
                 <p className="font-bold underline">{video.title}</p>
@@ -57,7 +57,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                   </span>
                 </p>
                 <video
-                  className="scale-[90%] rounded-lg border shadow-md transition-all"
+                  className="rounded-lg border shadow-md transition-all"
                   width={300}
                   height={300}
                   src={video.url}

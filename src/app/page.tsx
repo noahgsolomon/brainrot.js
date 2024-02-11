@@ -24,9 +24,6 @@ export default function Home({
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
   const [currentlyInQueue, setCurrentlyInQueue] = useState(false);
-  const unsureAddition = useMemo(() => {
-    return Math.floor(Math.random() * 10);
-  }, []);
 
   // useEffect(() => {
   //   if (searchParams.loggedIn === "true") {
@@ -43,7 +40,7 @@ export default function Home({
   useEffect(() => {
     const intervalId = setInterval(() => {
       videoStatus.refetch();
-    }, 30000); // 30 seconds
+    }, 5000);
 
     return () => clearInterval(intervalId);
   }, [videoStatus]);
@@ -128,7 +125,7 @@ export default function Home({
                 <div className="flex gap-2">
                   <span className="font-bold">Place in queue:</span>{" "}
                   {placeInQueue} <span className="font-bold">Est:</span>{" "}
-                  {placeInQueue * 10 + unsureAddition} mins
+                  {(placeInQueue + 1) * 2} mins
                 </div>
               </div>
             )}
