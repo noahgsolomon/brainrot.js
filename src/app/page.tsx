@@ -12,6 +12,7 @@ import { Folder, Loader2, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
+import Link from "next/link";
 
 export default function Home({
   searchParams,
@@ -107,16 +108,23 @@ export default function Home({
             className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
           />
           <div className=" flex flex-col items-center gap-2">
-            <Badge className="text-sm md:hidden" variant={"math"}>
-              @UGAHACKS9
+            <Badge
+              className="cursor-pointer text-sm md:hidden"
+              variant={"math"}
+            >
+              <Link target="_blank" href={"https://smart.wtf"}>
+                @SMART.WTF
+              </Link>
             </Badge>
             <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
               BRAINROT.JS
               <Badge
-                className="absolute -top-8 hidden text-sm md:-right-12 md:block"
+                className="absolute -top-8 hidden cursor-pointer text-sm md:-right-12 md:block"
                 variant={"math"}
               >
-                @UGAHACKS9
+                <Link target="_blank" href={"https://smart.wtf"}>
+                  @SMART.WTF
+                </Link>
               </Badge>
             </h1>
             {pendingVideo && (
