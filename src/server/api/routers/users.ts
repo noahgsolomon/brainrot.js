@@ -1,5 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { brainrotusers, pendingVideos } from "@/server/db/schemas/users/schema";
+import {
+  brainrotusers,
+  pendingVideos,
+  videos,
+} from "@/server/db/schemas/users/schema";
 import { eq, or } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs";
 import { z } from "zod";
@@ -131,6 +135,14 @@ export const userRouter = createTRPCRouter({
         message: "username has been changed.",
       };
     }),
+
+  userVideos: protectedProcedure.query(async ({ ctx }) => {
+    const userVideosDb = await ctx.db.query.videos.findMany({
+      where: eq(pendingVideos.user_id, ctx.user_id),
+    });
+
+    return { videos: userVideosDb };
+  }),
 
   // Mutation to update the current user's name
   setName: protectedProcedure
