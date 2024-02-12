@@ -1,0 +1,85 @@
+1
+00:00:00,000 --> 00:00:02,000
+So, you know about backpropagation, right?
+
+2
+00:00:02,000 --> 00:00:06,000
+It's like the secret sauce that makes neural networks get jacked.
+
+3
+00:00:06,000 --> 00:00:07,000
+Picture this.
+
+4
+00:00:07,000 --> 00:00:11,000
+Your AI is cruising along trying to figure stuff out,
+
+5
+00:00:11,000 --> 00:00:15,000
+and when it trips up, backpropagation is like that chill coach
+
+6
+00:00:15,000 --> 00:00:17,000
+that strolls over and goes,
+
+7
+00:00:17,000 --> 00:00:19,000
+Hey, let's tweak your technique a bit.
+
+8
+00:00:19,000 --> 00:00:21,000
+It's not about getting it perfect on the first try.
+
+9
+00:00:21,000 --> 00:00:23,000
+It's about those little adjustments.
+
+10
+00:00:23,000 --> 00:00:26,000
+The AI takes a swing at a problem,
+
+11
+00:00:26,000 --> 00:00:27,000
+and maybe it misses,
+
+12
+00:00:27,000 --> 00:00:29,000
+but then, BAM!
+
+13
+00:00:29,000 --> 00:00:31,000
+Backpropagation steps in, runs the tape back,
+
+14
+00:00:31,000 --> 00:00:32,000
+and it's like,
+
+15
+00:00:32,000 --> 00:00:36,000
+Alright, let's shift your stance, adjust the angle, and go again.
+
+16
+00:00:36,000 --> 00:00:40,000
+And with each pass, your AI is getting sharper,
+
+17
+00:00:40,000 --> 00:00:41,000
+learning from the slips,
+
+18
+00:00:41,000 --> 00:00:45,000
+kind of like how a comedian hones a bit after a few rough sets.
+
+19
+00:00:45,000 --> 00:00:47,000
+It's all about that sweet spot,
+
+20
+00:00:47,000 --> 00:00:51,000
+training the brain of the machine to hit the punchline every time.
+
+21
+00:00:51,000 --> 00:00:52,000
+Wild, right?
+
+

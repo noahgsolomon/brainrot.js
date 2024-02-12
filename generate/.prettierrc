@@ -1,0 +1,12 @@
+{
+	"singleQuote": true,
+	"useTabs": true,
+	"overrides": [
+		{
+			"files": ["*.yml"],
+			"options": {
+				"singleQuote": false
+			}
+		}
+	]
+}

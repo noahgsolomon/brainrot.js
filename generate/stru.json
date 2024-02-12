@@ -1,0 +1,1107 @@
+[
+	[
+		{
+			"text": " Dude, stem cells are like the body's own repair kit, right? How far can we actually go with this stuff?",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.1,
+					"end": 2.82,
+					"text": " Dude, stem cells are like the body's own repair kit, right?",
+					"tokens": [
+						50364, 12042, 11, 12312, 5438, 366, 411, 264, 1772, 311, 1065,
+						10535, 8260, 11, 558, 30, 50505
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2105064074198405,
+					"compression_ratio": 1.0957446808510638,
+					"no_speech_prob": 0.002074001356959343,
+					"confidence": 0.944,
+					"words": [
+						{ "text": "Dude,", "start": 0.1, "end": 0.34, "confidence": 0.744 },
+						{ "text": "stem", "start": 0.5, "end": 0.66, "confidence": 0.959 },
+						{
+							"text": "cells",
+							"start": 0.66,
+							"end": 0.96,
+							"confidence": 0.987
+						},
+						{ "text": "are", "start": 0.96, "end": 1.16, "confidence": 0.989 },
+						{ "text": "like", "start": 1.16, "end": 1.26, "confidence": 0.939 },
+						{ "text": "the", "start": 1.26, "end": 1.46, "confidence": 0.978 },
+						{
+							"text": "body's",
+							"start": 1.46,
+							"end": 1.88,
+							"confidence": 0.937
+						},
+						{ "text": "own", "start": 1.88, "end": 2.0, "confidence": 0.987 },
+						{
+							"text": "repair",
+							"start": 2.0,
+							"end": 2.34,
+							"confidence": 0.983
+						},
+						{ "text": "kit,", "start": 2.34, "end": 2.6, "confidence": 0.998 },
+						{
+							"text": "right?",
+							"start": 2.74,
+							"end": 2.82,
+							"confidence": 0.917
+						}
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 2.94,
+					"end": 4.76,
+					"text": " How far can we actually go with this stuff?",
+					"tokens": [
+						50505, 1012, 1400, 393, 321, 767, 352, 365, 341, 1507, 30, 50605
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2105064074198405,
+					"compression_ratio": 1.0957446808510638,
+					"no_speech_prob": 0.002074001356959343,
+					"confidence": 0.992,
+					"words": [
+						{ "text": "How", "start": 2.94, "end": 3.16, "confidence": 0.992 },
+						{ "text": "far", "start": 3.16, "end": 3.38, "confidence": 0.998 },
+						{ "text": "can", "start": 3.38, "end": 3.54, "confidence": 0.996 },
+						{ "text": "we", "start": 3.54, "end": 3.66, "confidence": 0.999 },
+						{
+							"text": "actually",
+							"start": 3.66,
+							"end": 3.98,
+							"confidence": 0.964
+						},
+						{ "text": "go", "start": 3.98, "end": 4.12, "confidence": 0.999 },
+						{ "text": "with", "start": 4.12, "end": 4.3, "confidence": 0.997 },
+						{ "text": "this", "start": 4.3, "end": 4.56, "confidence": 0.988 },
+						{
+							"text": "stuff?",
+							"start": 4.56,
+							"end": 4.76,
+							"confidence": 0.999
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JOE_ROGAN-0.mp3"
+	],
+	[
+		{
+			"text": " Well, Joe, it's quite complicated. The potential is immense. We're discussing the ability to potentially regenerate damaged tissues, organs. It's akin to granting the body a form of renaissance.",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.22,
+					"end": 1.44,
+					"text": " Well, Joe, it's quite complicated.",
+					"tokens": [
+						50364, 1042, 11, 6807, 11, 309, 311, 1596, 6179, 13, 50441
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26827505523083256,
+					"compression_ratio": 1.3566433566433567,
+					"no_speech_prob": 0.0041345818899571896,
+					"confidence": 0.893,
+					"words": [
+						{
+							"text": "Well,",
+							"start": 0.22,
+							"end": 0.42,
+							"confidence": 0.566
+						},
+						{ "text": "Joe,", "start": 0.52, "end": 0.58, "confidence": 0.936 },
+						{ "text": "it's", "start": 0.74, "end": 0.78, "confidence": 0.983 },
+						{
+							"text": "quite",
+							"start": 0.78,
+							"end": 0.94,
+							"confidence": 0.995
+						},
+						{
+							"text": "complicated.",
+							"start": 0.94,
+							"end": 1.44,
+							"confidence": 0.998
+						}
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 1.54,
+					"end": 3.06,
+					"text": " The potential is immense.",
+					"tokens": [50441, 440, 3995, 307, 22920, 13, 50533],
+					"temperature": 0.0,
+					"avg_logprob": -0.26827505523083256,
+					"compression_ratio": 1.3566433566433567,
+					"no_speech_prob": 0.0041345818899571896,
+					"confidence": 0.997,
+					"words": [
+						{ "text": "The", "start": 1.54, "end": 1.74, "confidence": 0.998 },
+						{
+							"text": "potential",
+							"start": 1.74,
+							"end": 2.12,
+							"confidence": 0.998
+						},
+						{ "text": "is", "start": 2.12, "end": 2.4, "confidence": 0.998 },
+						{
+							"text": "immense.",
+							"start": 2.4,
+							"end": 3.06,
+							"confidence": 0.994
+						}
+					]
+				},
+				{
+					"id": 2,
+					"seek": 0,
+					"start": 3.38,
+					"end": 8.44,
+					"text": " We're discussing the ability to potentially regenerate damaged tissues, organs.",
+					"tokens": [
+						50533, 492, 434, 10850, 264, 3485, 281, 7263, 26358, 473, 14080,
+						27353, 11, 20659, 13, 50823
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26827505523083256,
+					"compression_ratio": 1.3566433566433567,
+					"no_speech_prob": 0.0041345818899571896,
+					"confidence": 0.961,
+					"words": [
+						{
+							"text": "We're",
+							"start": 3.38,
+							"end": 3.62,
+							"confidence": 0.992
+						},
+						{
+							"text": "discussing",
+							"start": 3.62,
+							"end": 4.0,
+							"confidence": 0.998
+						},
+						{ "text": "the", "start": 4.0, "end": 4.26, "confidence": 0.998 },
+						{
+							"text": "ability",
+							"start": 4.26,
+							"end": 4.64,
+							"confidence": 0.997
+						},
+						{ "text": "to", "start": 4.64, "end": 4.9, "confidence": 0.968 },
+						{
+							"text": "potentially",
+							"start": 4.9,
+							"end": 5.36,
+							"confidence": 0.984
+						},
+						{
+							"text": "regenerate",
+							"start": 5.36,
+							"end": 6.36,
+							"confidence": 0.976
+						},
+						{
+							"text": "damaged",
+							"start": 6.36,
+							"end": 6.92,
+							"confidence": 0.76
+						},
+						{
+							"text": "tissues,",
+							"start": 6.92,
+							"end": 7.52,
+							"confidence": 0.978
+						},
+						{
+							"text": "organs.",
+							"start": 7.92,
+							"end": 8.44,
+							"confidence": 0.945
+						}
+					]
+				},
+				{
+					"id": 3,
+					"seek": 0,
+					"start": 9.08,
+					"end": 11.66,
+					"text": " It's akin to granting the body a form of renaissance.",
+					"tokens": [
+						50823, 467, 311, 47540, 281, 50204, 264, 1772, 257, 1254, 295, 319,
+						629, 14431, 13, 50949
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26827505523083256,
+					"compression_ratio": 1.3566433566433567,
+					"no_speech_prob": 0.0041345818899571896,
+					"confidence": 0.946,
+					"words": [
+						{ "text": "It's", "start": 9.08, "end": 9.34, "confidence": 0.991 },
+						{ "text": "akin", "start": 9.34, "end": 9.56, "confidence": 0.997 },
+						{ "text": "to", "start": 9.56, "end": 9.72, "confidence": 0.998 },
+						{
+							"text": "granting",
+							"start": 9.72,
+							"end": 10.02,
+							"confidence": 0.993
+						},
+						{
+							"text": "the",
+							"start": 10.02,
+							"end": 10.24,
+							"confidence": 0.997
+						},
+						{
+							"text": "body",
+							"start": 10.24,
+							"end": 10.5,
+							"confidence": 0.996
+						},
+						{ "text": "a", "start": 10.5, "end": 10.72, "confidence": 0.996 },
+						{
+							"text": "form",
+							"start": 10.72,
+							"end": 10.9,
+							"confidence": 0.999
+						},
+						{ "text": "of", "start": 10.9, "end": 11.08, "confidence": 0.997 },
+						{
+							"text": "renaissance.",
+							"start": 11.08,
+							"end": 11.66,
+							"confidence": 0.797
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JORDAN_PETERSON-1.mp3"
+	],
+	[
+		{
+			"text": " Renaissance, huh? Like bringing a dead painting back to life. But what's the catch? There's always a catch.",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.16,
+					"end": 4.56,
+					"text": " Renaissance, huh? Like bringing a dead painting back to life. But what's the catch? There's always a catch.",
+					"tokens": [
+						50364, 32642, 11, 7020, 30, 1743, 5062, 257, 3116, 5370, 646, 281,
+						993, 13, 583, 437, 311, 264, 3745, 30, 821, 311, 1009, 257, 3745,
+						13, 50596
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.30080931527273996,
+					"compression_ratio": 1.1030927835051547,
+					"no_speech_prob": 0.017207099124789238,
+					"confidence": 0.819,
+					"words": [
+						{
+							"text": "Renaissance,",
+							"start": 0.16,
+							"end": 0.7,
+							"confidence": 0.37
+						},
+						{ "text": "huh?", "start": 0.92, "end": 0.98, "confidence": 0.437 },
+						{ "text": "Like", "start": 1.12, "end": 1.16, "confidence": 0.618 },
+						{
+							"text": "bringing",
+							"start": 1.16,
+							"end": 1.4,
+							"confidence": 0.597
+						},
+						{ "text": "a", "start": 1.4, "end": 1.58, "confidence": 0.99 },
+						{ "text": "dead", "start": 1.58, "end": 1.68, "confidence": 0.992 },
+						{
+							"text": "painting",
+							"start": 1.68,
+							"end": 2.0,
+							"confidence": 0.934
+						},
+						{ "text": "back", "start": 2.0, "end": 2.2, "confidence": 0.975 },
+						{ "text": "to", "start": 2.2, "end": 2.4, "confidence": 0.956 },
+						{ "text": "life.", "start": 2.4, "end": 2.58, "confidence": 0.997 },
+						{ "text": "But", "start": 2.64, "end": 2.74, "confidence": 0.619 },
+						{
+							"text": "what's",
+							"start": 2.74,
+							"end": 2.92,
+							"confidence": 0.983
+						},
+						{ "text": "the", "start": 2.92, "end": 3.08, "confidence": 0.984 },
+						{
+							"text": "catch?",
+							"start": 3.08,
+							"end": 3.38,
+							"confidence": 0.923
+						},
+						{
+							"text": "There's",
+							"start": 3.5,
+							"end": 3.92,
+							"confidence": 0.828
+						},
+						{
+							"text": "always",
+							"start": 3.92,
+							"end": 4.1,
+							"confidence": 0.982
+						},
+						{ "text": "a", "start": 4.1, "end": 4.28, "confidence": 0.984 },
+						{
+							"text": "catch.",
+							"start": 4.28,
+							"end": 4.56,
+							"confidence": 0.999
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JOE_ROGAN-2.mp3"
+	],
+	[
+		{
+			"text": " Indeed, every intervention has its own set of conundrums, the application and ethical quantities of stem cell therapy are deeply entwined. It's like opening Pandora's box, but the contents can either be a monster or a miracle.",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.22,
+					"end": 4.44,
+					"text": " Indeed, every intervention has its own set of conundrums, the application and ethical",
+					"tokens": [
+						50364, 15061, 11, 633, 13176, 575, 1080, 1065, 992, 295, 416, 997,
+						6247, 82, 11, 264, 3861, 293, 18890, 50585
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.18691226892304003,
+					"compression_ratio": 1.4037267080745341,
+					"no_speech_prob": 0.0024465597234666348,
+					"confidence": 0.949,
+					"words": [
+						{
+							"text": "Indeed,",
+							"start": 0.22,
+							"end": 0.52,
+							"confidence": 0.984
+						},
+						{
+							"text": "every",
+							"start": 0.58,
+							"end": 0.84,
+							"confidence": 0.997
+						},
+						{
+							"text": "intervention",
+							"start": 0.84,
+							"end": 1.32,
+							"confidence": 0.992
+						},
+						{ "text": "has", "start": 1.32, "end": 1.66, "confidence": 0.983 },
+						{ "text": "its", "start": 1.66, "end": 1.9, "confidence": 0.987 },
+						{ "text": "own", "start": 1.9, "end": 2.12, "confidence": 1.0 },
+						{ "text": "set", "start": 2.12, "end": 2.28, "confidence": 0.985 },
+						{ "text": "of", "start": 2.28, "end": 2.42, "confidence": 0.99 },
+						{
+							"text": "conundrums,",
+							"start": 2.42,
+							"end": 3.04,
+							"confidence": 0.928
+						},
+						{ "text": "the", "start": 3.16, "end": 3.2, "confidence": 0.715 },
+						{
+							"text": "application",
+							"start": 3.2,
+							"end": 3.86,
+							"confidence": 0.975
+						},
+						{ "text": "and", "start": 3.86, "end": 4.1, "confidence": 0.925 },
+						{
+							"text": "ethical",
+							"start": 4.1,
+							"end": 4.44,
+							"confidence": 0.981
+						}
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 4.48,
+					"end": 7.4,
+					"text": " quantities of stem cell therapy are deeply entwined.",
+					"tokens": [
+						50585, 22927, 295, 12312, 2815, 9492, 366, 8760, 948, 86, 2001, 13,
+						50748
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.18691226892304003,
+					"compression_ratio": 1.4037267080745341,
+					"no_speech_prob": 0.0024465597234666348,
+					"confidence": 0.899,
+					"words": [
+						{
+							"text": "quantities",
+							"start": 4.48,
+							"end": 4.96,
+							"confidence": 0.549
+						},
+						{ "text": "of", "start": 4.96, "end": 5.24, "confidence": 0.998 },
+						{ "text": "stem", "start": 5.24, "end": 5.48, "confidence": 0.987 },
+						{ "text": "cell", "start": 5.48, "end": 5.76, "confidence": 0.879 },
+						{
+							"text": "therapy",
+							"start": 5.76,
+							"end": 6.12,
+							"confidence": 0.995
+						},
+						{ "text": "are", "start": 6.12, "end": 6.36, "confidence": 0.999 },
+						{
+							"text": "deeply",
+							"start": 6.36,
+							"end": 6.66,
+							"confidence": 0.995
+						},
+						{
+							"text": "entwined.",
+							"start": 6.66,
+							"end": 7.4,
+							"confidence": 0.902
+						}
+					]
+				},
+				{
+					"id": 2,
+					"seek": 0,
+					"start": 7.56,
+					"end": 12.32,
+					"text": " It's like opening Pandora's box, but the contents can either be a monster or a miracle.",
+					"tokens": [
+						50748, 467, 311, 411, 5193, 16995, 3252, 311, 2424, 11, 457, 264,
+						15768, 393, 2139, 312, 257, 10090, 420, 257, 14660, 13, 50982
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.18691226892304003,
+					"compression_ratio": 1.4037267080745341,
+					"no_speech_prob": 0.0024465597234666348,
+					"confidence": 0.965,
+					"words": [
+						{ "text": "It's", "start": 7.56, "end": 7.8, "confidence": 0.976 },
+						{ "text": "like", "start": 7.8, "end": 7.96, "confidence": 0.994 },
+						{
+							"text": "opening",
+							"start": 7.96,
+							"end": 8.28,
+							"confidence": 0.992
+						},
+						{
+							"text": "Pandora's",
+							"start": 8.28,
+							"end": 8.98,
+							"confidence": 0.935
+						},
+						{ "text": "box,", "start": 8.98, "end": 9.32, "confidence": 0.854 },
+						{ "text": "but", "start": 9.6, "end": 9.78, "confidence": 0.989 },
+						{ "text": "the", "start": 9.78, "end": 9.94, "confidence": 0.995 },
+						{
+							"text": "contents",
+							"start": 9.94,
+							"end": 10.5,
+							"confidence": 0.966
+						},
+						{ "text": "can", "start": 10.5, "end": 10.78, "confidence": 0.988 },
+						{
+							"text": "either",
+							"start": 10.78,
+							"end": 10.94,
+							"confidence": 0.979
+						},
+						{ "text": "be", "start": 10.94, "end": 11.14, "confidence": 0.998 },
+						{ "text": "a", "start": 11.14, "end": 11.3, "confidence": 0.93 },
+						{
+							"text": "monster",
+							"start": 11.3,
+							"end": 11.62,
+							"confidence": 0.957
+						},
+						{ "text": "or", "start": 11.62, "end": 11.9, "confidence": 0.992 },
+						{ "text": "a", "start": 11.9, "end": 12.0, "confidence": 0.984 },
+						{
+							"text": "miracle.",
+							"start": 12.0,
+							"end": 12.32,
+							"confidence": 0.972
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JORDAN_PETERSON-3.mp3"
+	],
+	[
+		{
+			"text": " Monsters and miracles, that's a pretty wild spectrum. What's a real life example of this working?",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.12,
+					"end": 2.32,
+					"text": " Monsters and miracles, that's a pretty wild spectrum.",
+					"tokens": [
+						50364, 39768, 433, 293, 24685, 11, 300, 311, 257, 1238, 4868, 11143,
+						13, 50484
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2821209695604112,
+					"compression_ratio": 1.0898876404494382,
+					"no_speech_prob": 0.0008462793775834143,
+					"confidence": 0.866,
+					"words": [
+						{
+							"text": "Monsters",
+							"start": 0.12,
+							"end": 0.56,
+							"confidence": 0.56
+						},
+						{ "text": "and", "start": 0.56, "end": 0.68, "confidence": 0.965 },
+						{
+							"text": "miracles,",
+							"start": 0.68,
+							"end": 1.02,
+							"confidence": 0.874
+						},
+						{
+							"text": "that's",
+							"start": 1.22,
+							"end": 1.48,
+							"confidence": 0.976
+						},
+						{ "text": "a", "start": 1.48, "end": 1.58, "confidence": 0.995 },
+						{
+							"text": "pretty",
+							"start": 1.58,
+							"end": 1.72,
+							"confidence": 0.996
+						},
+						{ "text": "wild", "start": 1.72, "end": 1.94, "confidence": 0.969 },
+						{
+							"text": "spectrum.",
+							"start": 1.94,
+							"end": 2.32,
+							"confidence": 0.983
+						}
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 2.42,
+					"end": 4.14,
+					"text": " What's a real life example of this working?",
+					"tokens": [
+						50484, 708, 311, 257, 957, 993, 1365, 295, 341, 1364, 30, 50580
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2821209695604112,
+					"compression_ratio": 1.0898876404494382,
+					"no_speech_prob": 0.0008462793775834143,
+					"confidence": 0.967,
+					"words": [
+						{
+							"text": "What's",
+							"start": 2.42,
+							"end": 2.7,
+							"confidence": 0.992
+						},
+						{ "text": "a", "start": 2.7, "end": 2.78, "confidence": 0.945 },
+						{ "text": "real", "start": 2.78, "end": 2.9, "confidence": 1.0 },
+						{ "text": "life", "start": 2.9, "end": 3.08, "confidence": 0.824 },
+						{
+							"text": "example",
+							"start": 3.08,
+							"end": 3.5,
+							"confidence": 0.995
+						},
+						{ "text": "of", "start": 3.5, "end": 3.66, "confidence": 0.996 },
+						{ "text": "this", "start": 3.66, "end": 3.86, "confidence": 0.997 },
+						{
+							"text": "working?",
+							"start": 3.86,
+							"end": 4.14,
+							"confidence": 0.976
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JOE_ROGAN-4.mp3"
+	],
+	[
+		{
+			"text": " Consider patients with severe burns. Stem cell therapy has been utilized to grow new skin, vastly improving recovery times and outcomes. It's a remarkable victory, although still in its naissance.",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.18,
+					"end": 1.84,
+					"text": " Consider patients with severe burns.",
+					"tokens": [50364, 17416, 4209, 365, 8922, 22684, 13, 50462],
+					"temperature": 0.0,
+					"avg_logprob": -0.2845309643035239,
+					"compression_ratio": 1.3154362416107384,
+					"no_speech_prob": 0.0016581326490268111,
+					"confidence": 0.979,
+					"words": [
+						{
+							"text": "Consider",
+							"start": 0.18,
+							"end": 0.56,
+							"confidence": 0.978
+						},
+						{
+							"text": "patients",
+							"start": 0.56,
+							"end": 0.94,
+							"confidence": 0.953
+						},
+						{ "text": "with", "start": 0.94, "end": 1.14, "confidence": 0.997 },
+						{
+							"text": "severe",
+							"start": 1.14,
+							"end": 1.4,
+							"confidence": 0.999
+						},
+						{ "text": "burns.", "start": 1.4, "end": 1.84, "confidence": 0.969 }
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 2.18,
+					"end": 4.6,
+					"text": " Stem cell therapy has been utilized to grow new skin,",
+					"tokens": [
+						50462, 745, 443, 2815, 9492, 575, 668, 28158, 281, 1852, 777, 3178,
+						11, 50596
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2845309643035239,
+					"compression_ratio": 1.3154362416107384,
+					"no_speech_prob": 0.0016581326490268111,
+					"confidence": 0.889,
+					"words": [
+						{ "text": "Stem", "start": 2.18, "end": 2.42, "confidence": 0.79 },
+						{ "text": "cell", "start": 2.42, "end": 2.6, "confidence": 0.513 },
+						{
+							"text": "therapy",
+							"start": 2.6,
+							"end": 2.92,
+							"confidence": 0.998
+						},
+						{ "text": "has", "start": 2.92, "end": 3.14, "confidence": 0.991 },
+						{ "text": "been", "start": 3.14, "end": 3.3, "confidence": 0.994 },
+						{
+							"text": "utilized",
+							"start": 3.3,
+							"end": 3.66,
+							"confidence": 0.945
+						},
+						{ "text": "to", "start": 3.66, "end": 3.86, "confidence": 0.979 },
+						{ "text": "grow", "start": 3.86, "end": 4.02, "confidence": 0.973 },
+						{ "text": "new", "start": 4.02, "end": 4.26, "confidence": 0.98 },
+						{ "text": "skin,", "start": 4.26, "end": 4.6, "confidence": 0.993 }
+					]
+				},
+				{
+					"id": 2,
+					"seek": 0,
+					"start": 4.84,
+					"end": 7.12,
+					"text": " vastly improving recovery times and outcomes.",
+					"tokens": [50596, 41426, 11470, 8597, 1413, 293, 10070, 13, 50728],
+					"temperature": 0.0,
+					"avg_logprob": -0.2845309643035239,
+					"compression_ratio": 1.3154362416107384,
+					"no_speech_prob": 0.0016581326490268111,
+					"confidence": 0.978,
+					"words": [
+						{
+							"text": "vastly",
+							"start": 4.84,
+							"end": 5.24,
+							"confidence": 0.996
+						},
+						{
+							"text": "improving",
+							"start": 5.24,
+							"end": 5.68,
+							"confidence": 0.997
+						},
+						{
+							"text": "recovery",
+							"start": 5.68,
+							"end": 6.14,
+							"confidence": 0.997
+						},
+						{ "text": "times", "start": 6.14, "end": 6.5, "confidence": 0.96 },
+						{ "text": "and", "start": 6.5, "end": 6.66, "confidence": 0.935 },
+						{
+							"text": "outcomes.",
+							"start": 6.66,
+							"end": 7.12,
+							"confidence": 0.986
+						}
+					]
+				},
+				{
+					"id": 3,
+					"seek": 0,
+					"start": 7.48,
+					"end": 10.68,
+					"text": " It's a remarkable victory, although still in its naissance.",
+					"tokens": [
+						50728, 467, 311, 257, 12802, 9812, 11, 4878, 920, 294, 1080, 1667,
+						14431, 13, 50904
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.2845309643035239,
+					"compression_ratio": 1.3154362416107384,
+					"no_speech_prob": 0.0016581326490268111,
+					"confidence": 0.823,
+					"words": [
+						{ "text": "It's", "start": 7.48, "end": 7.74, "confidence": 0.985 },
+						{ "text": "a", "start": 7.74, "end": 7.82, "confidence": 0.999 },
+						{
+							"text": "remarkable",
+							"start": 7.82,
+							"end": 8.3,
+							"confidence": 0.994
+						},
+						{
+							"text": "victory,",
+							"start": 8.3,
+							"end": 8.86,
+							"confidence": 0.989
+						},
+						{
+							"text": "although",
+							"start": 9.3,
+							"end": 9.46,
+							"confidence": 0.679
+						},
+						{
+							"text": "still",
+							"start": 9.46,
+							"end": 9.84,
+							"confidence": 0.995
+						},
+						{ "text": "in", "start": 9.84, "end": 10.0, "confidence": 0.986 },
+						{ "text": "its", "start": 10.0, "end": 10.16, "confidence": 0.974 },
+						{
+							"text": "naissance.",
+							"start": 10.16,
+							"end": 10.68,
+							"confidence": 0.434
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JORDAN_PETERSON-5.mp3"
+	],
+	[
+		{
+			"text": " skin regeneration, that's sci-fi stuff. But can it help with things like Alzheimer's or heart disease?",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.12,
+					"end": 2.1,
+					"text": " skin regeneration, that's sci-fi stuff.",
+					"tokens": [
+						50364, 3178, 43813, 11, 300, 311, 2180, 12, 13325, 1507, 13, 50475
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.3427695206233433,
+					"compression_ratio": 1.096774193548387,
+					"no_speech_prob": 0.027798399329185486,
+					"confidence": 0.875,
+					"words": [
+						{ "text": "skin", "start": 0.12, "end": 0.36, "confidence": 0.627 },
+						{
+							"text": "regeneration,",
+							"start": 0.36,
+							"end": 0.92,
+							"confidence": 0.989
+						},
+						{
+							"text": "that's",
+							"start": 1.24,
+							"end": 1.32,
+							"confidence": 0.793
+						},
+						{
+							"text": "sci-fi",
+							"start": 1.32,
+							"end": 1.74,
+							"confidence": 0.961
+						},
+						{ "text": "stuff.", "start": 1.74, "end": 2.1, "confidence": 0.992 }
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 2.44,
+					"end": 5.0,
+					"text": " But can it help with things like Alzheimer's or heart disease?",
+					"tokens": [
+						50475, 583, 393, 309, 854, 365, 721, 411, 27932, 311, 420, 1917,
+						4752, 30, 50624
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.3427695206233433,
+					"compression_ratio": 1.096774193548387,
+					"no_speech_prob": 0.027798399329185486,
+					"confidence": 0.958,
+					"words": [
+						{ "text": "But", "start": 2.44, "end": 2.62, "confidence": 0.966 },
+						{ "text": "can", "start": 2.62, "end": 2.7, "confidence": 0.978 },
+						{ "text": "it", "start": 2.7, "end": 2.76, "confidence": 0.927 },
+						{ "text": "help", "start": 2.76, "end": 2.92, "confidence": 0.999 },
+						{ "text": "with", "start": 2.92, "end": 3.08, "confidence": 0.994 },
+						{
+							"text": "things",
+							"start": 3.08,
+							"end": 3.32,
+							"confidence": 0.996
+						},
+						{ "text": "like", "start": 3.32, "end": 3.58, "confidence": 0.991 },
+						{
+							"text": "Alzheimer's",
+							"start": 3.58,
+							"end": 4.2,
+							"confidence": 0.989
+						},
+						{ "text": "or", "start": 4.2, "end": 4.4, "confidence": 0.836 },
+						{ "text": "heart", "start": 4.4, "end": 4.62, "confidence": 0.851 },
+						{
+							"text": "disease?",
+							"start": 4.62,
+							"end": 5.0,
+							"confidence": 0.996
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JOE_ROGAN-6.mp3"
+	],
+	[
+		{
+			"text": " Theoretically, yes, in practice, it's incredibly challenging. Nuro degenerative diseases and cardiac issues are complex systems. You're trying to solve a multidimensional puzzle. Precision is paramount.",
+			"segments": [
+				{
+					"id": 0,
+					"seek": 0,
+					"start": 0.18,
+					"end": 3.64,
+					"text": " Theoretically, yes, in practice, it's incredibly challenging.",
+					"tokens": [
+						50364, 440, 26262, 984, 11, 2086, 11, 294, 3124, 11, 309, 311, 6252,
+						7595, 13, 50568
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26005019781724464,
+					"compression_ratio": 1.3377483443708609,
+					"no_speech_prob": 0.0028579672798514366,
+					"confidence": 0.93,
+					"words": [
+						{
+							"text": "Theoretically,",
+							"start": 0.18,
+							"end": 0.92,
+							"confidence": 0.864
+						},
+						{ "text": "yes,", "start": 1.22, "end": 1.6, "confidence": 0.945 },
+						{ "text": "in", "start": 1.96, "end": 2.04, "confidence": 0.927 },
+						{
+							"text": "practice,",
+							"start": 2.04,
+							"end": 2.46,
+							"confidence": 0.993
+						},
+						{ "text": "it's", "start": 2.66, "end": 2.74, "confidence": 0.955 },
+						{
+							"text": "incredibly",
+							"start": 2.74,
+							"end": 3.14,
+							"confidence": 0.963
+						},
+						{
+							"text": "challenging.",
+							"start": 3.14,
+							"end": 3.64,
+							"confidence": 0.985
+						}
+					]
+				},
+				{
+					"id": 1,
+					"seek": 0,
+					"start": 4.2,
+					"end": 7.88,
+					"text": " Nuro degenerative diseases and cardiac issues are complex systems.",
+					"tokens": [
+						50568, 426, 7052, 40520, 1166, 11044, 293, 32129, 2663, 366, 3997,
+						3652, 13, 50772
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26005019781724464,
+					"compression_ratio": 1.3377483443708609,
+					"no_speech_prob": 0.0028579672798514366,
+					"confidence": 0.778,
+					"words": [
+						{ "text": "Nuro", "start": 4.2, "end": 4.54, "confidence": 0.524 },
+						{
+							"text": "degenerative",
+							"start": 4.54,
+							"end": 5.1,
+							"confidence": 0.534
+						},
+						{
+							"text": "diseases",
+							"start": 5.1,
+							"end": 5.6,
+							"confidence": 0.989
+						},
+						{ "text": "and", "start": 5.6, "end": 5.86, "confidence": 0.965 },
+						{
+							"text": "cardiac",
+							"start": 5.86,
+							"end": 6.26,
+							"confidence": 0.995
+						},
+						{
+							"text": "issues",
+							"start": 6.26,
+							"end": 6.64,
+							"confidence": 0.992
+						},
+						{ "text": "are", "start": 6.64, "end": 6.96, "confidence": 0.875 },
+						{
+							"text": "complex",
+							"start": 6.96,
+							"end": 7.32,
+							"confidence": 0.984
+						},
+						{
+							"text": "systems.",
+							"start": 7.32,
+							"end": 7.88,
+							"confidence": 0.99
+						}
+					]
+				},
+				{
+					"id": 2,
+					"seek": 0,
+					"start": 8.32,
+					"end": 10.46,
+					"text": " You're trying to solve a multidimensional puzzle.",
+					"tokens": [
+						50772, 509, 434, 1382, 281, 5039, 257, 2120, 327, 332, 11075, 12805,
+						13, 50892
+					],
+					"temperature": 0.0,
+					"avg_logprob": -0.26005019781724464,
+					"compression_ratio": 1.3377483443708609,
+					"no_speech_prob": 0.0028579672798514366,
+					"confidence": 0.939,
+					"words": [
+						{
+							"text": "You're",
+							"start": 8.32,
+							"end": 8.52,
+							"confidence": 0.989
+						},
+						{
+							"text": "trying",
+							"start": 8.52,
+							"end": 8.82,
+							"confidence": 0.999
+						},
+						{ "text": "to", "start": 8.82, "end": 9.0, "confidence": 0.999 },
+						{ "text": "solve", "start": 9.0, "end": 9.2, "confidence": 0.999 },
+						{ "text": "a", "start": 9.2, "end": 9.44, "confidence": 0.998 },
+						{
+							"text": "multidimensional",
+							"start": 9.44,
+							"end": 9.98,
+							"confidence": 0.848
+						},
+						{
+							"text": "puzzle.",
+							"start": 9.98,
+							"end": 10.46,
+							"confidence": 0.996
+						}
+					]
+				},
+				{
+					"id": 3,
+					"seek": 0,
+					"start": 10.74,
+					"end": 12.08,
+					"text": " Precision is paramount.",
+					"tokens": [50892, 6001, 40832, 307, 6220, 792, 13, 50968],
+					"temperature": 0.0,
+					"avg_logprob": -0.26005019781724464,
+					"compression_ratio": 1.3377483443708609,
+					"no_speech_prob": 0.0028579672798514366,
+					"confidence": 0.961,
+					"words": [
+						{
+							"text": "Precision",
+							"start": 10.74,
+							"end": 11.22,
+							"confidence": 0.914
+						},
+						{ "text": "is", "start": 11.22, "end": 11.52, "confidence": 0.998 },
+						{
+							"text": "paramount.",
+							"start": 11.52,
+							"end": 12.08,
+							"confidence": 0.992
+						}
+					]
+				}
+			],
+			"language": "en"
+		},
+		"public/voice/JORDAN_PETERSON-7.mp3"
+	]
+]

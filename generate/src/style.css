@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+	font-family: 'ProximaNovaBlack';
+	src: url('../public/ProximaNovaBlack.ttf') format('truetype');
+}
+
+:root {
+	--remotion-font: 'ProximaNovaBlack';
+	--base-size: 48px;
+}
+
+.audio-viz {
+	display: flex;
+	flex-direction: row;
+	height: calc(var(--base-size) * 4);
+	align-items: center;
+	justify-content: center;
+	gap: calc(var(--base-size) * 0.25);
+	margin-top: var(--base-size);
+}
+
+.bar {
+	border-radius: calc(var(--base-size) * 0.25);
+	width: calc(var(--base-size) * 0.25);
+}
