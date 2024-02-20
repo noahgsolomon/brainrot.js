@@ -10,40 +10,12 @@ import UserButton from "./UserButton";
 import { useEffect, useState } from "react";
 import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
+import { ArrowRight } from "lucide-react";
 
 const NavBar = () => {
   const { userId } = useAuth();
 
   const path = usePathname();
-
-  // let user;
-  // let daysSinceAccountCreation = 0;
-  // trial length
-  // const trialLength = 7;
-  // const userQuery = trpc.user.user.useQuery();
-
-  // if (userId) {
-  // user = userQuery.data;
-
-  // const createdAt = user?.user?.created_at;
-
-  // if (createdAt) {
-  //   const accountCreationDate = new Date(createdAt).getTime();
-  //   const currentDate = new Date().getTime();
-
-  //   const timeDifference = currentDate - accountCreationDate;
-  //   daysSinceAccountCreation = Math.floor(
-  //     timeDifference / (1000 * 60 * 60 * 24),
-  //   );
-  // const accountCreationDate = new Date(createdAt).getTime();
-  // const currentDate = new Date().getTime();
-
-  // const timeDifference = currentDate - accountCreationDate;
-  // daysSinceAccountCreation = Math.floor(
-  //   timeDifference / (1000 * 60 * 60 * 24),
-  // );
-  // }
-  // }
 
   const [isTop, setIsTop] = useState(true);
 
@@ -67,6 +39,16 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
+        <Link
+          target="_blank"
+          href={"https://github.com/noahgsolomon/brainrot.js"}
+          className={cn(
+            "flex w-full items-center justify-center border-b bg-secondary py-2 text-sm font-bold",
+            buttonVariants({ variant: "link" }),
+          )}
+        >
+          Enjoying Brainrotjs? Star us on GitHub Here ⭐{" "}
+        </Link>
         <div className="flex items-center justify-between px-[5%] py-1">
           <div>
             <Link href={"/"}>
