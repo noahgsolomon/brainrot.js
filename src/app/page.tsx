@@ -2,17 +2,18 @@
 
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Folder, Loader2, Wand } from "lucide-react";
+import { Folder, Gem, Loader2, Star, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function Home({
   searchParams,
@@ -110,20 +111,28 @@ export default function Home({
           <div className=" flex flex-col items-center gap-2">
             <Badge
               className="cursor-pointer text-sm md:hidden"
-              variant={"math"}
+              variant={"hard"}
             >
-              <Link target="_blank" href={"https://smart.wtf"}>
-                @SMART.WTF
+              <Link
+                target="_blank"
+                className="flex flex-row items-center gap-2"
+                href={"https://github.com/noahgsolomon/brainrot.js"}
+              >
+                #FREE <Gem className="size-4 fill-teal-500" />
               </Link>
             </Badge>
             <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
               BRAINROT.JS
               <Badge
                 className="absolute -top-8 hidden cursor-pointer text-sm md:-right-12 md:block"
-                variant={"math"}
+                variant={"hard"}
               >
-                <Link target="_blank" href={"https://smart.wtf"}>
-                  @SMART.WTF
+                <Link
+                  className="flex flex-row items-center gap-2"
+                  target="_blank"
+                  href={"https://github.com/noahgsolomon/brainrot.js"}
+                >
+                  #FREE <Gem className="size-4  fill-teal-500" />
                 </Link>
               </Badge>
             </h1>
@@ -140,6 +149,14 @@ export default function Home({
           </div>
         </div>
         <div className="flex flex-col gap-2">
+          <Link
+            href={"https://github.com/noahgsolomon/brainrot.js"}
+            className={cn(buttonVariants(), "flex flex-row items-center gap-2")}
+            target="_blank"
+          >
+            <Star className="h-4 w-4 fill-yellow-500 text-yellow-300 dark:text-yellow-700" />{" "}
+            Star on GitHub
+          </Link>
           <Button
             className="flex flex-row items-center gap-2"
             variant={"rainbow"}
@@ -165,6 +182,22 @@ export default function Home({
           ) : null}
         </div>
       </div>
+      <p className="max-w-[30ch] text-sm italic">
+        <Link
+          href={"https://github.com/noahgsolomon/brainrot.js"}
+          className="font-bold"
+        >
+          Starring on GitHub
+        </Link>{" "}
+        greatly supports my efforts (this kinda costs a lot 💀) -{" "}
+        <Link
+          className="underline"
+          target="_blank"
+          href={"https://twitter.com/noahgsolomon"}
+        >
+          @Noah
+        </Link>
+      </p>
       <div className="pt-48 coarse:hidden">
         <p className="text-center text-3xl font-bold">
           Most Recent User Generations

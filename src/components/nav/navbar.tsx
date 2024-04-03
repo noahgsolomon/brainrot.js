@@ -39,16 +39,6 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
-        <Link
-          target="_blank"
-          href={"https://github.com/noahgsolomon/brainrot.js"}
-          className={cn(
-            "flex w-full items-center justify-center border-b bg-secondary py-2 text-sm font-bold",
-            buttonVariants({ variant: "link" }),
-          )}
-        >
-          Enjoying Brainrotjs? Star us on GitHub Here ⭐{" "}
-        </Link>
         <div className="flex items-center justify-between px-[5%] py-1">
           <div>
             <Link href={"/"}>
