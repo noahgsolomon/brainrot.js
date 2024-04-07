@@ -293,6 +293,10 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 											: prevImageIdx
 									].asset
 								}
+								onError={(e) => {
+									e.target.onerror = null; // Prevent looping if the fallback also fails
+									e.target.src = 'https://images.smart.wtf/black.png';
+								}}
 								className="w-full h-full"
 							/>
 							<div className="absolute bottom-2 left-2 flex flex-row gap-24 items-end h-full p-8 z-30">
