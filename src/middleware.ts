@@ -2,7 +2,13 @@ import { authMiddleware } from "@clerk/nextjs";
 
 // Use named export for authMiddleware
 export default authMiddleware({
-  publicRoutes: ["/", "/api/create"],
+  publicRoutes: [
+    "/",
+    "/api/create",
+    "/api/trpc/user.videoStatus",
+    "/api/trpc/user.user",
+    "/api/trpc/user.videoStatus,user.user",
+  ],
 });
 
 export const config = {

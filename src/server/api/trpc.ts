@@ -59,6 +59,8 @@ const isAuthed = t.middleware(async ({ next }) => {
     where: eq(brainrotusers.clerk_id, user.userId),
   });
 
+  console.log(userIdsFromDB);
+
   const userId = userIdsFromDB?.id ?? -1;
 
   return next({

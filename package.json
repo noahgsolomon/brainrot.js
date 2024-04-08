@@ -6,7 +6,7 @@
     "build": "next build",
     "db:push": "dotenv drizzle-kit push:mysql",
     "db:studio": "dotenv drizzle-kit studio",
-    "dev": "next dev --turbo",
+    "dev": "next dev",
     "lint": "next lint",
     "start": "next start"
   },
@@ -15,7 +15,6 @@
     "@clerk/nextjs": "latest",
     "@clerk/themes": "^1.7.7",
     "@hookform/resolvers": "^3.3.2",
-    "@planetscale/database": "^1.11.0",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-context-menu": "^2.1.5",
@@ -60,7 +59,6 @@
     "lucide-react": "^0.285.0",
     "mysql2": "^3.6.1",
     "next": "latest",
-    "next-pwa": "^5.6.0",
     "next-themes": "^0.2.1",
     "next13-progressbar": "^1.0.4",
     "openai": "^4.27.0",
@@ -88,7 +86,6 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
     "@types/eslint": "^8.44.2",
-    "@types/next-pwa": "^5.6.8",
     "@types/node": "^20.8.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
