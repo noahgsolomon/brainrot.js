@@ -1,4 +1,6 @@
 import transcribeFunction from './transcribe.mjs';
+import { rm, unlink } from 'fs/promises';
+import path from 'path';
 import { exec } from 'child_process';
 
 const topics = [

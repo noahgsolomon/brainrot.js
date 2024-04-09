@@ -548,41 +548,6 @@ const agents = ['BARACK_OBAMA', 'BEN_SHAPIRO', 'JORDAN_PETERSON', 'JOE_ROGAN'];
 
 dotenv.config();
 
-const credentials = {
-	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-	region: 'us-east-1',
-};
-
-const s3Client = new S3Client({
-	credentials: {
-		accessKeyId: credentials.accessKeyId,
-		secretAccessKey: credentials.secretAccessKey,
-	},
-	region: credentials.region,
-});
-
-async function uploadFileToS3(filePath, bucketName) {
-	const fileStream = fs.createReadStream(filePath);
-	const key = `videos/${uuidv4()}.mp4`;
-
-	try {
-		await s3Client.send(
-			new PutObjectCommand({
-				Bucket: bucketName,
-				Key: key,
-				Body: fileStream,
-				ContentType: 'video/mp4',
-			})
-		);
-		console.log(`File uploaded successfully!`);
-		return `https://images.smart.wtf/${key}`;
-	} catch (err) {
-		console.error('Error uploading file: ', err);
-		throw new Error(err);
-	}
-}
-
 async function cleanupResources() {
 	try {
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
