@@ -50,3 +50,5 @@ src/env.mjs
 some.mjs
 public/workbox-e34f44db.js.map
 public/sw.js
+
+generate/venv/*
