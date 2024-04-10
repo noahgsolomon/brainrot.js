@@ -8,8 +8,6 @@ import { trpc } from "@/trpc/client";
 import { useEffect, useState } from "react";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const user = useAuth();
-
   const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
     useYourVideos();
   const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
