@@ -330,7 +330,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 								src={videoFileName}
 							/>
 							<div
-								className="absolute flex flex-row items-center gap-2 opacity-60 z-30 bottom-6 right-6 text-white font-bold text-5xl"
+								className="absolute flex flex-row items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-6xl"
 								style={{
 									textShadow: '4px 4px 0px #000000',
 									WebkitTextStroke: '2px black',
