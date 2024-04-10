@@ -69,34 +69,12 @@ export default function Home({
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);
 
-  const videoRef1 = useRef(null);
-  const videoRef2 = useRef(null);
-  const videoRef3 = useRef(null);
-  const videoRef4 = useRef(null);
-  const videoRef5 = useRef(null);
-  const videoRef6 = useRef(null);
-  const videoRef7 = useRef(null);
-  const videoRef8 = useRef(null);
-  const videoRef9 = useRef(null);
-
   useEffect(() => {
     if (isInQueue) {
       toast.info("Your video is currently in queue", { icon: "🕒" });
       setPendingVideo(true);
     }
   }, [isInQueue]);
-
-  const handleMouseEnter = (videoRef: React.RefObject<HTMLVideoElement>) => {
-    if (videoRef.current) {
-      videoRef.current.play();
-    }
-  };
-
-  const handleMouseLeave = (videoRef: React.RefObject<HTMLVideoElement>) => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-  };
 
   return (
     <main className="relative mt-6 flex flex-col items-center justify-center gap-4">

@@ -18,16 +18,16 @@ export const metadata: Metadata = {
   openGraph: {
     url: "https://brainrotjs.com",
     title: "brainrotjs.com",
-    description: "Rot your brain!",
-    images: ["https://images.smart.wtf/brain.png"],
+    description: "Make learning fun again!",
+    images: ["https://images.smart.wtf/brainrot.png"],
   },
   title: "brainrot.js",
-  description: "Rot your brain!",
+  description: "Make learning fun again!",
   twitter: {
     card: "summary_large_image",
     site: "brainrotjs.com",
     creator: "@noahgsolomon",
-    images: ["https://images.smart.wtf/brain.png"],
+    images: ["https://images.smart.wtf/brainrot.png"],
   },
 };
 
