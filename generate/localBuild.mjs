@@ -1,5 +1,5 @@
 import transcribeFunction from './transcribe.mjs';
-import { rm, unlink } from 'fs/promises';
+import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
 
@@ -541,7 +541,7 @@ const agents = [
 	'BEN_SHAPIRO',
 	'JORDAN_PETERSON',
 	'JOE_ROGAN',
-	'RICK_SANCHEZ',
+	// 'RICK_SANCHEZ',
 ];
 
 async function main() {
@@ -576,18 +576,20 @@ async function main() {
 		console.error(`stderr: ${stderr}`);
 
 		try {
-			await rm(path.join('', 'public', 'srt'), {
-				recursive: true,
-				force: true,
-			});
-			await rm(path.join('', 'public', 'srt'), { recursive: true });
-			await unlink(path.join('', 'public', 'audio.mp3'));
-			await rm(path.join('', 'public', 'voice'), {
-				recursive: true,
-				force: true,
-			});
-			await rm(path.join('', 'public', 'voice'), { recursive: true });
-			await unlink(path.join('', 'src', 'tmp', 'context.tsx'));
+			const directories = [
+				path.join('', 'public', 'srt'),
+				path.join('', 'public', 'voice'),
+			];
+
+			for (const directory of directories) {
+				const files = await fs.readdir(directory);
+				for (const file of files) {
+					await fs.unlink(path.join(directory, file));
+				}
+			}
+
+			await fs.unlink(path.join('', 'public', 'audio.mp3'));
+			await fs.unlink(path.join('', 'src', 'tmp', 'context.tsx'));
 		} catch (err) {
 			console.error(`Error removing files: ${err}`);
 		}
