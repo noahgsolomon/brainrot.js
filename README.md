@@ -1,5 +1,3 @@
-Generate YouTube Shorts and short form content entirely automated. To run this locally, look into the generate/ folder. The build.mjs file is the one you must run to generate the videos.
-
 ## How to run locally 👇
 
 1. go into generate (```cd generate```) and run ```python3 -m venv venv```, then ```source venv/bin/activate```, and then ```pip install -r requirements.txt```
