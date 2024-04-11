@@ -71,7 +71,6 @@ export const userRouter = createTRPCRouter({
 
   // Query to retrieve the current user's details
   user: protectedProcedure.query(async ({ ctx }) => {
-    console.log(`context: ${JSON.stringify(ctx.user_id)}`);
     const user = await ctx.db.query.brainrotusers.findFirst({
       where: eq(brainrotusers.id, ctx.user_id),
     });
@@ -199,8 +198,6 @@ export const userRouter = createTRPCRouter({
         const argumentsData = JSON.parse(
           response.choices[0]?.message.content ?? "{}",
         );
-
-        console.log(argumentsData.valid);
 
         if (!argumentsData.valid) {
           return { valid: false };
