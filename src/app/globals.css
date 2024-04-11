@@ -522,3 +522,23 @@ mtext {
     background-position: 100% 50%;
   }
 }
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-25%);
+  }
+
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(150vw);
+  }
+
+  to {
+    transform: translateX(-150vw);
+  }
+}
