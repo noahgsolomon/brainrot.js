@@ -49,7 +49,7 @@ const NavBar = () => {
             target="_blank"
             href={"https://twitter.com/brainrotjs"}
           >
-            💥 JOIN THE MOVEMENT 🧠
+            💥 JOIN THE BRAINROT MOVEMENT 🧠
           </Link>
         </div>
         <div className="flex items-center justify-between px-[5%] py-1">
