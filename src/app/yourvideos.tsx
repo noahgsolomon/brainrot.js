@@ -4,16 +4,14 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useYourVideos } from "./useyourvideos";
 import { useCreateVideo } from "./usecreatevideo";
 import { trpc } from "@/trpc/client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { DownloadCloud, Play } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { v4 as uuidv4 } from "uuid";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import useDownloader from "react-use-downloader";
 import { toast } from "sonner";
 import ReactPlayer from "react-player";
 import { Avatar } from "@/components/ui/avatar";
