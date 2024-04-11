@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 const NavBar = () => {
   const { userId } = useAuth();
@@ -39,17 +40,31 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
+        <div className=" flex w-full items-center justify-center border-b bg-secondary">
+          <Link
+            className={buttonVariants({
+              variant: "link",
+              className: " font-bold underline",
+            })}
+            target="_blank"
+            href={"https://twitter.com/brainrotjs"}
+          >
+            💥 JOIN THE MOVEMENT 🧠
+          </Link>
+        </div>
         <div className="flex items-center justify-between px-[5%] py-1">
           <div>
             <Link href={"/"}>
-              <p
+              <Image
+                src={"/brain.gif"}
+                width={64}
+                height={64}
+                alt="brain"
                 className={cn(
                   buttonVariants({ variant: "ghost" }),
                   "h-14 w-14 cursor-pointer p-0 text-4xl opacity-80 transition-all hover:opacity-70",
                 )}
-              >
-                🧠
-              </p>
+              />
             </Link>
           </div>
           <div className="flex items-center justify-end gap-4">
