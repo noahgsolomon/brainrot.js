@@ -16,7 +16,12 @@ const Providers = ({ children }: ProvidersProps) => {
         {process.env.NEXT_PUBLIC_ENV === "LOCAL" && <LagRadar />}
       </div>
       {children}
-      <Toaster richColors position="top-center" visibleToasts={1} />
+      <Toaster
+        richColors
+        position="top-center"
+        visibleToasts={1}
+        duration={2000}
+      />
     </ThemeProvider>
   );
 };
