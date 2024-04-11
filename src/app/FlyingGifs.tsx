@@ -18,7 +18,7 @@ export default function FlyingGifs({ gifs }: { gifs: string[] }) {
 
   useEffect(() => {
     const sampleGifs = () => {
-      const sampleSize = 20;
+      const sampleSize = 10;
       const sampledGifs: FlyingGif[] = [];
 
       // Clear the current GIFs
@@ -28,7 +28,7 @@ export default function FlyingGifs({ gifs }: { gifs: string[] }) {
         const randomIndex = Math.floor(Math.random() * gifs.length);
         const gif = gifs[randomIndex] ?? "/par.gif";
 
-        const randomVal = Math.floor(Math.random() * 100) + 100;
+        const randomVal = Math.floor(Math.random() * 100) + 50;
         const offScreenPosition = `${-1000 * Math.random()}px`;
 
         sampledGifs.push({
@@ -36,7 +36,7 @@ export default function FlyingGifs({ gifs }: { gifs: string[] }) {
           startSide: "left",
           width: randomVal,
           height: randomVal,
-          top: `${Math.random() * 600 + 50}px`,
+          top: `${Math.random() * 500 + 50}px`,
           left: offScreenPosition,
           animationDelay: "0s",
           speed: 10 * Math.random() + 20,
