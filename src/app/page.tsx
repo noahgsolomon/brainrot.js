@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Folder, Gem, Loader2, Star, Wand } from "lucide-react";
@@ -36,6 +36,12 @@ export default function Home({
       "/par.gif",
       "/cato.gif",
       "/OHNOHESHOT.gif",
+      "/roachmf.gif",
+      "/dance.gif",
+      "/flower.gif",
+      "/lick.gif",
+      "/krustykrabpizza.gif",
+      "/duck.gif",
     ];
   }, []);
 
@@ -95,7 +101,10 @@ export default function Home({
     <main className="relative mt-6 flex flex-col items-center justify-center gap-4">
       <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
         <div className="flex flex-col items-center justify-center gap-8 pb-8">
-          <FlyingGifs gifs={gifs} />
+          <div className="coarse:hidden">
+            <FlyingGifs gifs={gifs} />
+          </div>
+
           <Image
             src={"https://images.smart.wtf/brainrot.png"}
             width={200}
@@ -194,9 +203,9 @@ export default function Home({
           @Noah
         </Link>
       </p>
-      <div className="pt-48 coarse:hidden">
+      <div className="pt-48">
         <p className="text-center text-3xl font-bold">Wall of Fame</p>
-        <div className="flex max-w-[1200px] flex-col items-center justify-center gap-4 md:flex-row md:flex-wrap">
+        <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">
           <Tweet id="1777773736416206948" />
           <Tweet id="1777767131998019762" />
           <Tweet id="1778059188742099419" />
