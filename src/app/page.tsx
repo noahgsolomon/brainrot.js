@@ -15,6 +15,7 @@ import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Tweet } from "react-tweet";
+import FlyingGifs from "./FlyingGifs";
 
 export default function Home({
   searchParams,
@@ -23,6 +24,20 @@ export default function Home({
 }) {
   const user = useUser();
   const router = useRouter();
+
+  const gifs = useMemo(() => {
+    return [
+      "/brainnnn.gif",
+      "/brain.gif",
+      "/clubpengu.gif",
+      "dancepepe.gif",
+      "/homer.gif",
+      "/sponge.gif",
+      "/par.gif",
+      "/cato.gif",
+      "/OHNOHESHOT.gif",
+    ];
+  }, []);
 
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
@@ -80,6 +95,7 @@ export default function Home({
     <main className="relative mt-6 flex flex-col items-center justify-center gap-4">
       <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
         <div className="flex flex-col items-center justify-center gap-8 pb-8">
+          <FlyingGifs gifs={gifs} />
           <Image
             src={"https://images.smart.wtf/brainrot.png"}
             width={200}
@@ -87,6 +103,7 @@ export default function Home({
             alt="brainrot"
             className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
           />
+
           <div className=" flex flex-col items-center gap-2">
             <Badge
               className="cursor-pointer text-sm md:hidden"
@@ -157,7 +174,7 @@ export default function Home({
               Your videos
             </Button>
           ) : !user.isLoaded ? (
-            <Skeleton className="h-[2.4rem] w-[8.9rem] rounded-lg"></Skeleton>
+            <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
           ) : null}
         </div>
       </div>
