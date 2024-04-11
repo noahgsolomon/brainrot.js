@@ -22,7 +22,7 @@ const buttonVariants = cva(
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-accent text-secondary-foreground hover:bg-primary/10 dark:hover:bg-accent/80",
         ghost:
           "hover:scale-[101%] active:scale-[99%] transition-all hover:bg-accent hover:text-accent-foreground",
-        link: "hover:scale-[100%] active:scale-[100%] transition-all text-primary underline-offset-4 hover:underline",
+        link: "hover:scale-[101%] active:scale-[99%] transition-all text-primary underline-offset-4 hover:underline",
         darkModeLink:
           "hover:scale-[100%] active:scale-[100%] transition-all text-secondary dark:text-primary underline-offset-4 hover:underline",
         lightModeLink:
