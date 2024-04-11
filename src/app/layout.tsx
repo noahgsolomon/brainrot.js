@@ -43,7 +43,7 @@ export default function RootLayout({
       <body className={`${GeistSans.className} antialiased`}>
         <TRPCReactProvider headers={headers()}>
           <ClerkProvider>
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={50}>
               <Providers>
                 <ProgressBarProvider>
                   <NavBar />
