@@ -52,7 +52,6 @@
     "drizzle": "latest",
     "drizzle-orm": "^0.28.6",
     "embla-carousel-react": "^8.0.2",
-    "file-saver": "^2.0.5",
     "framer-motion": "^10.16.4",
     "geist": "^1.0.0",
     "install": "^0.13.0",
@@ -82,7 +81,6 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "to-vfile": "^8.0.0",
-    "uuid": "^9.0.1",
     "vaul": "^0.8.0",
     "zod": "^3.22.4",
     "zustand": "^4.5.0"
