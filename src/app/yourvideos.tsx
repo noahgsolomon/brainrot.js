@@ -88,7 +88,10 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                     : "https://images.smart.wtf/BEN_SHAPIRO.png";
 
                 return (
-                  <CarouselItem className="flex flex-col items-center justify-center ">
+                  <CarouselItem
+                    key={index}
+                    className="flex flex-col items-center justify-center "
+                  >
                     <p className="max-w-[75%] text-center font-bold">
                       {video.title}
                     </p>
