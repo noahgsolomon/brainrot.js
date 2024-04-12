@@ -40,7 +40,6 @@ export const PaginatedSubtitles: React.FC<{
 	linesPerPage: number;
 	subtitlesZoomMeasurerSize: number;
 	subtitlesLineHeight: number;
-	onlyDisplayCurrentSentence: boolean;
 }> = ({
 	startFrame,
 	endFrame,
@@ -48,7 +47,6 @@ export const PaginatedSubtitles: React.FC<{
 	linesPerPage,
 	subtitlesZoomMeasurerSize,
 	subtitlesLineHeight,
-	onlyDisplayCurrentSentence,
 }) => {
 	const frame = useCurrentFrame();
 	const windowRef = useRef<HTMLDivElement>(null);
@@ -65,7 +63,6 @@ export const PaginatedSubtitles: React.FC<{
 
 	const currentAndFollowingSentences = useMemo(() => {
 		// If we don't want to only display the current sentence, return all the words
-		if (!onlyDisplayCurrentSentence) return windowedFrameSubs;
 
 		const indexOfCurrentSentence = windowedFrameSubs.findIndex((w) => {
 			return w.end > frame; // Find the first subtitle that hasn't ended yet
@@ -89,7 +86,7 @@ export const PaginatedSubtitles: React.FC<{
 				? indexOfCurrentSentenceEnd + 1
 				: undefined
 		);
-	}, [frame, onlyDisplayCurrentSentence, windowedFrameSubs]);
+	}, [frame, windowedFrameSubs]);
 
 	useEffect(() => {
 		const zoom =
