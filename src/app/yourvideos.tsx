@@ -4,8 +4,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useYourVideos } from "./useyourvideos";
 import { useCreateVideo } from "./usecreatevideo";
 import { trpc } from "@/trpc/client";
-import { useEffect, useState } from "react";
-import { DownloadCloud, Play } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { DownloadCloud, Loader2, Play } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
@@ -68,10 +68,11 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
 
                 const agent2 = video.agent2;
 
-                const url = video.url.replace(
-                  "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x",
-                  "https://videos.brainrotjs.com",
-                );
+                const url = video.url;
+                // .replace(
+                //   "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x",
+                //   "https://videos.brainrotjs.com",
+                // );
 
                 const agent1Img =
                   agent1 === "JORDAN_PETERSON"
@@ -111,71 +112,27 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                     </div>
 
                     <div className="relative overflow-hidden rounded-lg">
-                      <div
-                        className={`absolute inset-0 h-full rounded-lg bg-black/40 transition-all ${
-                          playing === index ? "opacity-0" : ""
-                        }`}
-                      ></div>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          {playing !== index ? (
-                            <Button
-                              onClick={() => setPlaying(index)}
-                              className={`absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 transform bg-secondary/80`}
-                              variant={"outline"}
-                            >
-                              <Play className="size-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => setPlaying(-1)}
-                              className={`absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 transform bg-secondary/40`}
-                              variant={"outline"}
-                            >
-                              <StopIcon className="size-4" />
-                            </Button>
-                          )}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {playing !== index ? "Play" : "Stop"}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <ReactPlayer
-                        onProgress={() => {
-                          console.log("sup");
-                        }}
-                        className="rounded-lg border shadow-md transition-all"
-                        width={250}
-                        height={"100%"}
-                        url={url}
-                        playing={playing === index}
-                      ></ReactPlayer>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Link
-                            href={url}
-                            className={buttonVariants({
-                              variant: "outline",
-                              className:
-                                "absolute bottom-4 left-4 bg-secondary/80",
-                            })}
-                            download
-                            target="_blank"
-                            onClick={() => {
-                              toast("Downloading 💥");
-                            }}
-                          >
-                            <DownloadCloud className="size-4" />
-                          </Link>
-                        </TooltipTrigger>
-                        <TooltipContent>Download</TooltipContent>
-                      </Tooltip>
+                      <Suspense fallback={<Loader2 className="size-6" />}>
+                        <video
+                          src={url}
+                          className={` rounded-lg shadow-md transition-all`}
+                          width={300}
+                          height={"100%"}
+                          controls
+                        ></video>
+                      </Suspense>
                     </div>
-                    <Button className="mt-2 flex w-[250px] flex-row gap-2">
-                      Share on <XIcon className="size-4 fill-secondary" />
-                    </Button>
+                    <div className="flex flex-row items-center gap-2">
+                      <Button
+                        variant={"outline"}
+                        className="mt-2 flex w-[146px] flex-row gap-2"
+                      >
+                        Download <DownloadCloud className="size-4" />
+                      </Button>
+                      <Button className="mt-2 flex w-[146px] flex-row gap-2">
+                        Share on <XIcon className="size-4 fill-secondary" />
+                      </Button>
+                    </div>
                   </>
                 );
               })}

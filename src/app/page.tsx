@@ -3,8 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useCreateVideo } from "../usecreatevideo";
-import { useYourVideos } from "../useyourvideos";
+import { useCreateVideo } from "./usecreatevideo";
+import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Folder, Gem, Github, Loader2, Star, Wand } from "lucide-react";

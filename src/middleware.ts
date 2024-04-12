@@ -8,7 +8,7 @@ export default authMiddleware({
     "/api/trpc/user.videoStatus",
     "/api/trpc/user.user",
     "/api/trpc/user.videoStatus,user.user",
-    "/renders",
+    "/renders/((?!_next|static|favicon.ico).*)",
   ],
 });
 
