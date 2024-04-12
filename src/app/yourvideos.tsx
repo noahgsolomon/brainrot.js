@@ -123,9 +123,42 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                       >
                         Download <DownloadCloud className="size-4" />
                       </Button>
-                      <Button className="mt-2 flex w-[146px] flex-row gap-2">
+                      <Link
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                          `${video.title} explained by ${video.agent1
+                            .split("_")
+                            .map(
+                              (word) =>
+                                word.charAt(0) + word.slice(1).toLowerCase(),
+                            )
+                            .join(" ")} AI and ${video.agent2
+                            .split("_")
+                            .map(
+                              (word) =>
+                                word.charAt(0) + word.slice(1).toLowerCase(),
+                            )
+                            .join(
+                              " ",
+                            )} AI with @brainrotjs \n\nhttps://brainrotjs.com/renders/${video.url
+                            .replace(
+                              "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/",
+                              "",
+                            )
+                            .replace(
+                              "/out.mp4",
+                              "",
+                            )}?title=${encodeURIComponent(
+                            video.title,
+                          )}&agent1=${video.agent1}&agent2=${video.agent2}`,
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={buttonVariants({
+                          className: "mt-2 flex w-[146px] flex-row gap-2",
+                        })}
+                      >
                         Share on <XIcon className="size-4 fill-secondary" />
-                      </Button>
+                      </Link>
                     </div>
                   </>
                 );
