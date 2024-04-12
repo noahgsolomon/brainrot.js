@@ -5,7 +5,7 @@ import { api } from "@/trpc/server";
 
 type Props = {
   params: { pathId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | undefined };
 };
 
 export async function generateMetadata(
@@ -25,8 +25,22 @@ export async function generateMetadata(
   // optionally access and extend (rather than replace) parent metadata
 
   return {
-    title: "Unresolved Video",
-    description: "",
+    title: searchParams.title ?? "Unresolved Video",
+    description: `${searchParams.title ?? "Unresolved Video"} explained by ${
+      searchParams.agent1
+        ? searchParams.agent1
+            .split("_")
+            .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+            .join(" ")
+        : ""
+    } and ${
+      searchParams.agent2
+        ? searchParams.agent2
+            .split("_")
+            .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+            .join(" ")
+        : ""
+    }`,
     openGraph: {
       images: ["https://images.smart.wtf/videoprev.png"],
     },
