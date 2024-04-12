@@ -1,4 +1,3 @@
-"use client";
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 import { Metadata, ResolvingMetadata } from "next";
@@ -18,9 +17,6 @@ export async function generateMetadata(
   // https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/nuarmdkjh2/out.mp4
 
   // fetch data
-  const product = await fetch(
-    `https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/${id}/out.mp4`,
-  ).then((res) => res.json());
 
   // optionally access and extend (rather than replace) parent metadata
 
@@ -34,12 +30,12 @@ export async function generateMetadata(
 
 export default function Page({ params, searchParams }: Props) {
   return (
-    <main className="relative mt-[100px] flex w-[90%] flex-col items-center justify-center gap-4 bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
+    <main className="relative mt-[120px] flex flex-col items-center justify-center gap-4 bg-opacity-60 text-4xl sm:mt-[100px]">
       <div className="overflow-hidden rounded-lg border">
         <Suspense fallback={<Loader2 className="size-6" />}>
           <video
             src={`https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/${params.pathId}/out.mp4`}
-            className={` rounded-lg shadow-md transition-all`}
+            className={` w-[300px] rounded-lg shadow-md transition-all sm:w-[400px]`}
             width={400}
             height={"100%"}
             controls
