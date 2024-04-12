@@ -1,4 +1,8 @@
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import {
   brainrotusers,
   pendingVideos,
@@ -59,6 +63,16 @@ export const userRouter = createTRPCRouter({
       }
     }
   }),
+
+  findVideo: publicProcedure
+    .input(z.object({ url: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const video = await ctx.db.query.videos.findFirst({
+        where: eq(videos.url, input.url),
+      });
+
+      return { video };
+    }),
 
   // Mutation to delete a user from the database
   delete: protectedProcedure.mutation(async ({ ctx }) => {

@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 import { Metadata, ResolvingMetadata } from "next";
+import { api } from "@/trpc/server";
 
 type Props = {
   params: { pathId: string };
@@ -14,16 +15,31 @@ export async function generateMetadata(
   // read route params
   const id = params.pathId;
 
+  const video = await api.user.findVideo.query({
+    url: `https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/${params.pathId}/out.mp4`,
+  });
+
   // https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/nuarmdkjh2/out.mp4
 
   // fetch data
 
   // optionally access and extend (rather than replace) parent metadata
 
+  const previousImages = (await parent).openGraph?.images || [];
+
   return {
-    title: id,
+    title: video ? video.video?.title : "Unresolved Video",
+    description: video
+      ? `${video.video?.title} explained by ${video.video?.agent1
+          .split("_")
+          .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+          .join(" ")} and ${video.video?.agent2
+          .split("_")
+          .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+          .join(" ")}`
+      : "",
     openGraph: {
-      images: ["https://images.smart.wtf/fluffingduck.png"],
+      images: previousImages,
     },
   };
 }

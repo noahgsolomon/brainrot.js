@@ -65,6 +65,8 @@ export default function CreateVideo({
   >(null);
   const [fps, setFps] = useState<number | null>(null);
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [assetType, setAssetType] = useState<"AI" | "GOOGLE" | null>(null);
   const [invalidTopic, setInvalidTopic] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
@@ -672,7 +674,7 @@ export default function CreateVideo({
                           src={"https:/images.smart.wtf/fluffingduck.png"}
                           width={90}
                           height={80}
-                          alt="bender"
+                          alt="fluffing a duck"
                         />
                       </div>
                     </TooltipTrigger>
@@ -715,10 +717,60 @@ export default function CreateVideo({
                     60
                   </Button>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h5>Duration: </h5>
+                  <Button
+                    variant={duration === 1 ? "default" : "outline"}
+                    onClick={() => setDuration(1)}
+                    size={"sm"}
+                  >
+                    1 minute
+                  </Button>{" "}
+                  |
+                  <Button
+                    onClick={() => setDuration(2)}
+                    size={"sm"}
+                    variant={duration === 2 ? "default" : "outline"}
+                  >
+                    2 minutes
+                  </Button>{" "}
+                  |
+                  <Button
+                    onClick={() => setDuration(3)}
+                    size={"sm"}
+                    variant={duration === 3 ? "default" : "outline"}
+                  >
+                    3 minutes
+                  </Button>{" "}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h5>Assets: </h5>
+                  <Button
+                    variant={assetType === "AI" ? "default" : "outline"}
+                    onClick={() => setAssetType("AI")}
+                    size={"sm"}
+                  >
+                    AI Generated
+                  </Button>{" "}
+                  |
+                  <Button
+                    onClick={() => setAssetType("GOOGLE")}
+                    size={"sm"}
+                    variant={assetType === "GOOGLE" ? "default" : "outline"}
+                  >
+                    Google Search
+                  </Button>{" "}
+                </div>
               </div>
-              <DialogClose disabled={!background && !music && !fps}>
+              <DialogClose
+                disabled={
+                  !background && !music && !fps && !duration && !assetType
+                }
+              >
                 <Button
-                  disabled={!background && !music && !fps}
+                  disabled={
+                    !background && !music && !fps && !duration && !assetType
+                  }
                   className="flex items-center gap-2"
                   onClick={() => toast.info("saved options!", { icon: "💾" })}
                 >
