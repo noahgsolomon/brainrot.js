@@ -1,3 +1,4 @@
+import React, { ReactNode } from "react";
 import "../globals.css";
 import NavBar from "@/components/nav/navbar";
 import { TRPCReactProvider } from "@/trpc/react";
@@ -26,17 +27,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-  modal,
-}: {
-  children: React.ReactNode;
-  modal: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${GeistSans.className} antialiased`}>
-        <TRPCReactProvider headers={headers()}>{children}</TRPCReactProvider>
+        {children}
         <Analytics />
       </body>
     </html>
