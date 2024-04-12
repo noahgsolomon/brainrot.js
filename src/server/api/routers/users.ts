@@ -137,7 +137,8 @@ export const userRouter = createTRPCRouter({
 
   userVideos: protectedProcedure.query(async ({ ctx }) => {
     const userVideosDb = await ctx.db.query.videos.findMany({
-      where: eq(pendingVideos.user_id, ctx.user_id),
+      where: eq(videos.user_id, ctx.user_id),
+      orderBy: (videos, { desc }) => [desc(videos.id)],
     });
 
     return { videos: userVideosDb };
