@@ -139,6 +139,7 @@ export const userRouter = createTRPCRouter({
     const userVideosDb = await ctx.db.query.videos.findMany({
       where: eq(videos.user_id, ctx.user_id),
       orderBy: (videos, { desc }) => [desc(videos.id)],
+      limit: 3,
     });
 
     return { videos: userVideosDb };
