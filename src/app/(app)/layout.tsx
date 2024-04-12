@@ -1,11 +1,11 @@
-import "./globals.css";
-import Providers from "./providers";
+import "../globals.css";
+import Providers from "../providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import NavBar from "@/components/nav/navbar";
 import { TRPCReactProvider } from "@/trpc/react";
 import { headers } from "next/headers";
 import { type Metadata } from "next";
-import ProgressBarProvider from "./progressbar";
+import ProgressBarProvider from "../progressbar";
 import { GeistSans } from "geist/font";
 import { Background } from "@/components/ui/background";
 import { Analytics } from "@vercel/analytics/react";

@@ -5,7 +5,7 @@ import { useYourVideos } from "./useyourvideos";
 import { useCreateVideo } from "./usecreatevideo";
 import { trpc } from "@/trpc/client";
 import { useEffect, useState } from "react";
-import { DownloadCloud, Play } from "lucide-react";
+import { DownloadCloud, Loader2, Play } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
@@ -20,48 +20,23 @@ import { StopIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import XIcon from "@/components/svg/XIcon";
 
-export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos, isNewOpen } =
-    useYourVideos();
-  const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
+export default function NewVideo() {
+  const { isNewOpen, setIsNewOpen } = useYourVideos();
   const [playing, setPlaying] = useState(-1);
 
-  const userVideosQuery = trpc.user.userVideos.useQuery();
+  const userVideosQuery = trpc.user.newUserVideo.useQuery();
 
-  useEffect(() => {
-    if (refetchVideos) {
-      userVideosQuery.refetch();
-      setRefetchVideos(false);
-    }
-  }, [refetchVideos]);
-
-  const [videos, setVideos] = useState<
-    {
-      id: number;
-      user_id: number;
-      agent1: string;
-      agent2: string;
-      title: string;
-      url: string;
-      videoId: string;
-    }[]
-  >(userVideosQuery.data?.videos ?? []);
+  const [videos, setVideos] = useState(userVideosQuery.data?.videos ?? []);
 
   useEffect(() => {
     setVideos(userVideosQuery.data?.videos ?? []);
   }, [userVideosQuery.data?.videos]);
 
-  useEffect(() => {
-    if (isNewOpen) {
-      setVideos((prev) => (prev[0] ? [prev[0]] : []));
-    }
-  }, [isNewOpen]);
-
   return (
     <>
-      <Dialog open={isOpen || isNewOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isNewOpen} onOpenChange={setIsNewOpen}>
         <DialogContent className="max-h-[80%] max-w-[425px] overflow-y-auto rounded-lg">
-          {userVideosQuery.isFetched && videos.length > 0 ? (
+          {userVideosQuery.isFetched ? (
             <div className="flex flex-col items-center justify-center ">
               {videos.map((video, index) => {
                 const agent1 = video.agent1;
@@ -181,22 +156,10 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
               })}
             </div>
           ) : (
-            <>
-              You have no videos
-              <div>
-                Click{" "}
-                <span
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsCreateVideoOpen(true);
-                  }}
-                  className="cursor-pointer font-bold underline transition-all hover:opacity-80"
-                >
-                  here
-                </span>{" "}
-                to create a video.
-              </div>
-            </>
+            <div className="flex flex-col items-center justify-center">
+              <Loader2 className="animate-spin" />
+              loading
+            </div>
           )}
         </DialogContent>
       </Dialog>
