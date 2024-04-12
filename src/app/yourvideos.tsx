@@ -117,12 +117,17 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                       </Suspense>
                     </div>
                     <div className="flex flex-row items-center gap-2">
-                      <Button
-                        variant={"outline"}
-                        className="mt-2 flex w-[146px] flex-row gap-2"
+                      <Link
+                        target="_blank"
+                        href={video.url}
+                        download
+                        className={buttonVariants({
+                          variant: "outline",
+                          className: "mt-2 flex w-[146px] flex-row gap-2",
+                        })}
                       >
                         Download <DownloadCloud className="size-4" />
-                      </Button>
+                      </Link>
                       <Link
                         href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                           `${video.title} explained by ${video.agent1
