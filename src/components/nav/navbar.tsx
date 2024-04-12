@@ -10,8 +10,8 @@ import UserButton from "./UserButton";
 import { useEffect, useState } from "react";
 import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
-import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import NewVideo from "@/app/newvideo";
 
 const NavBar = () => {
   const { userId } = useAuth();

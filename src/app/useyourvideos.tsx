@@ -5,6 +5,8 @@ interface useYourVideosProps {
   setIsOpen: (isOpen: boolean) => void;
   refetchVideos: boolean;
   setRefetchVideos: (refetch: boolean) => void;
+  isNewOpen: boolean;
+  setIsNewOpen: (isNewOpen: boolean) => void;
 }
 
 export const useYourVideos = create<useYourVideosProps>((set) => ({
@@ -12,4 +14,6 @@ export const useYourVideos = create<useYourVideosProps>((set) => ({
   setIsOpen: (isOpen) => set({ isOpen }),
   refetchVideos: false,
   setRefetchVideos: (refetch) => set({ refetchVideos: refetch }),
+  isNewOpen: false,
+  setIsNewOpen: (isNewOpen) => set({ isNewOpen }),
 }));

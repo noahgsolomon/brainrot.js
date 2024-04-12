@@ -17,17 +17,11 @@ import ReactPlayer from "react-player";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage } from "@radix-ui/react-avatar";
 import { StopIcon } from "@radix-ui/react-icons";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import Link from "next/link";
+import XIcon from "@/components/svg/XIcon";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
+  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos, isNewOpen } =
     useYourVideos();
   const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
   const [playing, setPlaying] = useState(-1);
@@ -41,15 +35,31 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
     }
   }, [refetchVideos]);
 
-  const [videos, setVideos] = useState(userVideosQuery.data?.videos ?? []);
+  const [videos, setVideos] = useState<
+    {
+      id: number;
+      user_id: number;
+      agent1: string;
+      agent2: string;
+      title: string;
+      url: string;
+      videoId: string;
+    }[]
+  >(userVideosQuery.data?.videos ?? []);
 
   useEffect(() => {
     setVideos(userVideosQuery.data?.videos ?? []);
   }, [userVideosQuery.data?.videos]);
 
+  useEffect(() => {
+    if (isNewOpen) {
+      setVideos((prev) => (prev[0] ? [prev[0]] : []));
+    }
+  }, [isNewOpen]);
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen || isNewOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-h-[80%] max-w-[425px] overflow-y-auto rounded-lg">
           {userVideosQuery.isFetched && videos.length > 0 ? (
             <div className="flex flex-col items-center justify-center ">
@@ -163,6 +173,9 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                         <TooltipContent>Download</TooltipContent>
                       </Tooltip>
                     </div>
+                    <Button className="mt-2 flex w-[250px] flex-row gap-2">
+                      Share on <XIcon className="size-4 fill-secondary" />
+                    </Button>
                   </>
                 );
               })}

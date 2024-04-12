@@ -2,20 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { useCreateVideo } from "./usecreatevideo";
-import { useYourVideos } from "./useyourvideos";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useCreateVideo } from "../usecreatevideo";
+import { useYourVideos } from "../useyourvideos";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Folder, Gem, Github, Loader2, Star, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Tweet } from "react-tweet";
-import FlyingGifs from "./FlyingGifs";
 import XIcon from "@/components/svg/XIcon";
 
 export default function Home({
@@ -24,43 +21,38 @@ export default function Home({
   searchParams: { loggedIn: string };
 }) {
   const user = useUser();
-  const router = useRouter();
 
-  const gifs = useMemo(() => {
-    return [
-      "/brainnnn.gif",
-      "/brain.gif",
-      "/clubpengu.gif",
-      "dancepepe.gif",
-      "/homer.gif",
-      "/sponge.gif",
-      "/par.gif",
-      "/cato.gif",
-      "/OHNOHESHOT.gif",
-      "/roachmf.gif",
-      "/dance.gif",
-      "/flower.gif",
-      "/lick.gif",
-      "/krustykrabpizza.gif",
-      "/duck.gif",
-    ];
-  }, []);
+  // const gifs = useMemo(() => {
+  //   return [
+  //     "/brainnnn.gif",
+  //     "/brain.gif",
+  //     "/clubpengu.gif",
+  //     "dancepepe.gif",
+  //     "/homer.gif",
+  //     "/sponge.gif",
+  //     "/par.gif",
+  //     "/cato.gif",
+  //     "/OHNOHESHOT.gif",
+  //     "/roachmf.gif",
+  //     "/dance.gif",
+  //     "/flower.gif",
+  //     "/lick.gif",
+  //     "/krustykrabpizza.gif",
+  //     "/duck.gif",
+  //   ];
+  // }, []);
 
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
   const [currentlyInQueue, setCurrentlyInQueue] = useState(false);
 
-  // useEffect(() => {
-  //   if (searchParams.loggedIn === "true") {
-  //     setTimeout(() => {
-  //       toast.success(`Welcome in!`, { icon: "👋" });
-  //     }, 1000);
-  //   }
-  // }, []);
-
   const videoStatus = trpc.user.videoStatus.useQuery();
   const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
-  const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
+  const {
+    setIsOpen: setIsYourVideosOpen,
+    setRefetchVideos,
+    setIsNewOpen,
+  } = useYourVideos();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -86,7 +78,7 @@ export default function Home({
         setPendingVideo(false);
         setIsInQueue(false);
         toast.success("Your video has been generated!", { icon: "🎉" });
-        setIsYourVideosOpen(true);
+        setIsNewOpen(true);
       }
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);

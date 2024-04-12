@@ -145,6 +145,16 @@ export const userRouter = createTRPCRouter({
     return { videos: userVideosDb };
   }),
 
+  newUserVideo: protectedProcedure.query(async ({ ctx }) => {
+    const userVideosDb = await ctx.db.query.videos.findMany({
+      where: eq(videos.user_id, ctx.user_id),
+      orderBy: (videos, { desc }) => [desc(videos.id)],
+      limit: 1,
+    });
+
+    return { videos: userVideosDb };
+  }),
+
   // Mutation to update the current user's name
   setName: protectedProcedure
     .input(
