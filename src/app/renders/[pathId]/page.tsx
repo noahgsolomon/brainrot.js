@@ -25,8 +25,6 @@ export async function generateMetadata(
 
   // optionally access and extend (rather than replace) parent metadata
 
-  const previousImages = (await parent).openGraph?.images || [];
-
   return {
     title: video ? video.video?.title : "Unresolved Video",
     description: video
@@ -39,7 +37,7 @@ export async function generateMetadata(
           .join(" ")}`
       : "",
     openGraph: {
-      images: previousImages,
+      images: ["https://images.smart.wtf/videoprev.png"],
     },
   };
 }
