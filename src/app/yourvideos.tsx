@@ -21,7 +21,7 @@ import Link from "next/link";
 import XIcon from "@/components/svg/XIcon";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos, isNewOpen } =
+  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
     useYourVideos();
   const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
   const [playing, setPlaying] = useState(-1);
@@ -51,15 +51,9 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
     setVideos(userVideosQuery.data?.videos ?? []);
   }, [userVideosQuery.data?.videos]);
 
-  useEffect(() => {
-    if (isNewOpen) {
-      setVideos((prev) => (prev[0] ? [prev[0]] : []));
-    }
-  }, [isNewOpen]);
-
   return (
     <>
-      <Dialog open={isOpen || isNewOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-h-[80%] max-w-[425px] overflow-y-auto rounded-lg">
           {userVideosQuery.isFetched && videos.length > 0 ? (
             <div className="flex flex-col items-center justify-center ">
