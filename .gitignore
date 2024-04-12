@@ -52,3 +52,9 @@ public/workbox-e34f44db.js.map
 public/sw.js
 
 generate/venv/*
+
+generate/hidden/*
+generate/public/*
+generate/src/tmp/*
+generate/out/*
+.env
