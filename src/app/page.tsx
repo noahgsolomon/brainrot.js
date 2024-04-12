@@ -48,11 +48,7 @@ export default function Home({
 
   const videoStatus = trpc.user.videoStatus.useQuery();
   const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
-  const {
-    setIsOpen: setIsYourVideosOpen,
-    setRefetchVideos,
-    setIsNewOpen,
-  } = useYourVideos();
+  const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -78,7 +74,7 @@ export default function Home({
         setPendingVideo(false);
         setIsInQueue(false);
         toast.success("Your video has been generated!", { icon: "🎉" });
-        setIsNewOpen(true);
+        setIsYourVideosOpen(true);
       }
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);
