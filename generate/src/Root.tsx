@@ -10,17 +10,6 @@ import {
 import { getAudioDuration } from '@remotion/media-utils';
 
 export const RemotionRoot: React.FC = () => {
-	const [audioDuration, setAudioDuration] = useState<number>(60);
-
-	useEffect(() => {
-		const loadAudio = async () => {
-			const duration = await getAudioDuration(staticFile('audio.mp3'));
-			setAudioDuration(Math.round(duration));
-		};
-
-		loadAudio();
-	}, []);
-
 	return (
 		<>
 			<Composition
@@ -65,7 +54,6 @@ export const RemotionRoot: React.FC = () => {
 							image: 'rick.png',
 						},
 					},
-					onlyDisplayCurrentSentence: true,
 					subtitlesTextColor: 'rgba(255, 255, 255, 0.93)',
 					subtitlesLinePerPage: 6,
 					subtitlesZoomMeasurerSize: 10,
@@ -76,12 +64,14 @@ export const RemotionRoot: React.FC = () => {
 					waveLinesToDisplay: 15,
 					waveNumberOfSamples: '256', // This is string for Remotion controls and will be converted to a number
 					mirrorWave: true,
-					durationInSeconds: audioDuration,
+					durationInSeconds: 60,
 				}}
 				// Determine the length of the video based on the duration of the audio file
-				calculateMetadata={({ props }) => {
+				calculateMetadata={async ({ props }) => {
+					const duration =
+						(await getAudioDuration(staticFile('audio.mp3'))) + 3;
 					return {
-						durationInFrames: props.durationInSeconds * fps,
+						durationInFrames: Math.ceil(duration * fps),
 						props,
 					};
 				}}

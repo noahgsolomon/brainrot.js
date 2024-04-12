@@ -107,7 +107,6 @@ export const AudioGramSchema = z.object({
 	subtitlesLinePerPage: z.number().int().min(0),
 	subtitlesLineHeight: z.number().int().min(0),
 	subtitlesZoomMeasurerSize: z.number().int().min(0),
-	onlyDisplayCurrentSentence: z.boolean(),
 	mirrorWave: z.boolean(),
 	waveLinesToDisplay: z.number().int().min(0),
 	waveFreqRangeStartIndex: z.number().int().min(0),
@@ -189,7 +188,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 	waveLinesToDisplay,
 	subtitlesZoomMeasurerSize,
 	subtitlesLineHeight,
-	onlyDisplayCurrentSentence,
 	mirrorWave,
 	audioOffsetInSeconds,
 	videoFileName,
@@ -282,9 +280,11 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 		<div ref={ref}>
 			<AbsoluteFill>
 				<Sequence from={-audioOffsetInFrames}>
+					{/*@ts-ignore */}
 					<Audio src={audioFileName} />
 					<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
 						<div className="w-full h-[50%] relative">
+							{/*@ts-ignore */}
 							<Img
 								src={
 									subtitlesFileName[
@@ -294,12 +294,15 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									].asset
 								}
 								onError={(e) => {
+									/*@ts-ignore */
 									e.target.onerror = null; // Prevent looping if the fallback also fails
+									/*@ts-ignore */
 									e.target.src = 'https://images.smart.wtf/black.png';
 								}}
 								className="w-full h-full"
 							/>
 							<div className="absolute bottom-2 left-2 flex flex-row gap-24 items-end h-full p-8 z-30">
+								{/*@ts-ignore */}
 								<Img
 									width={200}
 									height={200}
@@ -330,7 +333,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 								src={videoFileName}
 							/>
 							<div
-								className="absolute flex flex-row items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-6xl"
+								className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-7xl"
 								style={{
 									textShadow: '4px 4px 0px #000000',
 									WebkitTextStroke: '2px black',
@@ -354,10 +357,47 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									linesPerPage={subtitlesLinePerPage}
 									subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
 									subtitlesLineHeight={subtitlesLineHeight}
-									onlyDisplayCurrentSentence={onlyDisplayCurrentSentence}
 								/>
 							</div>
 						</div>
+					</div>
+					<div
+						className={`absolute -top-1 -left-1 w-[101%] h-[101%] z-50 flex flex-col gap-36 items-center justify-center transition-all ${
+							durationInFrames - 3 * fps <= frame ? 'fade-in' : 'opacity-0'
+						}`}
+						style={{
+							backgroundImage: `url('https://images.smart.wtf/bg.png')`,
+							backgroundSize: 'cover',
+							backgroundPosition: 'center',
+						}}
+					>
+						<Img
+							className="rounded-full border-8 shadow-md"
+							width={600}
+							height={600}
+							src="https://images.smart.wtf/brainrot.png"
+						/>
+
+						<p
+							className={` text-center transition-all z-[200] text-white text-8xl font-remotionFont ${
+								durationInFrames - 3 * fps <= frame
+									? 'opacity-100'
+									: 'opacity-0'
+							}`}
+						>
+							Video generated on{' '}
+							<span className="text-pink-300 border-b-8 pb-1 border-pink-300">
+								brainrotjs.com
+							</span>{' '}
+							🧠
+						</p>
+						<p
+							className={` text-center transition-all z-[200] text-white text-8xl font-remotionFont ${
+								durationInFrames - 2 * fps <= frame ? 'fade-in' : 'opacity-0'
+							}`}
+						>
+							try for free today 🤑
+						</p>
 					</div>
 				</Sequence>
 			</AbsoluteFill>
