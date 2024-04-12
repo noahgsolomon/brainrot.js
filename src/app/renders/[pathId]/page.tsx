@@ -44,6 +44,28 @@ export async function generateMetadata(
     openGraph: {
       images: ["https://images.smart.wtf/videoprev.png"],
     },
+    twitter: {
+      card: "summary_large_image",
+      site: "brainrotjs.com",
+      creator: "@noahgsolomon",
+      title: searchParams.title ?? "Unresolved Video",
+      description: `${searchParams.title ?? "Unresolved Video"} explained by ${
+        searchParams.agent1
+          ? searchParams.agent1
+              .split("_")
+              .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+              .join(" ")
+          : ""
+      } and ${
+        searchParams.agent2
+          ? searchParams.agent2
+              .split("_")
+              .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+              .join(" ")
+          : ""
+      }`,
+      images: ["https://images.smart.wtf/videoprev.png"],
+    },
   };
 }
 
