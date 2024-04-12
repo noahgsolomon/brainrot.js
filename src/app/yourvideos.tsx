@@ -49,12 +49,6 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
 
   return (
     <>
-      {videos.map((video) => {
-        <video
-          className="absolute left-0 top-0 -z-50 opacity-0"
-          src={video.url}
-        />;
-      })}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-h-[80%] max-w-[425px] overflow-y-auto rounded-lg">
           {userVideosQuery.isFetched && videos.length > 0 ? (
