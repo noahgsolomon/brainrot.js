@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   datetime,
   int,
   mysqlTable,
@@ -60,6 +61,11 @@ export const pendingVideos = mysqlTable(
     videoId: varchar("video_id", { length: 100 }).notNull(),
     url: varchar("url", { length: 1000 }).default(""),
     timestamp: datetime("timestamp", { mode: "date" }),
+    duration: int("duration").notNull(),
+    fps: int("fps").notNull(),
+    aiGeneratedImages: boolean("ai_generated_images").notNull(),
+    background: varchar("background", { length: 100 }).notNull(),
+    music: varchar("music", { length: 100 }).notNull(),
   },
   (t) => ({
     userIdx: uniqueIndex("user_idx").on(t.user_id),
