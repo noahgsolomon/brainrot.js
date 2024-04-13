@@ -5,6 +5,7 @@ import {
   BookMarked,
   Film,
   Flame,
+  Info,
   Music,
   Play,
   PlayCircle,
@@ -21,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -37,6 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 
 export default function CreateVideo({
   visible = false,
@@ -55,7 +57,7 @@ export default function CreateVideo({
     }[]
   >([]);
   const [background, setBackground] = useState<
-    "FORTNITE" | "MINECRAFT" | "GTA" | null
+    "TRUCK" | "MINECRAFT" | "GTA" | null
   >(null);
   const [music, setMusic] = useState<
     | "FLUFFING_A_DUCK"
@@ -67,6 +69,8 @@ export default function CreateVideo({
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
   const [duration, setDuration] = useState<number | null>(null);
   const [assetType, setAssetType] = useState<"AI" | "GOOGLE" | null>(null);
+  const [credits, setCredits] = useState(10);
+
   const [invalidTopic, setInvalidTopic] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
@@ -75,6 +79,20 @@ export default function CreateVideo({
     "Fall of Roman Empire",
   ]);
   const router = useRouter();
+
+  useEffect(() => {
+    let value = 10;
+    if (assetType === "AI") {
+      value += 5;
+    }
+    if (duration) {
+      value += 10 * (duration - 1) * (fps && fps > 20 ? fps / 30 : 1);
+    }
+    if (fps) {
+      value += fps === 30 ? 3 : fps === 50 ? 9 : fps === 60 ? 12 : 0;
+    }
+    setCredits(Math.min(Math.round(value), 60));
+  }, [fps, duration, assetType]);
 
   const dbUser = trpc.user.user.useQuery();
 
@@ -95,6 +113,11 @@ export default function CreateVideo({
             agent1: agent[0]?.name ?? "JORDAN_PETERSON",
             agent2: agent[1]?.name ?? "BEN_SHAPIRO",
             videoId: uuidVal,
+            duration: duration,
+            music: music,
+            background: background,
+            fps: fps,
+            aiGeneratedImages: assetType === "AI" ? true : false,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -480,16 +503,16 @@ export default function CreateVideo({
                       `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                     )}
                     onClick={() => {
-                      if (background === "FORTNITE") {
+                      if (background === "TRUCK") {
                         setBackground(null);
                       } else {
-                        setBackground("FORTNITE");
+                        setBackground("TRUCK");
                       }
                     }}
                   >
                     <Image
                       className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                        background === "FORTNITE" ? "opacity-40" : "opacity-0"
+                        background === "TRUCK" ? "opacity-40" : "opacity-0"
                       }`}
                       height={90}
                       width={90}
@@ -498,10 +521,10 @@ export default function CreateVideo({
                     />
                     <Image
                       className="z-10"
-                      src={"https://images.smart.wtf/fortnite.webp"}
+                      src={"https://images.smart.wtf/TRUCK.png"}
                       width={90}
                       height={90}
-                      alt="fortnite"
+                      alt="TRUCK"
                     />
                   </div>
                   <div
@@ -598,7 +621,7 @@ export default function CreateVideo({
                           src={"https://images.smart.wtf/wiisports.png"}
                           width={90}
                           height={90}
-                          alt="fortnite"
+                          alt="wii sports"
                         />
                       </div>
                     </TooltipTrigger>
@@ -728,7 +751,13 @@ export default function CreateVideo({
                   </Button>{" "}
                   |
                   <Button
-                    onClick={() => setDuration(2)}
+                    disabled={assetType === "AI"}
+                    onClick={() => {
+                      if (assetType === "AI") {
+                        setAssetType("GOOGLE");
+                      }
+                      setDuration(2);
+                    }}
                     size={"sm"}
                     variant={duration === 2 ? "default" : "outline"}
                   >
@@ -736,7 +765,13 @@ export default function CreateVideo({
                   </Button>{" "}
                   |
                   <Button
-                    onClick={() => setDuration(3)}
+                    disabled={assetType === "AI"}
+                    onClick={() => {
+                      if (assetType === "AI") {
+                        setAssetType("GOOGLE");
+                      }
+                      setDuration(3);
+                    }}
                     size={"sm"}
                     variant={duration === 3 ? "default" : "outline"}
                   >
@@ -749,6 +784,7 @@ export default function CreateVideo({
                     variant={assetType === "AI" ? "default" : "outline"}
                     onClick={() => setAssetType("AI")}
                     size={"sm"}
+                    disabled={(duration ?? 0) > 1}
                   >
                     AI Generated
                   </Button>{" "}
@@ -762,21 +798,38 @@ export default function CreateVideo({
                   </Button>{" "}
                 </div>
               </div>
-              <DialogClose
-                disabled={
-                  !background && !music && !fps && !duration && !assetType
-                }
-              >
-                <Button
+              <p className="flex flex-row items-center gap-1 text-xs text-blue/40">
+                <Info className="size-3 text-blue/40" />
+                AI Generated Asset videos cannot be longer than 1 minute
+              </p>
+
+              <div className="flex flex-row items-center justify-between">
+                <DialogClose
                   disabled={
                     !background && !music && !fps && !duration && !assetType
                   }
-                  className="flex items-center gap-2"
-                  onClick={() => toast.info("saved options!", { icon: "💾" })}
                 >
-                  Save <Save className="size-4" />
-                </Button>
-              </DialogClose>
+                  <Button
+                    disabled={
+                      !background && !music && !fps && !duration && !assetType
+                    }
+                    className="flex items-center gap-2"
+                    onClick={() => toast.info("saved options!", { icon: "💾" })}
+                  >
+                    Save <Save className="size-4" />
+                  </Button>
+                </DialogClose>
+                <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
+                  <p className="text-xs font-bold">
+                    Cost in Credits:{" "}
+                    <span className="text-blue">
+                      {"\n"}
+                      {credits}
+                    </span>
+                  </p>
+                  <Progress value={credits / 0.6} />
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
@@ -785,7 +838,7 @@ export default function CreateVideo({
             Can't generate another video while one is already pending
           </p>
         )}
-        <DialogFooter>
+        <DialogFooter className="flex flex-row items-center justify-between">
           <Button
             disabled={
               agent.length !== 2 ||
@@ -809,6 +862,16 @@ export default function CreateVideo({
             {generating ? "Generating..." : "Generate"}
             <Wand className="h-4 w-4" />
           </Button>
+          <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
+            <p className="text-xs font-bold">
+              Cost in Credits:{" "}
+              <span className="text-blue">
+                {"\n"}
+                {credits}
+              </span>
+            </p>
+            <Progress value={credits / 0.6} />
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
