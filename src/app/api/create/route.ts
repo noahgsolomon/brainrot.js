@@ -12,6 +12,16 @@ export async function POST(request: Request) {
     videoId: body.videoId,
     url: "",
     timestamp: new Date(),
+    duration: body.duration ?? 60,
+    music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
+    background:
+      body.background ?? Math.random() < 0.33
+        ? "MINECRAFT"
+        : Math.random() > 0.5
+        ? "GTA"
+        : "TRUCK",
+    fps: body.fps ?? 20,
+    aiGeneratedImages: body.aiGeneratedImages,
   });
 
   return new Response(null, { status: 200 });
