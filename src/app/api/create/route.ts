@@ -15,7 +15,9 @@ export async function POST(request: Request) {
     duration: body.duration ?? 1,
     music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
     background:
-      body.background ?? Math.random() < 0.33
+      body.background !== null
+        ? body.background
+        : Math.random() < 0.33
         ? "MINECRAFT"
         : Math.random() > 0.5
         ? "GTA"
