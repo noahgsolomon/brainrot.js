@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     videoId: body.videoId,
     url: "",
     timestamp: new Date(),
-    duration: body.duration ?? 60,
+    duration: body.duration ?? 1,
     music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
     background:
       body.background ?? Math.random() < 0.33
