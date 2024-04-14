@@ -142,7 +142,7 @@ export default function CreateVideo({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className=" rounded-lg sm:max-w-[425px]">
+      <DialogContent className=" xs:max-w-[425px] max-h-[75%] max-w-[90%] rounded-lg">
         {!user.userId && (
           <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-secondary dark:text-primary">
             <div className="flex flex-col items-center gap-2">
@@ -190,7 +190,7 @@ export default function CreateVideo({
             <h4>1.{")"} Choose a topic.</h4>
             <BookMarked className="h-4 w-4 text-blue" />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 sm:flex">
             <Button
               className={`transition-all ${
                 recommendedSelect === 0 ? "border border-primary" : ""
@@ -237,6 +237,7 @@ export default function CreateVideo({
               placeholder="// Random topic"
               className="col-span-3"
               value={videoInput}
+              maxLength={250}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   setGenerating(true);
@@ -308,7 +309,7 @@ export default function CreateVideo({
               }}
             >
               <Image
-                className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                className={` absolute bottom-0 left-0 right-0 top-0 z-20   transition-all ${
                   agent.some((a) => a.name === "JORDAN_PETERSON")
                     ? "opacity-40"
                     : "opacity-0"
@@ -319,7 +320,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="z-10 scale-[110%]"
+                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[110%]"
                 src={"https://images.smart.wtf/JORDAN_PETERSON.png"}
                 width={75}
                 height={75}
@@ -369,7 +370,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="z-10 scale-[110%]"
+                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[110%]"
                 src={"https://images.smart.wtf/BEN_SHAPIRO.png"}
                 width={75}
                 height={75}
@@ -419,7 +420,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="z-10 scale-[125%]"
+                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[125%]"
                 src={"https://images.smart.wtf/JOE_ROGAN.png"}
                 width={75}
                 height={75}
@@ -469,7 +470,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="z-0 scale-[120%]"
+                className="xs:h-[75px] xs:w-[75px] z-0 h-[60px] w-[60px] scale-[120%]"
                 src={"https://images.smart.wtf/BARACK_OBAMA.png"}
                 width={75}
                 height={75}
@@ -483,15 +484,15 @@ export default function CreateVideo({
             <DialogTrigger asChild>
               <Button variant={"outline"}>Additional Options</Button>
             </DialogTrigger>
-            <DialogContent className=" rounded-lg sm:max-w-[425px]">
-              <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
+            <DialogContent className="xs:max-w-[425px] max-h-[75%] max-w-[90%] overflow-y-auto rounded-lg">
+              {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
                 <p className="text-center text-4xl font-bold text-secondary">
                   COMING SOON
                 </p>
-              </div>
+              </div> */}
               <div className="relative flex flex-col gap-2">
                 <div className="flex items-center gap-1">
-                  <h5>Background video</h5>
+                  <h6>Background video</h6>
                   <Film className="size-4 text-success" />
                 </div>
                 <DialogClose>
@@ -520,7 +521,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="z-10"
+                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                       src={"https://images.smart.wtf/TRUCK.png"}
                       width={90}
                       height={90}
@@ -549,7 +550,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="z-10"
+                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                       src={"https://images.smart.wtf/minecraft.webp"}
                       width={90}
                       height={90}
@@ -578,7 +579,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="z-10"
+                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                       src={"https://images.smart.wtf/gta.png"}
                       width={90}
                       height={90}
@@ -586,10 +587,17 @@ export default function CreateVideo({
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <h5>Background music</h5>
-                  <Music className="size-4 text-english" />
+                <div className="flex flex-row items-center gap-4 ">
+                  <div className="flex items-center gap-1">
+                    <h6>Background music</h6>
+                    <Music className="size-4 text-english" />
+                  </div>{" "}
+                  |{" "}
+                  <Button size={"sm"} variant={"outline"}>
+                    off
+                  </Button>
                 </div>
+
                 <div className="flex flex-wrap gap-2">
                   <Tooltip>
                     <TooltipTrigger>
@@ -617,7 +625,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="z-10"
+                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                           src={"https://images.smart.wtf/wiisports.png"}
                           width={90}
                           height={90}
@@ -655,7 +663,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="z-10"
+                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                           src={"https://images.smart.wtf/monkey.png"}
                           width={90}
                           height={90}
@@ -693,7 +701,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="z-10"
+                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
                           src={"https:/images.smart.wtf/fluffingduck.png"}
                           width={90}
                           height={80}
@@ -707,95 +715,101 @@ export default function CreateVideo({
                   </Tooltip>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h5>FPS: </h5>
-                  <Button
-                    variant={fps === 20 ? "default" : "outline"}
-                    onClick={() => setFps(20)}
-                    size={"sm"}
-                  >
-                    20
-                  </Button>{" "}
-                  |
-                  <Button
-                    onClick={() => setFps(30)}
-                    size={"sm"}
-                    variant={fps === 30 ? "default" : "outline"}
-                  >
-                    30
-                  </Button>{" "}
-                  |
-                  <Button
-                    onClick={() => setFps(50)}
-                    size={"sm"}
-                    variant={fps === 50 ? "default" : "outline"}
-                  >
-                    50
-                  </Button>{" "}
-                  |
-                  <Button
-                    onClick={() => setFps(60)}
-                    size={"sm"}
-                    variant={fps === 60 ? "default" : "outline"}
-                  >
-                    60
-                  </Button>
+                  <h6>FPS: </h6>
+                  <div className="xs:gap-2 flex flex-wrap items-center gap-1">
+                    <Button
+                      variant={fps === 20 ? "default" : "outline"}
+                      onClick={() => setFps(20)}
+                      size={"sm"}
+                    >
+                      20
+                    </Button>{" "}
+                    |
+                    <Button
+                      onClick={() => setFps(30)}
+                      size={"sm"}
+                      variant={fps === 30 ? "default" : "outline"}
+                    >
+                      30
+                    </Button>{" "}
+                    |
+                    <Button
+                      onClick={() => setFps(50)}
+                      size={"sm"}
+                      variant={fps === 50 ? "default" : "outline"}
+                    >
+                      50
+                    </Button>{" "}
+                    |
+                    <Button
+                      onClick={() => setFps(60)}
+                      size={"sm"}
+                      variant={fps === 60 ? "default" : "outline"}
+                    >
+                      60
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h5>Duration: </h5>
-                  <Button
-                    variant={duration === 1 ? "default" : "outline"}
-                    onClick={() => setDuration(1)}
-                    size={"sm"}
-                  >
-                    1 minute
-                  </Button>{" "}
-                  |
-                  <Button
-                    disabled={assetType === "AI"}
-                    onClick={() => {
-                      if (assetType === "AI") {
-                        setAssetType("GOOGLE");
-                      }
-                      setDuration(2);
-                    }}
-                    size={"sm"}
-                    variant={duration === 2 ? "default" : "outline"}
-                  >
-                    2 minutes
-                  </Button>{" "}
-                  |
-                  <Button
-                    disabled={assetType === "AI"}
-                    onClick={() => {
-                      if (assetType === "AI") {
-                        setAssetType("GOOGLE");
-                      }
-                      setDuration(3);
-                    }}
-                    size={"sm"}
-                    variant={duration === 3 ? "default" : "outline"}
-                  >
-                    3 minutes
-                  </Button>{" "}
+                  <h6>Duration: </h6>
+                  <div className="xs:gap-2 flex flex-row items-center gap-1">
+                    <Button
+                      variant={duration === 1 ? "default" : "outline"}
+                      onClick={() => setDuration(1)}
+                      size={"sm"}
+                    >
+                      1 min
+                    </Button>{" "}
+                    |
+                    <Button
+                      disabled={assetType === "AI"}
+                      onClick={() => {
+                        if (assetType === "AI") {
+                          setAssetType("GOOGLE");
+                        }
+                        setDuration(2);
+                      }}
+                      size={"sm"}
+                      variant={duration === 2 ? "default" : "outline"}
+                    >
+                      2 min
+                    </Button>{" "}
+                    |
+                    <Button
+                      disabled={assetType === "AI"}
+                      onClick={() => {
+                        if (assetType === "AI") {
+                          setAssetType("GOOGLE");
+                        }
+                        setDuration(3);
+                      }}
+                      size={"sm"}
+                      variant={duration === 3 ? "default" : "outline"}
+                    >
+                      3 min
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h5>Assets: </h5>
-                  <Button
-                    variant={assetType === "AI" ? "default" : "outline"}
-                    onClick={() => setAssetType("AI")}
-                    size={"sm"}
-                    disabled={(duration ?? 0) > 1}
-                  >
-                    AI Generated
-                  </Button>{" "}
-                  |
-                  <Button
-                    onClick={() => setAssetType("GOOGLE")}
-                    size={"sm"}
-                    variant={assetType === "GOOGLE" ? "default" : "outline"}
-                  >
-                    Google Search
-                  </Button>{" "}
+                  <h6>Assets: </h6>
+                  <div className="xs:gap-2 flex flex-row items-center gap-1">
+                    <Button
+                      variant={assetType === "AI" ? "default" : "outline"}
+                      onClick={() => setAssetType("AI")}
+                      size={"sm"}
+                      disabled={(duration ?? 0) > 1}
+                    >
+                      AI Generated
+                    </Button>{" "}
+                    |
+                    <Button
+                      onClick={() => setAssetType("GOOGLE")}
+                      size={"sm"}
+                      variant={assetType === "GOOGLE" ? "default" : "outline"}
+                    >
+                      Google Search
+                    </Button>
+                  </div>
                 </div>
               </div>
               <p className="flex flex-row items-center gap-1 text-xs text-blue/40">
