@@ -24,6 +24,7 @@ export async function POST(request: Request) {
         : "TRUCK",
     fps: body.fps ?? 20,
     aiGeneratedImages: body.aiGeneratedImages,
+    cleanSrt: body.cleanSrt,
   });
 
   return new Response(null, { status: 200 });
