@@ -57,7 +57,7 @@ export const pendingVideos = mysqlTable(
     user_id: int("user_id").notNull(),
     agent1: varchar("agent1", { length: 100 }).notNull(),
     agent2: varchar("agent2", { length: 100 }).notNull(),
-    title: varchar("title", { length: 100 }).notNull(),
+    title: varchar("title", { length: 500 }).notNull(),
     videoId: varchar("video_id", { length: 100 }).notNull(),
     url: varchar("url", { length: 1000 }).default(""),
     timestamp: datetime("timestamp", { mode: "date" }),
