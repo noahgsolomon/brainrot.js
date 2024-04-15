@@ -118,6 +118,7 @@ export default function CreateVideo({
             background: background,
             fps: fps,
             aiGeneratedImages: assetType === "AI" ? true : false,
+            cleanSrt: true,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -142,7 +143,7 @@ export default function CreateVideo({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className=" xs:max-w-[425px] max-h-[75%] max-w-[90%] rounded-lg">
+      <DialogContent className=" max-h-[75%] max-w-[90%] rounded-lg xs:max-w-[425px]">
         {!user.userId && (
           <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-secondary dark:text-primary">
             <div className="flex flex-col items-center gap-2">
@@ -320,7 +321,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[110%]"
+                className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
                 src={"https://images.smart.wtf/JORDAN_PETERSON.png"}
                 width={75}
                 height={75}
@@ -370,7 +371,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[110%]"
+                className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
                 src={"https://images.smart.wtf/BEN_SHAPIRO.png"}
                 width={75}
                 height={75}
@@ -420,7 +421,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="xs:h-[75px] xs:w-[75px] z-10 h-[60px] w-[60px] scale-[125%]"
+                className="z-10 h-[60px] w-[60px] scale-[125%] xs:h-[75px] xs:w-[75px]"
                 src={"https://images.smart.wtf/JOE_ROGAN.png"}
                 width={75}
                 height={75}
@@ -470,7 +471,7 @@ export default function CreateVideo({
                 alt="fire"
               />
               <Image
-                className="xs:h-[75px] xs:w-[75px] z-0 h-[60px] w-[60px] scale-[120%]"
+                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
                 src={"https://images.smart.wtf/BARACK_OBAMA.png"}
                 width={75}
                 height={75}
@@ -484,7 +485,7 @@ export default function CreateVideo({
             <DialogTrigger asChild>
               <Button variant={"outline"}>Additional Options</Button>
             </DialogTrigger>
-            <DialogContent className="xs:max-w-[425px] max-h-[75%] max-w-[90%] overflow-y-auto rounded-lg">
+            <DialogContent className="max-h-[75%] max-w-[90%] overflow-y-auto rounded-lg xs:max-w-[425px]">
               {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
                 <p className="text-center text-4xl font-bold text-secondary">
                   COMING SOON
@@ -521,7 +522,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                       src={"https://images.smart.wtf/TRUCK.png"}
                       width={90}
                       height={90}
@@ -550,7 +551,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                       src={"https://images.smart.wtf/minecraft.webp"}
                       width={90}
                       height={90}
@@ -579,7 +580,7 @@ export default function CreateVideo({
                       alt="fire"
                     />
                     <Image
-                      className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                       src={"https://images.smart.wtf/gta.png"}
                       width={90}
                       height={90}
@@ -625,7 +626,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                           src={"https://images.smart.wtf/wiisports.png"}
                           width={90}
                           height={90}
@@ -663,7 +664,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                           src={"https://images.smart.wtf/monkey.png"}
                           width={90}
                           height={90}
@@ -701,7 +702,7 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="xs:h-[90px] xs:w-[90px] z-10 h-[60px] w-[60px]"
+                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
                           src={"https:/images.smart.wtf/fluffingduck.png"}
                           width={90}
                           height={80}
@@ -716,7 +717,7 @@ export default function CreateVideo({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h6>FPS: </h6>
-                  <div className="xs:gap-2 flex flex-wrap items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-1 xs:gap-2">
                     <Button
                       variant={fps === 20 ? "default" : "outline"}
                       onClick={() => setFps(20)}
@@ -752,7 +753,7 @@ export default function CreateVideo({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h6>Duration: </h6>
-                  <div className="xs:gap-2 flex flex-row items-center gap-1">
+                  <div className="flex flex-row items-center gap-1 xs:gap-2">
                     <Button
                       variant={duration === 1 ? "default" : "outline"}
                       onClick={() => setDuration(1)}
@@ -792,7 +793,7 @@ export default function CreateVideo({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h6>Assets: </h6>
-                  <div className="xs:gap-2 flex flex-row items-center gap-1">
+                  <div className="flex flex-row items-center gap-1 xs:gap-2">
                     <Button
                       variant={assetType === "AI" ? "default" : "outline"}
                       onClick={() => setAssetType("AI")}

@@ -66,6 +66,7 @@ export const pendingVideos = mysqlTable(
     aiGeneratedImages: boolean("ai_generated_images").notNull(),
     background: varchar("background", { length: 100 }).notNull(),
     music: varchar("music", { length: 100 }).notNull(),
+    cleanSrt: boolean("clean_srt").notNull().default(false),
   },
   (t) => ({
     userIdx: uniqueIndex("user_idx").on(t.user_id),
