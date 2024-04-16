@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  AlertTriangle,
   BookMarked,
   Film,
   Flame,
@@ -47,6 +48,8 @@ export default function CreateVideo({
   visible?: boolean;
 }) {
   const user = useAuth();
+
+  const remainingCredits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
 
   const videoStatus = trpc.user.videoStatus.useQuery();
 
@@ -252,6 +255,8 @@ export default function CreateVideo({
                         : videoInput) ?? "the future of the world",
                     agent1: agent[0]?.id ?? 0,
                     agent2: agent[1]?.id ?? 1,
+                    remainingCredits: remainingCredits,
+                    cost: credits,
                   });
                 }
               }}
@@ -859,6 +864,13 @@ export default function CreateVideo({
             </DialogContent>
           </Dialog>
         </div>
+
+        {remainingCredits < credits && (
+          <p className="flex flex-row items-center gap-1 text-sm text-red-500/80">
+            <AlertTriangle className="size-3" />
+            You have insufficient credits for this generation
+          </p>
+        )}
         {videoStatus.data?.videos !== null && (
           <p className="text-sm text-destructive/60">
             Error. Please refresh the page.
@@ -882,6 +894,8 @@ export default function CreateVideo({
                     : videoInput) ?? "the future of the world",
                 agent1: agent[0]?.id ?? 0,
                 agent2: agent[1]?.id ?? 1,
+                cost: credits,
+                remainingCredits: remainingCredits,
               });
             }}
           >
@@ -890,11 +904,8 @@ export default function CreateVideo({
           </Button>
           <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
             <p className="text-xs font-bold">
-              Cost in Credits:{" "}
-              <span className="text-blue">
-                {"\n"}
-                {credits}
-              </span>
+              Cost in Credits: <span className="text-blue">{credits}</span>/
+              <span className="text-red-500">{remainingCredits}</span>
             </p>
             <Progress value={credits / 0.6} />
           </div>
