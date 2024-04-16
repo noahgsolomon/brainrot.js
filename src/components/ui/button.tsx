@@ -29,7 +29,7 @@ const buttonVariants = cva(
           "hover:scale-[100%] active:scale-[100%] transition-all text-primary dark:text-secondary underline-offset-4 hover:underline",
         success:
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-success text-primary hover:bg-success/90",
-        rainbow: `text-secondary dark:text-primary bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 via-green-500 to-blue-500 via-indigo-500 to-purple-500 background-animate shadow-sm hover:scale-[101%] active:scale-[99%] transition-all `,
+        rainbow: `rainbow text-secondary dark:text-primary shadow-sm hover:scale-[101%] active:scale-[99%] transition-all`,
       },
       size: {
         default: "h-9 px-4 py-2",

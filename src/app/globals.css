@@ -504,23 +504,13 @@ mtext {
 
 
 
-.background-animate {
-  background-size: 400%;
-
-  -webkit-animation: RainbowAnimation 3s ease infinite;
-  -moz-animation: RainbowAnimation 3s ease infinite;
-  animation: RainbowAnimation 3s ease infinite;
-}
-
 @keyframes RainbowAnimation {
-
-  0%,
-  100% {
+  0% {
     background-position: 0% 50%;
   }
 
-  50% {
-    background-position: 100% 50%;
+  100% {
+    background-position: 400% 50%;
   }
 }
 
@@ -542,6 +532,25 @@ mtext {
   to {
     transform: translateX(-150vw);
   }
+}
+
+.rainbow {
+  background-image: linear-gradient(to right,
+      hsl(3 93% 48%),
+      hsl(26 91% 52%),
+      hsl(52, 89%, 46%),
+      hsl(74, 86%, 48%),
+      hsl(146, 78%, 50%),
+      hsl(168, 78%, 50%),
+      hsl(158, 78%, 50%),
+      hsl(193 76% 53%),
+      hsl(215, 95%, 56%),
+      hsl(254, 95%, 56%),
+      hsl(287, 93%, 47%),
+      hsl(307, 96%, 47%),
+      hsl(0, 93%, 48%));
+  background-size: 400%;
+  animation: RainbowAnimation 15s ease infinite;
 }
 
 @keyframes fadeIn {
