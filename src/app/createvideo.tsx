@@ -714,7 +714,7 @@ export default function CreateVideo({
                         />
                         <Image
                           className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https:/images.smart.wtf/fluffingduck.png"}
+                          src={"https:/images.smart.wtf/fluffing.png"}
                           width={90}
                           height={80}
                           alt="fluffing a duck"
