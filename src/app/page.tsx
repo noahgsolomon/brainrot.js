@@ -7,13 +7,14 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Folder, Gem, Github, Loader2, Star, Wand } from "lucide-react";
+import { Coins, Folder, Gem, Github, Loader2, Star, Wand } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { Tweet } from "react-tweet";
 import XIcon from "@/components/svg/XIcon";
+import Credits from "./credits";
 
 export default function Home({
   searchParams,
@@ -156,24 +157,30 @@ export default function Home({
             </Button>
 
             {user.isSignedIn ? (
-              <Button
-                variant={"outline"}
-                className="flex flex-row items-center gap-2"
-                onClick={() => setIsYourVideosOpen(true)}
-              >
-                <Folder className="h-4 w-4" />
-                Your videos
-              </Button>
+              <>
+                <Credits />
+                <Button
+                  variant={"outline"}
+                  className="flex flex-row items-center gap-2"
+                  onClick={() => setIsYourVideosOpen(true)}
+                >
+                  <Folder className="h-4 w-4" />
+                  Your videos
+                </Button>
+              </>
             ) : !user.isLoaded ? (
-              <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
+              <>
+                <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
+                <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
+              </>
             ) : null}
           </div>
         </div>
         <div className="pt-48">
-          <p className="text-center text-3xl font-bold">Wall of Fame</p>
+          <p className="text-center text-3xl font-bold">Recent Generations</p>
           <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">
-            <Tweet id="1777773736416206948" />
-            <Tweet id="1777767131998019762" />
+            <Tweet id="1780025664608821715" />
+            <Tweet id="1779908542306345061" />
             <Tweet id="1778059188742099419" />
             <Tweet id="1777944936874393936" />
             <Tweet id="1778012232250532213" />
