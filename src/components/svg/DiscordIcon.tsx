@@ -5,7 +5,7 @@ export default function DiscordIcon({ className }: { className: string }) {
     <svg
       viewBox="0 -28.5 256 256"
       version="1.1"
-      className={cn("fill-secondary", className)}
+      className={cn("fill-secondary ", className)}
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid"
     >
