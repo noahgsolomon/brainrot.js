@@ -54,7 +54,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-h-[80%] max-w-[425px] overflow-y-auto rounded-lg">
+        <DialogContent>
           {userVideosQuery.isFetched && videos.length > 0 ? (
             <div className="flex flex-col items-center justify-center ">
               {videos.map((video, index) => {
