@@ -1,19 +1,15 @@
+"use client";
+
 import DiscordIcon from "@/components/svg/DiscordIcon";
 import XIcon from "@/components/svg/XIcon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import {
-  Coins,
-  Copy,
-  Crown,
-  DollarSign,
-  Gem,
-  Info,
-  PartyPopper,
-} from "lucide-react";
+import { trpc } from "@/trpc/client";
+import { Coins, Copy, Crown, Info } from "lucide-react";
 
 export default function Credits() {
+  const credits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -33,11 +29,20 @@ export default function Credits() {
         </div>
         <div className="flex flex-col gap-8">
           <p className="text-2xl font-bold">
-            Available Credits: <span className="text-destructive">43</span>
+            Available Credits:{" "}
+            <span className="text-destructive">{credits}</span>
           </p>
           <div>
-            <p>Moderate</p>
-            <Progress value={(403 / 1000) * 100} />
+            <p>
+              {(credits / 1000) * 100 < 25
+                ? "Poor 😭"
+                : (credits / 1000) * 100 < 50
+                ? "Average 🙂"
+                : (credits / 1000) * 100 < 75
+                ? "Good 😏"
+                : "Excellent 😎"}
+            </p>
+            <Progress value={(credits / 1000) * 100} />
             <div className="flex flex-wrap items-center gap-2 pt-2 text-sm text-blue/80">
               <Info className="size-4 " />
               10 credits ≈ 1 video

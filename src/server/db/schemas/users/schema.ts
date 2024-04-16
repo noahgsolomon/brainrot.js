@@ -21,6 +21,7 @@ export const brainrotusers = mysqlTable(
     created_at: datetime("created_at", { mode: "date" })
       .notNull()
       .default(new Date()),
+    credits: int("credits").default(0).notNull(),
   },
   (t) => ({
     clerkIdx: uniqueIndex("clerk_idx").on(t.clerk_id),
