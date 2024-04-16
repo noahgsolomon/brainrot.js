@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export default function ({ className }: { className: string }) {
+export default function DiscordIcon({ className }: { className: string }) {
   return (
     <svg
       viewBox="0 -28.5 256 256"
