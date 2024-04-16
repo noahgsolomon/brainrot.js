@@ -64,6 +64,7 @@ export default function CreateVideo({
     | "FLUFFING_A_DUCK"
     | "MONKEYS_SPINNING_MONKEYS"
     | "WII_SHOP_CHANNEL_TRAP"
+    | "NONE"
     | null
   >(null);
   const [fps, setFps] = useState<number | null>(null);
@@ -487,7 +488,7 @@ export default function CreateVideo({
             <DialogTrigger asChild>
               <Button variant={"outline"}>Additional Options</Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[75%] max-w-[90%] overflow-y-auto rounded-lg xs:max-w-[425px]">
+            <DialogContent>
               {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
                 <p className="text-center text-4xl font-bold text-secondary">
                   COMING SOON
@@ -596,7 +597,11 @@ export default function CreateVideo({
                     <Music className="size-4 text-english" />
                   </div>{" "}
                   |{" "}
-                  <Button size={"sm"} variant={"outline"}>
+                  <Button
+                    onClick={() => setMusic("NONE")}
+                    size={"sm"}
+                    variant={"outline"}
+                  >
                     off
                   </Button>
                 </div>
