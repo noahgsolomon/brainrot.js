@@ -82,10 +82,13 @@ module.exports = {
         blob3: "hsl(var(--blob3))",
         lightBlue: "hsl(var(--light-blue))",
         blue: "hsl(var(--blue))",
-        gold: "hsl(var(--gold))",
         brain: {
           DEFAULT: "hsl(var(--brain))",
           foreground: "hsl(var(--brain-foreground))",
+        },
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          foreground: "hsl(var(--gold-foreground))",
         },
         common: {
           DEFAULT: "hsl(var(--common))",

@@ -164,8 +164,8 @@ html {
     --success-foreground: 120 25% 50%;
     --library: 28 50% 30%;
     --library-foreground: 28 25% 40%;
-    --gold: 58 100% 40%;
-    --gold-foreground: 58 45% 60%;
+    --gold: 48 100% 60%;
+    --gold-foreground: 48 45% 70%;
     --pastel-yellow: 60 80% 70%;
     --pastel-red: 0 80% 70%;
     --pastel-blue: 210 80% 70%;
@@ -558,4 +558,33 @@ mtext {
 
 .fade-in {
   animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gold {
+  background: linear-gradient(45deg,
+      hsl(var(--gold)),
+      hsl(var(--gold-foreground)),
+      hsl(var(--gold)));
+  background-size: 200% 200%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.brain {
+  background: linear-gradient(45deg, hsl(var(--brain)), #6698e3, hsl(var(--brain)));
+  background-size: 200% 200%;
+  animation: shimmer 3s ease-in-out infinite;
 }
