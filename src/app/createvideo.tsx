@@ -39,6 +39,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CreateVideo({
   visible = false,
@@ -191,7 +192,7 @@ export default function CreateVideo({
             <h4>1.{")"} Choose a topic.</h4>
             <BookMarked className="h-4 w-4 text-blue" />
           </div>
-          <div className="hidden flex-wrap gap-2 sm:flex">
+          {/* <div className="hidden flex-wrap gap-2 sm:flex">
             <Button
               className={`transition-all ${
                 recommendedSelect === 0 ? "border border-primary" : ""
@@ -231,14 +232,15 @@ export default function CreateVideo({
             >
               Fall of Roman Empire
             </Button>
-          </div>
+          </div> */}
           <div className="flex flex-col justify-center gap-1 py-4">
-            <Input
+            <Textarea
+              spellCheck
               id="name"
               placeholder="// Random topic"
               className="col-span-3"
               value={videoInput}
-              maxLength={250}
+              maxLength={500}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   setGenerating(true);
@@ -850,7 +852,7 @@ export default function CreateVideo({
         </div>
         {videoStatus.data?.videos !== null && (
           <p className="text-sm text-destructive/60">
-            Can't generate another video while one is already pending
+            Error. Please refresh the page.
           </p>
         )}
         <DialogFooter className="flex flex-row items-center justify-between">
