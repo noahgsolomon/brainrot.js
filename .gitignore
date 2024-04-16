@@ -58,3 +58,4 @@ generate/public/*
 generate/src/tmp/*
 generate/out/*
 .env
+bun.lockb
