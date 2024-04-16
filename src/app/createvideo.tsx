@@ -600,13 +600,17 @@ export default function CreateVideo({
                   <Button
                     onClick={() => setMusic("NONE")}
                     size={"sm"}
-                    variant={"outline"}
+                    variant={music === "NONE" ? "default" : "outline"}
                   >
                     off
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div
+                  className={`flex flex-wrap gap-2 ${
+                    music === "NONE" ? "opacity-50" : ""
+                  }`}
+                >
                   <Tooltip>
                     <TooltipTrigger>
                       <div
