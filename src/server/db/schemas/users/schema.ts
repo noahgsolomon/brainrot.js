@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   datetime,
+  index,
   int,
   mysqlTable,
   uniqueIndex,
@@ -33,12 +34,12 @@ export const videos = mysqlTable(
     user_id: int("user_id").notNull(),
     agent1: varchar("agent1", { length: 100 }).notNull(),
     agent2: varchar("agent2", { length: 100 }).notNull(),
-    title: varchar("title", { length: 100 }).notNull(),
+    title: varchar("title", { length: 1000 }).notNull().default(""),
     url: varchar("url", { length: 1000 }).notNull(),
-    videoId: varchar("video_id", { length: 100 }).notNull(),
+    videoId: varchar("video_id", { length: 100 }).unique().notNull(),
   },
   (t) => ({
-    userIdx: uniqueIndex("user_idx").on(t.user_id),
+    userIdx: index("user_idx").on(t.user_id),
     videoIdx: uniqueIndex("video_idx").on(t.videoId),
   }),
 );
@@ -57,8 +58,8 @@ export const pendingVideos = mysqlTable(
     user_id: int("user_id").notNull(),
     agent1: varchar("agent1", { length: 100 }).notNull(),
     agent2: varchar("agent2", { length: 100 }).notNull(),
-    title: varchar("title", { length: 500 }).notNull(),
-    videoId: varchar("video_id", { length: 100 }).notNull(),
+    title: varchar("title", { length: 1000 }).notNull().default(""),
+    videoId: varchar("video_id", { length: 100 }).unique().notNull(),
     url: varchar("url", { length: 1000 }).default(""),
     timestamp: datetime("timestamp", { mode: "date" }),
     duration: int("duration").notNull(),
@@ -69,7 +70,7 @@ export const pendingVideos = mysqlTable(
     cleanSrt: boolean("clean_srt").notNull().default(false),
   },
   (t) => ({
-    userIdx: uniqueIndex("user_idx").on(t.user_id),
+    userIdx: index("user_idx").on(t.user_id),
     videoIdx: uniqueIndex("video_idx").on(t.videoId),
     userIdxVideoIdx: uniqueIndex("user_idx_video_idx").on(t.user_id, t.videoId),
   }),
