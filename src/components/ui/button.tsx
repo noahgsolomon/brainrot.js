@@ -8,6 +8,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        brain:
+          " hover:scale-[101%] active:scale-[99%] transition-all border border-primary/20 brain text-secondary dark:text-primary hover:opacity-[80%] hover:text-brain",
+
         default:
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-primary text-primary-foreground hover:bg-primary/90",
         darkMode:
@@ -18,6 +21,7 @@ const buttonVariants = cva(
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           " hover:scale-[101%] active:scale-[99%] transition-all border border-primary/20 bg-card/50 hover:bg-accent hover:text-accent-foreground",
+        gold: " hover:scale-[101%] active:scale-[99%] transition-all border border-primary/20 gold text-secondary dark:text-primary hover:opacity-[80%] hover:text-gold",
         secondary:
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-accent text-secondary-foreground hover:bg-primary/10 dark:hover:bg-accent/80",
         ghost:
