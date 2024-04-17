@@ -8,8 +8,6 @@ import {
   Flame,
   Info,
   Music,
-  Play,
-  PlayCircle,
   Save,
   Wand,
   XIcon,
@@ -22,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
