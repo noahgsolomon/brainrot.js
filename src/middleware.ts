@@ -9,7 +9,9 @@ export default authMiddleware({
     "/api/trpc/user.user",
     "/api/trpc/user.videoStatus,user.user",
     "/renders/((?!_next|static|favicon.ico).*)",
+    "/api/webhooks/stripe",
   ],
+  ignoredRoutes: ["/api/webhooks/stripe"],
 });
 
 export const config = {

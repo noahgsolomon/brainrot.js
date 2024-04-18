@@ -12,6 +12,9 @@ import { eq, or } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs";
 import { z } from "zod";
 import OpenAI from "openai";
+import { absoluteUrl } from "@/lib/utils";
+import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
+import { PLANS } from "@/config/stripe";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -250,4 +253,61 @@ export const userRouter = createTRPCRouter({
         }
       },
     ),
+
+  // Mutation to create a Stripe checkout session for the user
+  createStripeSession: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.user_id;
+
+    const billingUrl = absoluteUrl("/settings/billing");
+
+    // Ensure the userId is available
+    if (!userId) {
+      throw new Error("No user ID");
+    }
+
+    // Retrieve the user from the database
+    const dbUser = await ctx.db.query.brainrotusers.findFirst({
+      where: eq(brainrotusers.id, userId),
+    });
+
+    if (!dbUser) {
+      throw new Error("No user found");
+    }
+
+    const subscriptionPlan = await getUserSubscriptionPlan();
+
+    // If the user is already subscribed and has a Stripe customer ID, create a billing portal session
+    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: dbUser.stripeCustomerId,
+        return_url: billingUrl,
+      });
+
+      return { url: session.url };
+    }
+
+    console.log(subscriptionPlan);
+
+    // Otherwise, create a new Stripe checkout session for a subscription
+    const session = await stripe.checkout.sessions.create({
+      success_url: billingUrl,
+      cancel_url: billingUrl,
+      payment_method_types: ["card"],
+      mode: "subscription",
+      billing_address_collection: "auto",
+      line_items: [
+        {
+          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds.test,
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId: userId,
+      },
+    });
+
+    console.log(session.url);
+
+    return { url: session.url };
+  }),
 });
