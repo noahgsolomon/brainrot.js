@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
 import { Coins, Copy, Crown, Info } from "lucide-react";
+import ProButton from "./ProButton";
 
 export default function Credits() {
   const credits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
@@ -22,11 +23,11 @@ export default function Credits() {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
+        {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
           <p className="text-center text-4xl font-bold text-secondary">
             COMING SOON
           </p>
-        </div>
+        </div> */}
         <div className="flex flex-col gap-8">
           <p className="text-2xl font-bold">
             Available Credits:{" "}
@@ -94,6 +95,7 @@ export default function Credits() {
             >
               GO PRO <Crown className="size-4" />
             </Button>
+            <ProButton />
           </div>
         </div>
       </DialogContent>
