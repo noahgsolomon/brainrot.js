@@ -22,6 +22,13 @@ export const brainrotusers = mysqlTable(
       .notNull()
       .default(new Date()),
     credits: int("credits").default(0).notNull(),
+    subscribed: boolean("subscribed").notNull().default(false),
+    stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+    stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+    stripePriceId: varchar("stripe_price_id", { length: 255 }),
+    stripeCurrentPeriodEnd: datetime("stripe_current_period_end", {
+      mode: "date",
+    }),
   },
   (t) => ({
     clerkIdx: uniqueIndex("clerk_idx").on(t.clerk_id),
