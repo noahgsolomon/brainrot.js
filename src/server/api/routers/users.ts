@@ -297,7 +297,8 @@ export const userRouter = createTRPCRouter({
       billing_address_collection: "auto",
       line_items: [
         {
-          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds.test,
+          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds
+            .production,
           quantity: 1,
         },
       ],
