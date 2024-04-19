@@ -59,15 +59,15 @@ export default function Page() {
               60 fps
             </div>
           </div>
-          {/* <ProButton> */}
-          <Button
-            size={"xl"}
-            variant={"outline"}
-            className="flex w-full flex-row items-center gap-2 hover:bg-card/40 hover:text-secondary hover:dark:text-primary "
-          >
-            COMING SOON <Crown className="size-4" />
-          </Button>
-          {/* </ProButton> */}
+          <ProButton>
+            <Button
+              size={"xl"}
+              variant={"outline"}
+              className="flex w-full flex-row items-center gap-2 hover:bg-card/40 hover:text-secondary hover:dark:text-primary "
+            >
+              GO PRO <Crown className="size-4" />
+            </Button>
+          </ProButton>
         </div>
       </div>
     </div>
