@@ -258,7 +258,7 @@ export const userRouter = createTRPCRouter({
   createStripeSession: protectedProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.user_id;
 
-    const billingUrl = absoluteUrl("/settings/billing");
+    const billingUrl = absoluteUrl("?subscribed=true");
 
     // Ensure the userId is available
     if (!userId) {
@@ -297,8 +297,7 @@ export const userRouter = createTRPCRouter({
       billing_address_collection: "auto",
       line_items: [
         {
-          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds
-            .production,
+          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds.test,
           quantity: 1,
         },
       ],
