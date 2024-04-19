@@ -2,12 +2,18 @@
 
 import DiscordIcon from "@/components/svg/DiscordIcon";
 import XIcon from "@/components/svg/XIcon";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
 import { Coins, Copy, Crown, Info } from "lucide-react";
 import ProButton from "./ProButton";
+import Link from "next/link";
 
 export default function Credits() {
   const credits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
@@ -23,12 +29,7 @@ export default function Credits() {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
-          <p className="text-center text-4xl font-bold text-secondary">
-            COMING SOON
-          </p>
-        </div> */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
           <p className="text-2xl font-bold">
             Available Credits:{" "}
             <span className="text-destructive">{credits}</span>
@@ -49,7 +50,12 @@ export default function Credits() {
               10 credits ≈ 1 video
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+          {/* <div className="relative flex flex-col gap-2">
+            <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
+              <p className="text-center text-4xl font-bold text-secondary">
+                COMING SOON
+              </p>
+            </div>
             <p className="font-bold">Get More</p>
             <div className="flex flex-row items-center gap-4">
               <Button
@@ -82,21 +88,17 @@ export default function Credits() {
               </Button>
               <p className="text-primary">+15 credits</p>
             </div>
-          </div>
-          or...
-          <div
-            className="flex flex-col gap-2
-          "
+          </div> */}
+          <Link
+            href={"/pricing"}
+            className={buttonVariants({
+              className: "flex w-full flex-row items-center gap-2 ",
+              variant: "brain",
+              size: "xl",
+            })}
           >
-            <p className="font-bold">Get Serious 💪</p>
-            <Button
-              variant={"brain"}
-              className="flex w-full flex-row items-center gap-2 "
-            >
-              GO PRO <Crown className="size-4" />
-            </Button>
-            <ProButton />
-          </div>
+            GO PRO <Crown className="size-4" />
+          </Link>
         </div>
       </DialogContent>
     </Dialog>

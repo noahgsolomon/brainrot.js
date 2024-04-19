@@ -38,6 +38,14 @@ export async function POST(request: Request) {
       session.subscription as string,
     );
 
+    const user = await db.query.brainrotusers.findFirst({
+      where: eq(brainrotusers.id, parseInt(session.metadata.userId)),
+    });
+
+    if (!user) {
+      return new Response(null, { status: 400 });
+    }
+
     console.log("Updating user subscription details in the database");
     await db
       .update(brainrotusers)
@@ -49,8 +57,9 @@ export async function POST(request: Request) {
           subscription.current_period_end * 1000,
         ),
         subscribed: true,
+        credits: user.credits + 250,
       })
-      .where(eq(brainrotusers.id, parseInt(session.metadata.userId)));
+      .where(eq(brainrotusers.id, user.id));
 
     console.log("User subscription details updated successfully");
   }
