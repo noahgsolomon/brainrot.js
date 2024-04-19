@@ -6,7 +6,7 @@ const Page = async () => {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col items-center justify-center">
-      <BillingForm subscriptionPlan={subscriptionPlan} />
+      {/* <BillingForm subscriptionPlan={subscriptionPlan} /> */}
     </div>
   );
 };
