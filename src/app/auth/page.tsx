@@ -18,7 +18,7 @@ const Page = () => {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
-      <Loader2 className="h-5 w-5 animate-spin" />
+      <Loader2 className="h-5 w-5 animate-spin " />
     </div>
   );
 };
