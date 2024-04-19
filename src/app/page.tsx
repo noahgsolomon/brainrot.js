@@ -15,13 +15,21 @@ import Link from "next/link";
 import { Tweet } from "react-tweet";
 import XIcon from "@/components/svg/XIcon";
 import Credits from "./credits";
+import { subscribe } from "diagnostics_channel";
+import { useRouter } from "next/navigation";
 
 export default function Home({
   searchParams,
 }: {
-  searchParams: { loggedIn: string };
+  searchParams: { loggedIn?: string; subscribed?: string };
 }) {
   const user = useUser();
+  const router = useRouter();
+
+  if (searchParams.subscribed === "true") {
+    toast.success("🎉 welcome to the family");
+    router.push("/");
+  }
 
   // const gifs = useMemo(() => {
   //   return [
