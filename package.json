@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.554.0",
-    "@clerk/nextjs": "latest",
+    "@clerk/nextjs": "4.30.0",
     "@clerk/themes": "^1.7.7",
     "@hookform/resolvers": "^3.3.2",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
