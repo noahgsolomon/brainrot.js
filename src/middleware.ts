@@ -10,6 +10,7 @@ export default authMiddleware({
     "/api/trpc/user.videoStatus,user.user",
     "/renders/((?!_next|static|favicon.ico).*)",
     "/api/webhooks/stripe",
+    "/api/((?!_next|static|favicon.ico).*)",
   ],
   ignoredRoutes: ["/api/webhooks/stripe"],
 });
