@@ -1,22 +1,15 @@
 "use client";
 
-import DiscordIcon from "@/components/svg/DiscordIcon";
-import XIcon from "@/components/svg/XIcon";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
-import { Coins, Copy, Crown, Info } from "lucide-react";
-import ProButton from "./ProButton";
+import { Coins, Crown, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function Credits() {
-  const credits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
+  const user = trpc.user.user.useQuery().data?.user;
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -32,19 +25,19 @@ export default function Credits() {
         <div className="flex flex-col gap-4">
           <p className="text-2xl font-bold">
             Available Credits:{" "}
-            <span className="text-destructive">{credits}</span>
+            <span className="text-destructive">{user?.credits ?? 0}</span>
           </p>
           <div>
             <p>
-              {(credits / 1000) * 100 < 25
+              {(user?.credits ?? 0 / 1000) * 100 < 25
                 ? "Poor 😭"
-                : (credits / 1000) * 100 < 50
+                : (user?.credits ?? 0 / 1000) * 100 < 50
                 ? "Average 🙂"
-                : (credits / 1000) * 100 < 75
+                : (user?.credits ?? 0 / 1000) * 100 < 75
                 ? "Good 😏"
                 : "Excellent 😎"}
             </p>
-            <Progress value={(credits / 1000) * 100} />
+            <Progress value={(user?.credits ?? 0 / 1000) * 100} />
             <div className="flex flex-wrap items-center gap-2 pt-2 text-sm text-blue/80">
               <Info className="size-4 " />
               10 credits ≈ 1 video
@@ -89,16 +82,27 @@ export default function Credits() {
               <p className="text-primary">+15 credits</p>
             </div>
           </div> */}
-          <Link
-            href={"/pricing"}
-            className={buttonVariants({
-              className: "flex w-full flex-row items-center gap-2 ",
-              variant: "brain",
-              size: "xl",
-            })}
-          >
-            GO PRO <Crown className="size-4" />
-          </Link>
+          {!user?.subscribed ? (
+            <Link
+              href={"/pricing"}
+              className={buttonVariants({
+                className: "flex w-full flex-row items-center gap-2 ",
+                variant: "brain",
+                size: "xl",
+              })}
+            >
+              GO PRO <Crown className="size-4" />
+            </Link>
+          ) : (
+            <Link
+              className={buttonVariants({
+                className: "flex w-full flex-row items-center gap-2",
+              })}
+              href={"/settings/billing"}
+            >
+              Manage Subscription
+            </Link>
+          )}
         </div>
       </DialogContent>
     </Dialog>
