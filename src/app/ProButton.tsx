@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/client";
+import { ReactNode } from "react";
 
-export default function ProButton() {
+export default function ProButton({ children }: { children: ReactNode }) {
   const { mutate: createStripeSession } =
     trpc.user.createStripeSession.useMutation({
       onSuccess: ({ url }) => {
@@ -11,5 +11,5 @@ export default function ProButton() {
       },
     });
 
-  return <Button onClick={() => createStripeSession()}>sup</Button>;
+  return <div onClick={() => createStripeSession()}>{children}</div>;
 }

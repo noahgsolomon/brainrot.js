@@ -38,7 +38,7 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
         createStripeSession();
       }}
     >
-      <Card className="p-4 shadow-none">
+      <Card className="p-4 shadow-none sm:min-w-[500px]">
         <CardHeader className="pb-20">
           <CardTitle>Subscription Plan</CardTitle>
           <CardDescription>
