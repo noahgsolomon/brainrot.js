@@ -6,10 +6,33 @@ import { writeFile } from 'fs/promises';
 
 dotenv.config();
 
-export async function generateTranscriptAudio(topic, agentA, agentB) {
-	let transcript = (await transcriptFunction(topic, agentA, agentB)).transcript;
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+	apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function generateTranscriptAudio(
+	topic,
+	agentA,
+	agentB,
+	ai,
+	fps,
+	duration,
+	background,
+	music
+) {
+	let transcript = (await transcriptFunction(topic, agentA, agentB, duration))
+		.transcript;
 
 	const audios = [];
+
+	const images = await fetchValidImages(
+		transcript,
+		transcript.length,
+		ai,
+		duration
+	);
 
 	for (let i = 0; i < transcript.length; i++) {
 		const person = transcript[i].person;
@@ -26,14 +49,15 @@ export async function generateTranscriptAudio(topic, agentA, agentB) {
 				? process.env.RICK_SANCHEZ_VOICE_ID
 				: process.env.JORDAN_PETERSON_VOICE_ID;
 
-		const image = await fetchValidImage(transcript, i);
-
 		await generateAudio(voice_id, person, line, i);
 		audios.push({
 			person: person,
 			audio: `public/voice/${person}-${i}.mp3`,
 			index: i,
-			image: image.link,
+			image:
+				ai && duration === 1
+					? images[i].imageUrl
+					: images[i]?.link || 'https://images.smart.wtf/black.png',
 		});
 	}
 
@@ -42,9 +66,13 @@ export async function generateTranscriptAudio(topic, agentA, agentB) {
 	const contextContent = `
 import { staticFile } from 'remotion';
 
+export const music: string = ${
+		music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
+	};
+export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
-export const videoFileName = 'https://images.smart.wtf/brainrot-' + ${Math.floor(
-		Math.random() * 23
+export const videoFileName = '/background/${background}-' + ${Math.floor(
+		Math.random() * 10
 	)} + '.mp4';
 export const subtitlesFileName = [
   ${audios
@@ -61,7 +89,7 @@ export const subtitlesFileName = [
 
 	await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 
-	return audios;
+	return { audios, transcript };
 }
 
 export async function generateAudio(voice_id, person, line, index) {
@@ -101,43 +129,48 @@ export async function generateAudio(voice_id, person, line, index) {
 	});
 }
 
-async function fetchValidImage(transcript, index, attempt = 0) {
-	const maxAttempts = 5;
-	const numImages = 4;
+async function fetchValidImages(transcript, length, ai, duration) {
+	if (ai && duration === 1) {
+		const promises = [];
 
-	if (attempt >= maxAttempts) {
-		return 'https://images.smart.wtf/black.png';
-	}
-
-	const imageFetch = await fetch(
-		`https://www.googleapis.com/customsearch/v1?q=${encodeURI(
-			transcript[index].asset
-		)}&cx=${process.env.GOOGLE_CX}&searchType=image&key=${
-			process.env.GOOGLE_API_KEY
-		}&num=${numImages}`,
-		{
-			method: 'GET',
-			headers: { 'Content-Type': 'application/json' },
+		for (let i = 0; i < length; i++) {
+			promises.push(imageGeneneration(transcript[i].asset));
 		}
-	);
 
-	const imageResponse = await imageFetch.json();
+		const aiImages = await Promise.all(promises);
 
-	if (!imageResponse.items || imageResponse.items.length === 0) {
-		return await fetchValidImage(transcript, index, attempt + 1);
-	}
-
-	const validMimeTypes = ['image/png', 'image/jpeg'];
-	for (let image of imageResponse.items) {
-		if (validMimeTypes.includes(image.mime)) {
-			const isViewable = await checkImageHeaders(image.link);
-			if (isViewable) {
-				return image;
+		return aiImages;
+	} else {
+		const images = [];
+		for (let i = 0; i < length; i++) {
+			const imageFetch = await fetch(
+				`https://www.googleapis.com/customsearch/v1?q=${encodeURI(
+					transcript[i].asset
+				)}&cx=${process.env.GOOGLE_CX}&searchType=image&key=${
+					process.env.GOOGLE_API_KEY
+				}&num=${4}`,
+				{
+					method: 'GET',
+					headers: { 'Content-Type': 'application/json' },
+				}
+			);
+			const imageResponse = await imageFetch.json();
+			if (!imageResponse.items || imageResponse.items.length === 0) {
+				images.push({ link: 'https://images.smart.wtf/black.png' });
+			}
+			const validMimeTypes = ['image/png', 'image/jpeg'];
+			for (let image of imageResponse.items) {
+				if (validMimeTypes.includes(image.mime)) {
+					const isViewable = await checkImageHeaders(image.link);
+					if (isViewable) {
+						images.push(image);
+						break;
+					}
+				}
 			}
 		}
+		return images;
 	}
-
-	return await fetchValidImage(transcript, index, attempt + 1);
 }
 
 async function checkImageHeaders(url) {
@@ -160,3 +193,47 @@ async function checkImageHeaders(url) {
 	}
 	return false;
 }
+
+const imagePrompt = async (title) => {
+	try {
+		const response = await openai.chat.completions.create({
+			model: 'ft:gpt-3.5-turbo-1106:personal::8TEhcfKm',
+			messages: [
+				{
+					role: 'user',
+					content: title,
+				},
+			],
+		});
+
+		return response.choices[0]?.message.content;
+	} catch (error) {
+		console.error('Error fetching data:', error);
+	}
+};
+
+const imageGeneneration = async (initialPrompt) => {
+	const prompt = await imagePrompt(initialPrompt);
+	const detailed8BitPreface =
+		'Create an image in a detailed retro 8-bit style. The artwork should have a pixelated texture and should have vibrant coloring and scenery.';
+
+	let fullPrompt = `${detailed8BitPreface} ${prompt} Remember, this is in retro 8-bit style`;
+	fullPrompt = fullPrompt.substring(0, 900);
+
+	const responseFetch = await openai.images.generate({
+		model: 'dall-e-3',
+		prompt: fullPrompt,
+		n: 1,
+		size: '1024x1024',
+		quality: 'standard',
+		style: 'vivid',
+		response_format: 'url',
+		user: 'user-1234',
+	});
+
+	return {
+		imageUrl: responseFetch.data[0]?.url,
+		initialPrompt: initialPrompt,
+		prompt: prompt,
+	};
+};

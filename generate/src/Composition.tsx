@@ -7,15 +7,15 @@ import {
 	Img,
 	OffthreadVideo,
 	Sequence,
+	staticFile,
 	useCurrentFrame,
 	useVideoConfig,
+	Video,
 } from 'remotion';
-
+import { fps, music } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
-
-export const fps = 20;
 
 type SubtitleEntry = {
 	index: string;
@@ -219,9 +219,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 				// Use the srtFileIndex to find the corresponding agent name
 				const agentInfo = subtitlesFileName[currentSubtitle.srtFileIndex];
 				setCurrentAgentName(agentInfo.name);
-			} else {
-				setCurrentSubtitle(null);
-				setCurrentAgentName('');
 			}
 		}
 	}, [frame, fps, subtitlesData, subtitlesFileName]);
@@ -282,6 +279,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 				<Sequence from={-audioOffsetInFrames}>
 					{/*@ts-ignore */}
 					<Audio src={audioFileName} />
+					{music !== 'NONE' && <Audio volume={0.25} src={staticFile(music)} />}
 					<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
 						<div className="w-full h-[50%] relative">
 							{/*@ts-ignore */}
@@ -330,7 +328,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 							<OffthreadVideo
 								muted
 								className=" h-full w-full object-cover"
-								src={videoFileName}
+								src={staticFile(videoFileName)}
 							/>
 							<div
 								className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-7xl"
@@ -342,11 +340,11 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 								brainrotjs
 								<br></br>.com 🧠
 							</div>
-
 							<div
 								style={{
 									lineHeight: `${subtitlesLineHeight}px`,
-									WebkitTextStroke: '6px black',
+									textShadow: '4px 4px 0px #000000',
+									WebkitTextStroke: '2px black',
 								}}
 								className="font-remotionFont z-10 absolute text-center text-8xl drop-shadow-2xl text-white mx-24 top-8 left-0 right-0"
 							>
@@ -361,44 +359,14 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 							</div>
 						</div>
 					</div>
-					<div
-						className={`absolute -top-1 -left-1 w-[101%] h-[101%] z-50 flex flex-col gap-36 items-center justify-center transition-all ${
-							durationInFrames - 3 * fps <= frame ? 'fade-in' : 'opacity-0'
-						}`}
-						style={{
-							backgroundImage: `url('https://images.smart.wtf/bg.png')`,
-							backgroundSize: 'cover',
-							backgroundPosition: 'center',
-						}}
-					>
-						<Img
-							className="rounded-full border-8 shadow-md"
-							width={600}
-							height={600}
-							src="https://images.smart.wtf/brainrot.png"
-						/>
-
-						<p
-							className={` text-center transition-all z-[200] text-white text-8xl font-remotionFont ${
-								durationInFrames - 3 * fps <= frame
-									? 'opacity-100'
-									: 'opacity-0'
-							}`}
-						>
-							Video generated on{' '}
-							<span className="text-pink-300 border-b-8 pb-1 border-pink-300">
-								brainrotjs.com
-							</span>{' '}
-							🧠
-						</p>
-						<p
-							className={` text-center transition-all z-[200] text-white text-8xl font-remotionFont ${
-								durationInFrames - 2 * fps <= frame ? 'fade-in' : 'opacity-0'
-							}`}
-						>
-							try for free today 🤑
-						</p>
-					</div>
+				</Sequence>
+				<Sequence from={durationInFrames - 3 * fps}>
+					<OffthreadVideo
+						startFrom={20}
+						muted
+						className={`absolute -left-[1px] -top-[1px] h-full w-[101%] object-cover z-50 `}
+						src={'https://images.smart.wtf/brainrot.mp4'}
+					/>
 				</Sequence>
 			</AbsoluteFill>
 		</div>

@@ -558,12 +558,25 @@ async function main() {
 	const agentB = agents[agentBIndex];
 
 	// CHANGE THIS VALUE FOR A CUSTOM VIDEO TOPIC
-	const videoTopic = null;
+	const videoTopic = 'Kullback Leibler Divergence in ML';
+	const aiGeneratedImages = true;
+	const fps = 60;
+	const duration = 1; //minute
+	//MINECRAFT or TRUCK or GTA
+	const background = 'TRUCK';
+	const music = 'NONE';
+	const cleanSrt = true;
 
 	await transcribeFunction(
 		videoTopic ? videoTopic : randomTopic,
 		agentA,
 		agentB,
+		aiGeneratedImages,
+		fps,
+		duration,
+		background,
+		music,
+		cleanSrt
 	);
 
 	// run in the command line `npm run build`
@@ -577,7 +590,7 @@ async function main() {
 
 		try {
 			const directories = [
-				path.join('', 'public', 'srt'),
+				// path.join('', 'public', 'srt'),
 				path.join('', 'public', 'voice'),
 			];
 
@@ -588,8 +601,8 @@ async function main() {
 				}
 			}
 
-			await fs.unlink(path.join('', 'public', 'audio.mp3'));
-			await fs.unlink(path.join('', 'src', 'tmp', 'context.tsx'));
+			// await fs.unlink(path.join('', 'public', 'audio.mp3'));
+			// await fs.unlink(path.join('', 'src', 'tmp', 'context.tsx'));
 		} catch (err) {
 			console.error(`Error removing files: ${err}`);
 		}
