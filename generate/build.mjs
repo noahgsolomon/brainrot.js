@@ -565,11 +565,30 @@ async function cleanupResources() {
 	}
 }
 
-async function mainFn(topic, agentA, agentB, videoId, userId) {
-	const bucketName = 'smartimagebucket';
-	const videoPath = path.join('out', 'video.mp4');
-
-	await transcribeFunction(topic, agentA, agentB);
+async function mainFn(
+	topic,
+	agentA,
+	agentB,
+	videoId,
+	userId,
+	aiGeneratedImages,
+	fps,
+	duration,
+	background,
+	music,
+	cleanSrt
+) {
+	await transcribeFunction(
+		topic,
+		agentA,
+		agentB,
+		aiGeneratedImages,
+		fps,
+		duration,
+		background,
+		music,
+		cleanSrt
+	);
 
 	console.log('Building project with npm...');
 	try {
@@ -639,7 +658,13 @@ async function pollPendingVideos() {
 					video.agent1,
 					video.agent2,
 					video.video_id,
-					video.user_id
+					video.user_id,
+					video.ai_generated_images,
+					video.fps,
+					video.duration,
+					video.background,
+					video.music,
+					video.clean_srt //TODO make column
 				);
 			} catch (error) {
 				console.error('Error processing video:', error);

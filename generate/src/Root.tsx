@@ -1,11 +1,11 @@
 import { Composition, staticFile } from 'remotion';
-import { AudioGramSchema, AudiogramComposition, fps } from './Composition';
+import { AudioGramSchema, AudiogramComposition } from './Composition';
 import './style.css';
-import { useEffect, useState } from 'react';
 import {
 	initialAgentName,
 	subtitlesFileName,
 	videoFileName,
+	fps,
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
 
@@ -61,7 +61,7 @@ export const RemotionRoot: React.FC = () => {
 
 					// Wave settings
 					waveFreqRangeStartIndex: 7,
-					waveLinesToDisplay: 15,
+					waveLinesToDisplay: 30,
 					waveNumberOfSamples: '256', // This is string for Remotion controls and will be converted to a number
 					mirrorWave: true,
 					durationInSeconds: 60,

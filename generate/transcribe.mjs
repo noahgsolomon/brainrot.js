@@ -2,6 +2,7 @@ import { generateTranscriptAudio } from './eleven.mjs';
 import getAudioDuration from './audioduration.mjs';
 import { writeFile } from 'fs/promises';
 import concatenateAudioFiles from './concat.mjs';
+import { generateCleanSrt } from './cleanSrt.mjs';
 
 const transcribeAudio = async (audios) => {
 	try {
@@ -44,8 +45,27 @@ function secondsToSrtTime(seconds) {
 	return `${pad(hrs, 2)}:${pad(mins, 2)}:${pad(secs, 2)},${pad(millis, 3)}`;
 }
 
-export default async function transcribeFunction(topic, agentA, agentB) {
-	const audios = await generateTranscriptAudio(topic, agentA, agentB);
+export default async function transcribeFunction(
+	topic,
+	agentA,
+	agentB,
+	aiGeneratedImages,
+	fps,
+	duration,
+	background,
+	music,
+	cleanSrt
+) {
+	const { audios, transcript } = await generateTranscriptAudio(
+		topic,
+		agentA,
+		agentB,
+		aiGeneratedImages,
+		fps,
+		duration,
+		background,
+		music
+	);
 	let startingTime = 0;
 
 	// Concatenate audio files if needed, or comment out if not used
@@ -55,6 +75,8 @@ export default async function transcribeFunction(topic, agentA, agentB) {
 	const transcriptionResults = await transcribeAudio(
 		audios.map((audio) => audio.audio)
 	);
+
+	const uncleanSrtContentArr = [];
 
 	// Iterate over each transcription result and corresponding audio file
 	for (let i = 0; i < transcriptionResults.length; i++) {
@@ -107,10 +129,23 @@ export default async function transcribeFunction(topic, agentA, agentB) {
 			.replace('voice', 'srt')
 			.replace('.mp3', '.srt');
 
-		// Write the SRT content to the file
-		await writeFile(srtFileName, incrementedSrtContent, 'utf8');
+		uncleanSrtContentArr.push({
+			content: incrementedSrtContent,
+			fileName: srtFileName,
+		});
 
 		const duration = await getAudioDuration(audio.audio);
 		startingTime += duration + 0.2;
+	}
+	if (cleanSrt) {
+		await generateCleanSrt(transcript, uncleanSrtContentArr);
+	} else {
+		for (const uncleanSrtContent of uncleanSrtContentArr) {
+			await writeFile(
+				uncleanSrtContent.fileName,
+				uncleanSrtContent.content,
+				'utf8'
+			);
+		}
 	}
 }
