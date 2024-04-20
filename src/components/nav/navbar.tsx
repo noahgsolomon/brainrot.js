@@ -39,18 +39,6 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
-        <div className=" flex w-full items-center justify-center border-b bg-secondary">
-          <Link
-            className={buttonVariants({
-              variant: "link",
-              className: " font-bold underline",
-            })}
-            target="_blank"
-            href={"https://twitter.com/brainrotjs"}
-          >
-            💥 JOIN THE BRAINROT MOVEMENT 🧠
-          </Link>
-        </div>
         <div className="flex items-center justify-between px-[5%] py-1">
           <div>
             <Link href={"/"}>

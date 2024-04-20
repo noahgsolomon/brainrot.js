@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
@@ -17,6 +17,7 @@ import XIcon from "@/components/svg/XIcon";
 import Credits from "./credits";
 import { subscribe } from "diagnostics_channel";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function Home({
   searchParams,
@@ -140,6 +141,14 @@ export default function Home({
                   </Link>
                 </Badge>
               </h1>
+              <p className="max-w-[30ch] text-sm italic">
+                <Link
+                  href={"https://github.com/noahgsolomon/brainrot.js"}
+                  className="font-bold"
+                >
+                  now open source!
+                </Link>
+              </p>
               {pendingVideo && (
                 <div className="flex flex-row items-center gap-2 text-sm">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -155,7 +164,7 @@ export default function Home({
           <div className="flex flex-col gap-2">
             <Button
               className="flex flex-row items-center gap-2"
-              variant={"rainbow"}
+              variant={"brain"}
               disabled={pendingVideo}
               onClick={() => {
                 setIsOpen(true);
@@ -163,7 +172,17 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-
+            <Link
+              href={"https://github.com/noahgsolomon/brainrot.js"}
+              className={cn(
+                buttonVariants({ variant: "gold" }),
+                "flex flex-row items-center gap-2",
+              )}
+              target="_blank"
+            >
+              <Star className="size-4  text-secondary dark:text-primary" />
+              Star on GitHub
+            </Link>
             {user.isSignedIn ? (
               <>
                 <Credits />

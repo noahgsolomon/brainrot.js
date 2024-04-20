@@ -89,8 +89,8 @@ html {
     --uncommon-foreground: 240 15% 40%;
     --rare: 58 100% 45%;
     --rare-foreground: 58 45% 95%;
-    --gold: 58 100% 50%;
-    --gold-foreground: 58 45% 40%;
+    --gold: 50 100% 70%;
+    --gold-foreground: 50 65% 55%;
   }
 
   .dark {
