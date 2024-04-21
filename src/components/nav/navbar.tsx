@@ -43,7 +43,7 @@ const NavBar = () => {
           <div>
             <Link href={"/"}>
               <Image
-                src={"/brain.gif"}
+                src={"https://images.smart.wtf/brain.gif"}
                 width={64}
                 height={64}
                 alt="brain"
