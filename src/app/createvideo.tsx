@@ -879,7 +879,8 @@ export default function CreateVideo({
               agent.length !== 2 ||
               (videoInput === "" && recommendedSelect === -1) ||
               generating ||
-              videoStatus.data?.videos !== null
+              videoStatus.data?.videos !== null ||
+              remainingCredits < credits
             }
             className="flex items-center gap-2"
             onClick={() => {
