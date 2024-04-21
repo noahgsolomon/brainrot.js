@@ -7,7 +7,16 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Coins, Folder, Gem, Github, Loader2, Star, Wand } from "lucide-react";
+import {
+  Coins,
+  Folder,
+  Gem,
+  Github,
+  HeartCrack,
+  Loader2,
+  Star,
+  Wand,
+} from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
@@ -31,6 +40,8 @@ export default function Home({
     toast.success("🎉 welcome to the family");
     router.push("/");
   }
+
+  const userDB = trpc.user.user.useQuery().data;
 
   // const gifs = useMemo(() => {
   //   return [
@@ -116,28 +127,44 @@ export default function Home({
             <div className=" flex flex-col items-center gap-2">
               <Badge
                 className="cursor-pointer text-sm md:hidden"
-                variant={"hard"}
+                variant={userDB?.user?.subscribed ? "hard" : "blue"}
               >
                 <Link
                   target="_blank"
                   className="flex flex-row items-center gap-2"
                   href={"https://github.com/noahgsolomon/brainrot.js"}
                 >
-                  #FREE <Gem className="size-4 fill-teal-500" />
+                  {userDB?.user?.subscribed ? (
+                    <>
+                      PRO <Gem className="size-4  fill-teal-500" />
+                    </>
+                  ) : (
+                    <>
+                      Free Mode <HeartCrack className="size-4 fill-red-500" />
+                    </>
+                  )}
                 </Link>
               </Badge>
               <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
                 BRAINROT.JS
                 <Badge
                   className="absolute -top-8 hidden cursor-pointer text-sm md:-right-12 md:block"
-                  variant={"hard"}
+                  variant={userDB?.user?.subscribed ? "hard" : "blue"}
                 >
                   <Link
                     className="flex flex-row items-center gap-2"
                     target="_blank"
                     href={"https://github.com/noahgsolomon/brainrot.js"}
                   >
-                    #FREE <Gem className="size-4  fill-teal-500" />
+                    {userDB?.user?.subscribed ? (
+                      <>
+                        PRO <Gem className="size-4  fill-teal-500" />
+                      </>
+                    ) : (
+                      <>
+                        Free Mode <HeartCrack className="size-4 fill-red-500" />
+                      </>
+                    )}
                   </Link>
                 </Badge>
               </h1>
