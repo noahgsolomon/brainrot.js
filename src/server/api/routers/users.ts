@@ -238,9 +238,9 @@ export const userRouter = createTRPCRouter({
             response.choices[0]?.message.content ?? "{}",
           );
 
-          // if (!argumentsData.valid) {
-          //   return { valid: false };
-          // }
+          if (!argumentsData.valid) {
+            return { valid: false };
+          }
 
           await ctx.db
             .update(brainrotusers)
