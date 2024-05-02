@@ -776,7 +776,7 @@ export default function CreateVideo({
                     </Button>{" "}
                     |
                     <Button
-                      disabled={assetType === "AI"}
+                      disabled
                       onClick={() => {
                         if (assetType === "AI") {
                           setAssetType("GOOGLE");
@@ -790,7 +790,7 @@ export default function CreateVideo({
                     </Button>{" "}
                     |
                     <Button
-                      disabled={assetType === "AI"}
+                      disabled
                       onClick={() => {
                         if (assetType === "AI") {
                           setAssetType("GOOGLE");
@@ -828,7 +828,7 @@ export default function CreateVideo({
               </div>
               <p className="flex flex-row items-center gap-1 text-xs text-blue/40">
                 <Info className="size-3 text-blue/40" />
-                AI Generated Asset videos cannot be longer than 1 minute
+                We only support 1 min vids atm
               </p>
 
               <div className="flex flex-row items-center justify-between">
