@@ -1,9 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertTriangle,
   BookMarked,
+  Crown,
   Film,
   Flame,
   Info,
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
 
 export default function CreateVideo({
   visible = false,
@@ -46,7 +48,7 @@ export default function CreateVideo({
 }) {
   const user = useAuth();
 
-  const remainingCredits = trpc.user.user.useQuery().data?.user?.credits ?? 0;
+  const userDB = trpc.user.user.useQuery().data?.user;
 
   const videoStatus = trpc.user.videoStatus.useQuery();
 
@@ -147,14 +149,13 @@ export default function CreateVideo({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className=" max-h-[75%] max-w-[90%] rounded-lg xs:max-w-[425px]">
         {!user.userId && (
-          <div className="absolute bottom-0 left-0 right-0 top-0 z-10 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-secondary dark:text-primary">
+          <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 text-secondary dark:text-primary">
             <div className="flex flex-col items-center gap-2">
               <p className="mx-10 text-center text-2xl font-bold">
                 You need to be logged in to create a video!
               </p>
               <div className="flex flex-row items-center gap-2">
                 <Button
-                  className="bg-blue/80 text-secondary hover:bg-blue/70 dark:text-primary"
                   onClick={() => {
                     setIsOpen(false);
                     router.push("/login");
@@ -163,7 +164,7 @@ export default function CreateVideo({
                   Login
                 </Button>
                 <Button
-                  className="bg-red-500/80 text-secondary hover:bg-red-500/70 dark:text-primary"
+                  variant={"brain"}
                   onClick={() => {
                     setIsOpen(false);
                     router.push("/signup");
@@ -252,7 +253,7 @@ export default function CreateVideo({
                         : videoInput) ?? "the future of the world",
                     agent1: agent[0]?.id ?? 0,
                     agent2: agent[1]?.id ?? 1,
-                    remainingCredits: remainingCredits,
+                    remainingCredits: userDB?.credits ?? 0,
                     cost: credits,
                   });
                 }
@@ -716,7 +717,7 @@ export default function CreateVideo({
                         />
                         <Image
                           className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https:/images.smart.wtf/fluffing.png"}
+                          src={"https:/images.smart.wtf/fluff.png"}
                           width={90}
                           height={80}
                           alt="fluffing a duck"
@@ -728,108 +729,130 @@ export default function CreateVideo({
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h6>FPS: </h6>
-                  <div className="flex flex-wrap items-center gap-1 xs:gap-2">
-                    <Button
-                      variant={fps === 20 ? "default" : "outline"}
-                      onClick={() => setFps(20)}
-                      size={"sm"}
+                <div className="relative">
+                  <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
+                    <Link
+                      onClick={() => setIsOpen(false)}
+                      href={"/pricing"}
+                      className={buttonVariants({
+                        className: "flex flex-row items-center gap-2 ",
+                        variant: "brain",
+                        size: "sm",
+                      })}
                     >
-                      20
-                    </Button>{" "}
-                    |
-                    <Button
-                      onClick={() => setFps(30)}
-                      size={"sm"}
-                      variant={fps === 30 ? "default" : "outline"}
-                    >
-                      30
-                    </Button>{" "}
-                    |
-                    <Button
-                      onClick={() => setFps(50)}
-                      size={"sm"}
-                      variant={fps === 50 ? "default" : "outline"}
-                    >
-                      50
-                    </Button>{" "}
-                    |
-                    <Button
-                      onClick={() => setFps(60)}
-                      size={"sm"}
-                      variant={fps === 60 ? "default" : "outline"}
-                    >
-                      60
-                    </Button>
+                      GO PRO <Crown className="size-4" />
+                    </Link>{" "}
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h6>Duration: </h6>
-                  <div className="flex flex-row items-center gap-1 xs:gap-2">
-                    <Button
-                      variant={duration === 1 ? "default" : "outline"}
-                      onClick={() => setDuration(1)}
-                      size={"sm"}
-                    >
-                      1 min
-                    </Button>{" "}
-                    |
-                    <Button
-                      disabled
-                      onClick={() => {
-                        if (assetType === "AI") {
-                          setAssetType("GOOGLE");
-                        }
-                        setDuration(2);
-                      }}
-                      size={"sm"}
-                      variant={duration === 2 ? "default" : "outline"}
-                    >
-                      2 min
-                    </Button>{" "}
-                    |
-                    <Button
-                      disabled
-                      onClick={() => {
-                        if (assetType === "AI") {
-                          setAssetType("GOOGLE");
-                        }
-                        setDuration(3);
-                      }}
-                      size={"sm"}
-                      variant={duration === 3 ? "default" : "outline"}
-                    >
-                      3 min
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h6>Assets: </h6>
-                  <div className="flex flex-row items-center gap-1 xs:gap-2">
-                    <Button
-                      variant={assetType === "AI" ? "default" : "outline"}
-                      onClick={() => setAssetType("AI")}
-                      size={"sm"}
-                      disabled={(duration ?? 0) > 1}
-                    >
-                      AI Generated
-                    </Button>{" "}
-                    |
-                    <Button
-                      onClick={() => setAssetType("GOOGLE")}
-                      size={"sm"}
-                      variant={assetType === "GOOGLE" ? "default" : "outline"}
-                    >
-                      Google Search
-                    </Button>
+                  <div className=" flex flex-col gap-2 p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h6>FPS: </h6>
+                      <div className="flex flex-wrap items-center gap-1 xs:gap-2">
+                        <Button
+                          variant={fps === 20 ? "default" : "outline"}
+                          onClick={() => setFps(20)}
+                          size={"sm"}
+                        >
+                          20
+                        </Button>{" "}
+                        |
+                        <Button
+                          onClick={() => setFps(30)}
+                          size={"sm"}
+                          variant={fps === 30 ? "default" : "outline"}
+                        >
+                          30
+                        </Button>{" "}
+                        |
+                        <Button
+                          onClick={() => setFps(50)}
+                          size={"sm"}
+                          variant={fps === 50 ? "default" : "outline"}
+                        >
+                          50
+                        </Button>{" "}
+                        |
+                        <Button
+                          onClick={() => setFps(60)}
+                          size={"sm"}
+                          variant={fps === 60 ? "default" : "outline"}
+                        >
+                          60
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h6>Duration: </h6>
+                      <div className="flex flex-row items-center gap-1 xs:gap-2">
+                        <Button
+                          variant={duration === 1 ? "default" : "outline"}
+                          onClick={() => setDuration(1)}
+                          size={"sm"}
+                        >
+                          1 min
+                        </Button>{" "}
+                        |
+                        <Button
+                          disabled
+                          onClick={() => {
+                            if (assetType === "AI") {
+                              setAssetType("GOOGLE");
+                            }
+                            setDuration(2);
+                          }}
+                          size={"sm"}
+                          variant={duration === 2 ? "default" : "outline"}
+                        >
+                          2 min
+                        </Button>{" "}
+                        |
+                        <Button
+                          disabled
+                          onClick={() => {
+                            if (assetType === "AI") {
+                              setAssetType("GOOGLE");
+                            }
+                            setDuration(3);
+                          }}
+                          size={"sm"}
+                          variant={duration === 3 ? "default" : "outline"}
+                        >
+                          3 min
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h6>Assets: </h6>
+                      <div className="flex flex-row items-center gap-1 xs:gap-2">
+                        <Button
+                          variant={assetType === "AI" ? "default" : "outline"}
+                          onClick={() => setAssetType("AI")}
+                          size={"sm"}
+                          disabled={(duration ?? 0) > 1}
+                        >
+                          AI Generated
+                        </Button>
+                        |
+                        <Button
+                          onClick={() => setAssetType("GOOGLE")}
+                          size={"sm"}
+                          variant={
+                            assetType === "GOOGLE" ? "default" : "outline"
+                          }
+                        >
+                          Google Search
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <p className="flex flex-row items-center gap-1 text-xs text-blue/40">
-                <Info className="size-3 text-blue/40" />
-                We only support 1 min vids atm
-              </p>
+
+              {userDB?.subscribed ? (
+                <p className="flex flex-row items-center gap-1 text-sm text-blue">
+                  <Info className="size-3 text-blue" />
+                  We only support 1 min videos rn
+                </p>
+              ) : null}
 
               <div className="flex flex-row items-center justify-between">
                 <DialogClose
@@ -850,10 +873,8 @@ export default function CreateVideo({
                 <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
                   <p className="text-xs font-bold">
                     Cost in Credits:{" "}
-                    <span className="text-blue">
-                      {"\n"}
-                      {credits}
-                    </span>
+                    <span className="text-blue">{credits}</span>/
+                    <span className="text-red-500">{userDB?.credits ?? 0}</span>
                   </p>
                   <Progress value={credits / 0.6} />
                 </div>
@@ -861,18 +882,22 @@ export default function CreateVideo({
             </DialogContent>
           </Dialog>
         </div>
+        {user.userId ? (
+          <>
+            {(userDB?.credits ?? 0) < credits && (
+              <p className="flex flex-row items-center gap-1 text-sm text-red-500/80">
+                <AlertTriangle className="size-3" />
+                You have insufficient credits for this generation
+              </p>
+            )}
+            {videoStatus.data?.videos !== null && (
+              <p className="text-sm text-destructive/60">
+                Error. Please refresh the page.
+              </p>
+            )}
+          </>
+        ) : null}
 
-        {remainingCredits < credits && (
-          <p className="flex flex-row items-center gap-1 text-sm text-red-500/80">
-            <AlertTriangle className="size-3" />
-            You have insufficient credits for this generation
-          </p>
-        )}
-        {videoStatus.data?.videos !== null && (
-          <p className="text-sm text-destructive/60">
-            Error. Please refresh the page.
-          </p>
-        )}
         <DialogFooter className="flex flex-row items-center justify-between">
           <Button
             disabled={
@@ -880,7 +905,7 @@ export default function CreateVideo({
               (videoInput === "" && recommendedSelect === -1) ||
               generating ||
               videoStatus.data?.videos !== null ||
-              remainingCredits < credits
+              (userDB?.credits ?? 0) < credits
             }
             className="flex items-center gap-2"
             onClick={() => {
@@ -893,7 +918,7 @@ export default function CreateVideo({
                 agent1: agent[0]?.id ?? 0,
                 agent2: agent[1]?.id ?? 1,
                 cost: credits,
-                remainingCredits: remainingCredits,
+                remainingCredits: userDB?.credits ?? 0,
               });
             }}
           >
@@ -903,7 +928,7 @@ export default function CreateVideo({
           <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
             <p className="text-xs font-bold">
               Cost in Credits: <span className="text-blue">{credits}</span>/
-              <span className="text-red-500">{remainingCredits}</span>
+              <span className="text-red-500">{userDB?.credits ?? 0}</span>
             </p>
             <Progress value={credits / 0.6} />
           </div>
