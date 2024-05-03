@@ -27,6 +27,7 @@ import Credits from "./credits";
 import { subscribe } from "diagnostics_channel";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 export default function Home({
   searchParams,
@@ -43,33 +44,26 @@ export default function Home({
 
   const userDB = trpc.user.user.useQuery().data;
 
-  // const gifs = useMemo(() => {
-  //   return [
-  //     "/brainnnn.gif",
-  //     "/brain.gif",
-  //     "/clubpengu.gif",
-  //     "dancepepe.gif",
-  //     "/homer.gif",
-  //     "/sponge.gif",
-  //     "/par.gif",
-  //     "/cato.gif",
-  //     "/OHNOHESHOT.gif",
-  //     "/roachmf.gif",
-  //     "/dance.gif",
-  //     "/flower.gif",
-  //     "/lick.gif",
-  //     "/krustykrabpizza.gif",
-  //     "/duck.gif",
-  //   ];
-  // }, []);
-
   const [pendingVideo, setPendingVideo] = useState(false);
   const [placeInQueue, setPlaceInQueue] = useState(0);
-  const [currentlyInQueue, setCurrentlyInQueue] = useState(false);
+  const [pendingVideoTitle, setPendingVideoTitle] = useState("");
 
   const videoStatus = trpc.user.videoStatus.useQuery();
+
   const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
   const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState("Waiting in Queue");
+
+  const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
+    onSuccess: () => {
+      setProgress(0);
+      setStatus("Waiting in Queue");
+      setIsInQueue(false);
+      setPendingVideo(false);
+      setPendingVideoTitle("");
+    },
+  });
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -85,17 +79,25 @@ export default function Home({
         videoStatus.data?.videos !== null &&
         videoStatus.data?.videos !== undefined
       ) {
-        setCurrentlyInQueue(true);
-        setPlaceInQueue(videoStatus.data.queueLength);
-        setPendingVideo(true);
-        setIsInQueue(true);
-      } else if (currentlyInQueue) {
-        setRefetchVideos(true);
-        setCurrentlyInQueue(false);
-        setPendingVideo(false);
-        setIsInQueue(false);
-        toast.success("Your video has been generated!", { icon: "🎉" });
-        setIsYourVideosOpen(true);
+        setProgress(videoStatus.data.videos.progress);
+        setStatus(videoStatus.data.videos.status);
+        if (videoStatus.data.videos.status === "COMPLETED") {
+          toast.success("Your video has been generated!", { icon: "🎉" });
+          setRefetchVideos(true);
+          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
+          setIsYourVideosOpen(true);
+        } else if (videoStatus.data.videos.status === "ERROR") {
+          toast.error(
+            "Your video was not able to be generated. Please try again.",
+            { icon: "💣" },
+          );
+          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
+        } else {
+          setPendingVideoTitle(videoStatus.data.videos.title);
+          setPendingVideo(true);
+          setIsInQueue(true);
+          setPlaceInQueue(videoStatus.data.queueLength);
+        }
       }
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);
@@ -176,17 +178,26 @@ export default function Home({
                   now open source!
                 </Link>
               </p>
-              {pendingVideo && (
-                <div className="flex flex-row items-center gap-2 text-sm">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+            {pendingVideo && (
+              <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
+                <div className="flex flex-row items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
                   <div className="flex gap-2">
                     <span className="font-bold">Place in queue:</span>{" "}
-                    {placeInQueue} <span className="font-bold">Est:</span>{" "}
-                    {(placeInQueue + 1) * 2} mins
+                    {placeInQueue}
                   </div>
                 </div>
-              )}
-            </div>
+                <div>
+                  <span className="font-bold">Status:</span> {status}
+                </div>
+
+                <div className="flex w-full flex-row items-center gap-2">
+                  <p className="text-xs">{progress}%</p>
+                  <Progress className="w-full" value={progress} />
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <Button

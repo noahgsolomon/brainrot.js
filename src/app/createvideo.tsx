@@ -123,6 +123,7 @@ export default function CreateVideo({
             fps: fps,
             aiGeneratedImages: assetType === "AI" ? true : false,
             cleanSrt: true,
+            credits: credits,
           }),
           headers: {
             "Content-Type": "application/json",
