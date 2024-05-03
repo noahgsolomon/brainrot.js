@@ -3,6 +3,7 @@ import getAudioDuration from './audioduration.mjs';
 import { writeFile } from 'fs/promises';
 import concatenateAudioFiles from './concat.mjs';
 import { generateCleanSrt } from './cleanSrt.mjs';
+import { query } from './dbClient.mjs';
 
 const transcribeAudio = async (audios) => {
 	try {
@@ -54,7 +55,8 @@ export default async function transcribeFunction(
 	duration,
 	background,
 	music,
-	cleanSrt
+	cleanSrt,
+	videoId,
 ) {
 	const { audios, transcript } = await generateTranscriptAudio(
 		topic,
@@ -64,16 +66,22 @@ export default async function transcribeFunction(
 		fps,
 		duration,
 		background,
-		music
+		music,
+		videoId,
 	);
 	let startingTime = 0;
 
 	// Concatenate audio files if needed, or comment out if not used
 	concatenateAudioFiles();
 
+	await query(
+		"UPDATE `pending-videos` SET status = 'Transcribing audio.mp3', progress = 20 WHERE video_id = ?",
+		[videoId],
+	);
+
 	// Perform transcription and get the result
 	const transcriptionResults = await transcribeAudio(
-		audios.map((audio) => audio.audio)
+		audios.map((audio) => audio.audio),
 	);
 
 	const uncleanSrtContentArr = [];
@@ -110,7 +118,7 @@ export default async function transcribeFunction(
 
 		const incrementedSrtLines = lines.map((line) => {
 			const timeMatch = line.match(
-				/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/
+				/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/,
 			);
 			if (timeMatch) {
 				const startTime = srtTimeToSeconds(timeMatch[1]) + startingTime;
@@ -138,13 +146,17 @@ export default async function transcribeFunction(
 		startingTime += duration + 0.2;
 	}
 	if (cleanSrt) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Cleaning subtitle srt files', progress = 35 WHERE video_id = ?",
+			[videoId],
+		);
 		await generateCleanSrt(transcript, uncleanSrtContentArr);
 	} else {
 		for (const uncleanSrtContent of uncleanSrtContentArr) {
 			await writeFile(
 				uncleanSrtContent.fileName,
 				uncleanSrtContent.content,
-				'utf8'
+				'utf8',
 			);
 		}
 	}
