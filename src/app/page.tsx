@@ -66,11 +66,13 @@ export default function Home({
   });
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      videoStatus.refetch();
-    }, 5000);
+    if (isInQueue) {
+      const intervalId = setInterval(() => {
+        videoStatus.refetch();
+      }, 5000);
 
-    return () => clearInterval(intervalId);
+      return () => clearInterval(intervalId);
+    }
   }, [videoStatus]);
 
   useEffect(() => {
