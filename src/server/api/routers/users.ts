@@ -111,7 +111,7 @@ export const userRouter = createTRPCRouter({
         orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
       });
       const queueLength = allVideos.filter(
-        (v) => v.timestamp! < videos.timestamp!,
+        (v) => v.timestamp! < videos.timestamp! && v.processId === -1,
       ).length;
       return { videos: videos, queueLength };
     } else return { videos: null };
