@@ -62,6 +62,7 @@ export const userRouter = createTRPCRouter({
           username:
             clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
             generateRandomString(10),
+          credits: 50,
         });
       }
     }
