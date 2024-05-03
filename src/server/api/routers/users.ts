@@ -34,6 +34,11 @@ function generateRandomString(length: number) {
 }
 
 export const userRouter = createTRPCRouter({
+  deletePendingVideo: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.delete(pendingVideos).where(eq(pendingVideos.id, input.id));
+    }),
   // Mutation to check if a user exists in the database and create a new user if not
   exists: protectedProcedure.mutation(async ({ ctx }) => {
     const clerkUser = await currentUser();

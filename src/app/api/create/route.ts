@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     fps: body.fps ?? 20,
     aiGeneratedImages: body.aiGeneratedImages,
     cleanSrt: body.cleanSrt,
+    credits: body.credits,
+    status: "Waiting in Queue",
   });
 
   return new Response(null, { status: 200 });

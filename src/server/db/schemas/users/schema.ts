@@ -76,6 +76,14 @@ export const pendingVideos = mysqlTable(
     background: varchar("background", { length: 100 }).notNull(),
     music: varchar("music", { length: 100 }).notNull(),
     cleanSrt: boolean("clean_srt").notNull().default(false),
+    // which process is processing this video (-1 if up for grabs)
+    processId: int("process_id").notNull().default(-1),
+    // in case we need to credit the user if errors out
+    credits: int("credits").notNull(),
+    // so user knows what is going on...
+    status: varchar("status", { length: 500 }).notNull(),
+    // 0 - 100 progress
+    progress: int("progress").notNull().default(0),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
