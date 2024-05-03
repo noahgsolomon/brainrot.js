@@ -11,7 +11,7 @@ const Page = () => {
   useEffect(() => {
     const mutation = () => {
       existsMutation.mutate();
-      redirect("/?loggedIn=true");
+      window.location.href = "/?loggedIn=true";
     };
     mutation();
   }, [existsMutation]);
