@@ -717,7 +717,7 @@ export default function CreateVideo({
                         />
                         <Image
                           className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https:/images.smart.wtf/fluff.png"}
+                          src={"https://images.smart.wtf/fluffing.png"}
                           width={90}
                           height={80}
                           alt="fluffing a duck"
@@ -730,19 +730,21 @@ export default function CreateVideo({
                   </Tooltip>
                 </div>
                 <div className="relative">
-                  <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
-                    <Link
-                      onClick={() => setIsOpen(false)}
-                      href={"/pricing"}
-                      className={buttonVariants({
-                        className: "flex flex-row items-center gap-2 ",
-                        variant: "brain",
-                        size: "sm",
-                      })}
-                    >
-                      GO PRO <Crown className="size-4" />
-                    </Link>{" "}
-                  </div>
+                  {!userDB?.subscribed ? (
+                    <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
+                      <Link
+                        onClick={() => setIsOpen(false)}
+                        href={"/pricing"}
+                        className={buttonVariants({
+                          className: "flex flex-row items-center gap-2 ",
+                          variant: "brain",
+                          size: "sm",
+                        })}
+                      >
+                        GO PRO <Crown className="size-4" />
+                      </Link>{" "}
+                    </div>
+                  ) : null}
                   <div className=" flex flex-col gap-2 p-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <h6>FPS: </h6>
