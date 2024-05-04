@@ -244,21 +244,6 @@ export default function CreateVideo({
               className="col-span-3"
               value={videoInput}
               maxLength={500}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setGenerating(true);
-                  createVideoMutation.mutate({
-                    title:
-                      (videoInput === ""
-                        ? recommendedTopics[recommendedSelect]
-                        : videoInput) ?? "the future of the world",
-                    agent1: agent[0]?.id ?? 0,
-                    agent2: agent[1]?.id ?? 1,
-                    remainingCredits: userDB?.credits ?? 0,
-                    cost: credits,
-                  });
-                }
-              }}
               onChange={(e) => {
                 setVideoInput(e.target.value);
                 setRecommendedSelect(-1);
