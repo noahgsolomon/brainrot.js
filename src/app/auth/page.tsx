@@ -7,14 +7,17 @@ import { redirect } from "next/navigation";
 import { useEffect } from "react";
 
 const Page = () => {
-  const existsMutation = trpc.user.exists.useMutation();
+  const existsMutation = trpc.user.exists.useMutation({
+    onSuccess: () => {
+      window.location.href = "/?loggedIn=true";
+    },
+  });
   useEffect(() => {
     const mutation = () => {
       existsMutation.mutate();
-      window.location.href = "/?loggedIn=true";
     };
     mutation();
-  }, [existsMutation]);
+  }, []);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
