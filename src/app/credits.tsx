@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
+import { format } from "date-fns";
 import { Coins, Crown, Info } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -23,6 +24,8 @@ export default function Credits() {
         }
       },
     });
+
+  const subscriptionPlan = trpc.user.getSubscriptionPlan.useQuery().data;
 
   return (
     <Dialog>
@@ -108,12 +111,26 @@ export default function Credits() {
               GO PRO <Crown className="size-4" />
             </Link>
           ) : (
-            <Button
-              className="flex w-full flex-row items-center gap-2"
-              onClick={() => createStripeSession()}
-            >
-              Manage Subscription
-            </Button>
+            <div className="flex flex-col gap-1">
+              {subscriptionPlan?.isSubscribed ? (
+                <p className="rounded-full text-xs font-medium">
+                  {subscriptionPlan?.isCanceled
+                    ? "Your plan will be canceled on "
+                    : "Your plan renews on "}
+                  {format(
+                    subscriptionPlan?.stripeCurrentPeriodEnd!,
+                    "MM.dd.yyyy",
+                  )}
+                  .
+                </p>
+              ) : null}
+              <Button
+                className="flex w-full flex-row items-center gap-2"
+                onClick={() => createStripeSession()}
+              >
+                Manage Subscription
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>
