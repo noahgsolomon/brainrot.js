@@ -296,7 +296,7 @@ export const userRouter = createTRPCRouter({
 
     // Otherwise, create a new Stripe checkout session for a subscription
     const session = await stripe.checkout.sessions.create({
-      success_url: "?subscribed=true",
+      success_url: "/?subscribed=true",
       cancel_url: "/",
       payment_method_types: ["card"],
       mode: "subscription",
