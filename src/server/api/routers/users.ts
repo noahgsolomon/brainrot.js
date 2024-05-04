@@ -287,6 +287,8 @@ export const userRouter = createTRPCRouter({
 
     console.log(subscriptionPlan);
 
+    console.log("about to create session");
+
     // Otherwise, create a new Stripe checkout session for a subscription
     const session = await stripe.checkout.sessions.create({
       success_url: "?subscribed=true",
@@ -305,6 +307,8 @@ export const userRouter = createTRPCRouter({
         userId: ctx.user_id,
       },
     });
+
+    console.log("created session!");
 
     console.log(session.url);
 
