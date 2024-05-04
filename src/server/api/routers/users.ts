@@ -319,4 +319,8 @@ export const userRouter = createTRPCRouter({
 
     return { url: session.url };
   }),
+  getSubscriptionPlan: protectedProcedure.query(async ({ ctx }) => {
+    const subscriptionPlan = await getUserSubscriptionPlan();
+    return subscriptionPlan;
+  }),
 });
