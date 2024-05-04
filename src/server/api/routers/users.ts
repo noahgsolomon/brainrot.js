@@ -262,18 +262,9 @@ export const userRouter = createTRPCRouter({
 
   // Mutation to create a Stripe checkout session for the user
   createStripeSession: protectedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.user_id;
-
-    const billingUrl = absoluteUrl("?subscribed=true");
-
-    // Ensure the userId is available
-    if (!userId) {
-      throw new Error("No user ID");
-    }
-
     // Retrieve the user from the database
     const dbUser = await ctx.db.query.brainrotusers.findFirst({
-      where: eq(brainrotusers.id, userId),
+      where: eq(brainrotusers.id, ctx.user_id),
     });
 
     if (!dbUser) {
@@ -286,7 +277,7 @@ export const userRouter = createTRPCRouter({
     if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
       const session = await stripe.billingPortal.sessions.create({
         customer: dbUser.stripeCustomerId,
-        return_url: billingUrl,
+        return_url: "/",
       });
 
       console.log(JSON.stringify(session, null, 2));
@@ -298,8 +289,8 @@ export const userRouter = createTRPCRouter({
 
     // Otherwise, create a new Stripe checkout session for a subscription
     const session = await stripe.checkout.sessions.create({
-      success_url: billingUrl,
-      cancel_url: billingUrl,
+      success_url: "?subscribed=true",
+      cancel_url: "/",
       payment_method_types: ["card"],
       mode: "subscription",
       billing_address_collection: "auto",
@@ -311,7 +302,7 @@ export const userRouter = createTRPCRouter({
         },
       ],
       metadata: {
-        userId: userId,
+        userId: ctx.user_id,
       },
     });
 
