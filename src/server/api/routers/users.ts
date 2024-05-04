@@ -289,6 +289,8 @@ export const userRouter = createTRPCRouter({
         return_url: billingUrl,
       });
 
+      console.log(JSON.stringify(session, null, 2));
+
       return { url: session.url };
     }
 
