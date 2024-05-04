@@ -7,7 +7,7 @@ export default function ProButton({ children }: { children: ReactNode }) {
   const { mutate: createStripeSession } =
     trpc.user.createStripeSession.useMutation({
       onSuccess: (data) => {
-        console.log(JSON.stringify(data, null, 2));
+        console.log("PRO BUTTON TSX " + JSON.stringify(data, null, 2));
         window.location.href = data.url ?? "settings/billing";
       },
     });

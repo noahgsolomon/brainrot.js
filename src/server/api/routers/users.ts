@@ -262,6 +262,7 @@ export const userRouter = createTRPCRouter({
 
   // Mutation to create a Stripe checkout session for the user
   createStripeSession: protectedProcedure.mutation(async ({ ctx }) => {
+    console.log("HIT CREATE STRIPE SESSION");
     // Retrieve the user from the database
     const dbUser = await ctx.db.query.brainrotusers.findFirst({
       where: eq(brainrotusers.id, ctx.user_id),
@@ -270,8 +271,12 @@ export const userRouter = createTRPCRouter({
     if (!dbUser) {
       throw new Error("No user found");
     }
+    console.log("FOUND USER");
 
     const subscriptionPlan = await getUserSubscriptionPlan();
+
+    console.log("FOUND SUBSCRIPTION PLAN");
+    console.log(subscriptionPlan);
 
     // If the user is already subscribed and has a Stripe customer ID, create a billing portal session
     if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
