@@ -6,9 +6,23 @@ import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
 import { Coins, Crown, Info } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function Credits() {
   const user = trpc.user.user.useQuery().data?.user;
+
+  const { mutate: createStripeSession, isLoading } =
+    trpc.user.createStripeSession.useMutation({
+      onSuccess: ({ url }) => {
+        console.log("url " + url);
+        if (url) window.location.href = url;
+        if (!url) {
+          toast.error("There was a problem...", {
+            description: "Please try again later.",
+          });
+        }
+      },
+    });
 
   return (
     <Dialog>
@@ -94,14 +108,12 @@ export default function Credits() {
               GO PRO <Crown className="size-4" />
             </Link>
           ) : (
-            <Link
-              className={buttonVariants({
-                className: "flex w-full flex-row items-center gap-2",
-              })}
-              href={"/settings/billing"}
+            <Button
+              className="flex w-full flex-row items-center gap-2"
+              onClick={() => createStripeSession()}
             >
               Manage Subscription
-            </Link>
+            </Button>
           )}
         </div>
       </DialogContent>
