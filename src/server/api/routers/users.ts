@@ -282,7 +282,7 @@ export const userRouter = createTRPCRouter({
     if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
       const session = await stripe.billingPortal.sessions.create({
         customer: dbUser.stripeCustomerId,
-        return_url: "/",
+        return_url: absoluteUrl("/"),
       });
 
       console.log(JSON.stringify(session, null, 2));
@@ -296,8 +296,8 @@ export const userRouter = createTRPCRouter({
 
     // Otherwise, create a new Stripe checkout session for a subscription
     const session = await stripe.checkout.sessions.create({
-      success_url: "/?subscribed=true",
-      cancel_url: "/",
+      success_url: absoluteUrl("/?subscribed=true"),
+      cancel_url: absoluteUrl("/"),
       payment_method_types: ["card"],
       mode: "subscription",
       billing_address_collection: "auto",
