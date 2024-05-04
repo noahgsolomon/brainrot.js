@@ -41,10 +41,10 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
       <Card className="p-4 shadow-none sm:min-w-[500px]">
         <CardHeader className="pb-20">
           <CardTitle>Subscription Plan</CardTitle>
-          <CardDescription>
+          {/* <CardDescription>
             You are currently on the{" "}
             <strong>{subscriptionPlan.name ?? "FREE"}</strong> plan.
-          </CardDescription>
+          </CardDescription> */}
         </CardHeader>
         <CardFooter className="flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-4">
           <Button type="submit" className="py-6">
