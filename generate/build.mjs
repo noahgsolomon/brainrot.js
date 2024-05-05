@@ -16,7 +16,7 @@ async function cleanupResources() {
 	try {
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
 		await rm(path.join('public', 'voice'), { recursive: true, force: true });
-		await unlink(path.join('public', 'audio.mp3')).catch((e) =>
+		await unlink(path.join('public', `audio-${PROCESS_ID}.mp3`)).catch((e) =>
 			console.error(e),
 		);
 		await unlink(path.join('src', 'tmp', 'context.tsx')).catch((e) =>
@@ -29,7 +29,7 @@ async function cleanupResources() {
 	}
 }
 
-const PROCESS_ID = 0;
+export const PROCESS_ID = 1;
 
 async function mainFn(
 	topic,
@@ -183,7 +183,9 @@ async function pollPendingVideos() {
 
 (async () => {
 	try {
-		console.log('Starting to poll for pending videos...');
+		console.log(
+			`Starting to poll for pending videos on process ${PROCESS_ID}...`,
+		);
 		await pollPendingVideos();
 	} catch (error) {
 		console.error('Error polling for pending videos:', error);

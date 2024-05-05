@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
+import { PROCESS_ID } from './build.mjs';
 
 export default function concatenateAudioFiles() {
 	const directoryPath = 'public/voice/';
@@ -41,5 +42,5 @@ export default function concatenateAudioFiles() {
 		.on('end', () => {
 			console.log('Finished concatenating audio files!');
 		})
-		.mergeToFile('public/audio.mp3', 'tmp/');
+		.mergeToFile(`public/audio-${PROCESS_ID}.mp3`, 'tmp/');
 }
