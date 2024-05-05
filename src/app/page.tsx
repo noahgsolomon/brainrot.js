@@ -28,6 +28,7 @@ import { subscribe } from "diagnostics_channel";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import ProductHuntIcon from "@/components/svg/ProductHuntIcon";
 
 export default function Home({
   searchParams,
@@ -119,7 +120,17 @@ export default function Home({
             {/* <div className="coarse:hidden">
             <FlyingGifs gifs={gifs} />
           </div> */}
-
+            <Link
+              className="flex flex-col items-center gap-1"
+              href="https://www.producthunt.com/products/brainrot-js"
+              target="_blank"
+            >
+              <img
+                className="h-[43px] w-[200]"
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=455445&theme=light"
+                alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
+              />
+            </Link>
             <Image
               src={"https://images.smart.wtf/brainrot.png"}
               width={200}
@@ -149,6 +160,7 @@ export default function Home({
                   )}
                 </Link>
               </Badge>
+
               <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
                 BRAINROT.JS
                 <Badge
@@ -172,10 +184,11 @@ export default function Home({
                   </Link>
                 </Badge>
               </h1>
+
               <p className="max-w-[30ch] text-sm italic">
                 <Link
                   href={"https://github.com/noahgsolomon/brainrot.js"}
-                  className="font-bold"
+                  className="font-bold underline"
                 >
                   now open source!
                 </Link>
@@ -213,22 +226,22 @@ export default function Home({
               <Wand className="h-4 w-4" /> Create Video
             </Button>
             <Link
-              href={"https://github.com/noahgsolomon/brainrot.js"}
+              href={"https://www.producthunt.com/products/brainrot-js"}
               className={cn(
-                buttonVariants({ variant: "gold" }),
-                "flex flex-row items-center gap-2",
+                buttonVariants({ variant: "outline" }),
+                "flex flex-row items-center gap-2 border border-[#DA552F]/60 font-bold text-[#DA552F]  hover:text-[#DA552F]/80",
               )}
               target="_blank"
             >
-              <Star className="size-4  text-secondary dark:text-primary" />
-              Star on GitHub
+              <ProductHuntIcon />
+              Product Hunt
             </Link>
             {user.isSignedIn ? (
               <>
                 <Credits />
                 <Button
                   variant={"outline"}
-                  className="flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 "
                   onClick={() => setIsYourVideosOpen(true)}
                 >
                   <Folder className="h-4 w-4" />
@@ -243,6 +256,17 @@ export default function Home({
             ) : null}
           </div>
         </div>
+        <p className="max-w-[300px] pt-12 text-center italic">
+          To anyone who supports us on{" "}
+          <Link
+            target="_blank"
+            className="underline"
+            href={"https://www.producthunt.com/products/brainrot-js"}
+          >
+            Product Hunt
+          </Link>
+          ... I will kiss u fr 😽
+        </p>
         <div className="pt-48">
           <p className="text-center text-3xl font-bold">Recent Generations</p>
           <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">

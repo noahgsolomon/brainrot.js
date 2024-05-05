@@ -18,7 +18,7 @@ const SignUpPage = () => {
             socialButtonsBlockButtonText: "text-secondary-foreground",
             footerActionText: "text-primary opacity-40",
             footerActionLink:
-              "transition-all text-blue hover:opacity-80 outline-none",
+              "transition-all text-blue hover:opacity-80 focus:outline-none focus:ring-0",
             socialButtonsBlockButtonArrow: "text-primary",
           },
         }}
