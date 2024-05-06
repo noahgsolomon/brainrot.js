@@ -3,7 +3,6 @@
 /out
 /package-lock.json
 /public/out
-/public/background
 /venv/
 /public/srt/
 /public/voice

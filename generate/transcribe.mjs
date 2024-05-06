@@ -7,7 +7,7 @@ import { query } from './dbClient.mjs';
 
 const transcribeAudio = async (audios) => {
 	try {
-		const response = await fetch('http://127.0.0.1:5001/transcribe', {
+		const response = await fetch('http://127.0.0.1:5000/transcribe', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -46,7 +46,10 @@ function secondsToSrtTime(seconds) {
 	return `${pad(hrs, 2)}:${pad(mins, 2)}:${pad(secs, 2)},${pad(millis, 3)}`;
 }
 
+const local = true;
+
 export default async function transcribeFunction(
+	local,
 	topic,
 	agentA,
 	agentB,
@@ -56,9 +59,10 @@ export default async function transcribeFunction(
 	background,
 	music,
 	cleanSrt,
-	videoId,
+	videoId
 ) {
 	const { audios, transcript } = await generateTranscriptAudio(
+		local,
 		topic,
 		agentA,
 		agentB,
@@ -67,21 +71,23 @@ export default async function transcribeFunction(
 		duration,
 		background,
 		music,
-		videoId,
+		videoId
 	);
 	let startingTime = 0;
 
 	// Concatenate audio files if needed, or comment out if not used
 	concatenateAudioFiles();
 
-	await query(
-		"UPDATE `pending-videos` SET status = 'Transcribing audio.mp3', progress = 20 WHERE video_id = ?",
-		[videoId],
-	);
+	if (!local) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Transcribing audio.mp3', progress = 20 WHERE video_id = ?",
+			[videoId]
+		);
+	}
 
 	// Perform transcription and get the result
 	const transcriptionResults = await transcribeAudio(
-		audios.map((audio) => audio.audio),
+		audios.map((audio) => audio.audio)
 	);
 
 	const uncleanSrtContentArr = [];
@@ -118,7 +124,7 @@ export default async function transcribeFunction(
 
 		const incrementedSrtLines = lines.map((line) => {
 			const timeMatch = line.match(
-				/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/,
+				/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/
 			);
 			if (timeMatch) {
 				const startTime = srtTimeToSeconds(timeMatch[1]) + startingTime;
@@ -146,17 +152,20 @@ export default async function transcribeFunction(
 		startingTime += duration + 0.2;
 	}
 	if (cleanSrt) {
-		await query(
-			"UPDATE `pending-videos` SET status = 'Cleaning subtitle srt files', progress = 35 WHERE video_id = ?",
-			[videoId],
-		);
+		if (!local) {
+			await query(
+				"UPDATE `pending-videos` SET status = 'Cleaning subtitle srt files', progress = 35 WHERE video_id = ?",
+				[videoId]
+			);
+		}
+
 		await generateCleanSrt(transcript, uncleanSrtContentArr);
 	} else {
 		for (const uncleanSrtContent of uncleanSrtContentArr) {
 			await writeFile(
 				uncleanSrtContent.fileName,
 				uncleanSrtContent.content,
-				'utf8',
+				'utf8'
 			);
 		}
 	}

@@ -9,7 +9,7 @@ import {
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
 
-const PROCESS_ID = 1;
+const PROCESS_ID = 0;
 
 export const RemotionRoot: React.FC = () => {
 	return (
@@ -54,6 +54,10 @@ export const RemotionRoot: React.FC = () => {
 						RICK_SANCHEZ: {
 							color: '#b6def1',
 							image: 'rick.png',
+						},
+						DONALD_TRUMP: {
+							color: '#b32134',
+							image: 'trump.png',
 						},
 					},
 					subtitlesTextColor: 'rgba(255, 255, 255, 0.93)',
