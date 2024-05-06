@@ -206,6 +206,11 @@ export default function Home({
                 <div>
                   <span className="font-bold">Status:</span> {status}
                 </div>
+                <div>
+                  <span className="font-bold">Est. time remaining: </span>{" "}
+                  {(placeInQueue * 3 + ((100 - progress) / 100) * 3).toFixed(2)}{" "}
+                  mins +
+                </div>
 
                 <div className="flex w-full flex-row items-center gap-2">
                   <p className="text-xs">{progress}%</p>
