@@ -8,7 +8,13 @@ import { promisify } from 'util';
 
 const execP = promisify(exec);
 
-const agents = ['BARACK_OBAMA', 'BEN_SHAPIRO', 'JORDAN_PETERSON', 'JOE_ROGAN'];
+const agents = [
+	'BARACK_OBAMA',
+	'BEN_SHAPIRO',
+	'JORDAN_PETERSON',
+	'JOE_ROGAN',
+	'DONALD_TRUMP',
+];
 
 dotenv.config();
 
@@ -17,10 +23,10 @@ async function cleanupResources() {
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
 		await rm(path.join('public', 'voice'), { recursive: true, force: true });
 		await unlink(path.join('public', `audio-${PROCESS_ID}.mp3`)).catch((e) =>
-			console.error(e),
+			console.error(e)
 		);
 		await unlink(path.join('src', 'tmp', 'context.tsx')).catch((e) =>
-			console.error(e),
+			console.error(e)
 		);
 		await mkdir(path.join('public', 'srt'), { recursive: true });
 		await mkdir(path.join('public', 'voice'), { recursive: true });
@@ -29,7 +35,9 @@ async function cleanupResources() {
 	}
 }
 
-export const PROCESS_ID = 1;
+export const PROCESS_ID = 0;
+
+const local = false;
 
 async function mainFn(
 	topic,
@@ -43,15 +51,16 @@ async function mainFn(
 	background,
 	music,
 	cleanSrt,
-	credits,
+	credits
 ) {
 	try {
 		await query(
 			'UPDATE `pending-videos` SET process_id = ? WHERE video_id = ?',
-			[PROCESS_ID, videoId],
+			[PROCESS_ID, videoId]
 		);
 
 		await transcribeFunction(
+			local,
 			topic,
 			agentA,
 			agentB,
@@ -61,18 +70,18 @@ async function mainFn(
 			background,
 			music,
 			cleanSrt,
-			videoId,
+			videoId
 		);
 
 		await query(
 			"UPDATE `pending-videos` SET status = 'Deploying assets to S3 for render', progress = 50 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 
 		console.log('Building project with npm...');
 
 		const { stdout, stderr } = await execP(
-			'npx remotion lambda sites create src/index.ts --site-name=brainrot',
+			'npx remotion lambda sites create src/index.ts --site-name=brainrot'
 		);
 		console.log(`stdout: ${stdout}`);
 		if (stderr) console.error(`stderr: ${stderr}`);
@@ -88,11 +97,11 @@ async function mainFn(
 
 		await query(
 			"UPDATE `pending-videos` SET status = 'Rendering video on lambda functions', progress = 75 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 
 		const { stdout: stdoutRender, stderr: stderrRender } = await execP(
-			'npx remotion lambda render https://remotionlambda-useast1-oaz2rkh49x.s3.us-east-1.amazonaws.com/sites/brainrot/index.html Video',
+			'npx remotion lambda render https://remotionlambda-useast1-oaz2rkh49x.s3.us-east-1.amazonaws.com/sites/brainrot/index.html Video'
 		);
 
 		const regex =
@@ -111,23 +120,23 @@ async function mainFn(
 
 		await query(
 			`INSERT INTO videos (user_id, agent1, agent2, title, url, video_id) VALUES (?, ?, ?, ?, ?, ?)`,
-			[userId, agentA, agentB, topic, s3Url, videoId],
+			[userId, agentA, agentB, topic, s3Url, videoId]
 		);
 
 		await query(
 			"UPDATE `pending-videos` SET status = 'COMPLETED', progress = 100 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 	} catch (error) {
 		console.error(`exec error: ${error}`);
 		await cleanupResources();
 		await query(
 			"UPDATE `pending-videos` SET status = 'ERROR' WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 		await query(
 			'UPDATE `brainrot-users` SET credits = credits + ? WHERE id = ?',
-			[credits, userId],
+			[credits, userId]
 		);
 	}
 }
@@ -140,7 +149,7 @@ async function pollPendingVideos() {
 	while (true) {
 		const rows = await query(
 			'SELECT * FROM `pending-videos` WHERE process_id = -1 ORDER BY timestamp ASC LIMIT 1',
-			[],
+			[]
 		);
 
 		if (rows.length > 0) {
@@ -159,18 +168,18 @@ async function pollPendingVideos() {
 					video.background,
 					video.music,
 					video.clean_srt,
-					video.credits,
+					video.credits
 				);
 			} catch (error) {
 				console.error(`exec error: ${error}`);
 				await cleanupResources();
 				await query(
 					"UPDATE `pending-videos` SET status = 'ERROR' WHERE video_id = ?",
-					[video.video_id],
+					[video.video_id]
 				);
 				await query(
 					'UPDATE `brainrot-users` SET credits = credits + ? WHERE id = ?',
-					[video.credits, video.user_id],
+					[video.credits, video.user_id]
 				);
 			}
 		} else {
@@ -184,7 +193,7 @@ async function pollPendingVideos() {
 (async () => {
 	try {
 		console.log(
-			`Starting to poll for pending videos on process ${PROCESS_ID}...`,
+			`Starting to poll for pending videos on process ${PROCESS_ID}...`
 		);
 		await pollPendingVideos();
 	} catch (error) {

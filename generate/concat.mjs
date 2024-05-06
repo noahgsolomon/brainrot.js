@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
-import { PROCESS_ID } from './build.mjs';
+import { PROCESS_ID } from './localBuild.mjs';
 
 export default function concatenateAudioFiles() {
 	const directoryPath = 'public/voice/';

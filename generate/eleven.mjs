@@ -14,6 +14,7 @@ const openai = new OpenAI({
 });
 
 export async function generateTranscriptAudio(
+	local,
 	topic,
 	agentA,
 	agentB,
@@ -22,34 +23,40 @@ export async function generateTranscriptAudio(
 	duration,
 	background,
 	music,
-	videoId,
+	videoId
 ) {
-	await query(
-		"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
-		[videoId],
-	);
+	if (!local) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
+			[videoId]
+		);
+	}
 
 	let transcript = (await transcriptFunction(topic, agentA, agentB, duration))
 		.transcript;
 
 	const audios = [];
 
-	await query(
-		"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
-		[videoId],
-	);
+	if (!local) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
+			[videoId]
+		);
+	}
 
 	const images = await fetchValidImages(
 		transcript,
 		transcript.length,
 		ai,
-		duration,
+		duration
 	);
 
-	await query(
-		"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
-		[videoId],
-	);
+	if (!local) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
+			[videoId]
+		);
+	}
 
 	for (let i = 0; i < transcript.length; i++) {
 		const person = transcript[i].person;
@@ -64,6 +71,8 @@ export async function generateTranscriptAudio(
 				? process.env.BEN_SHAPIRO_VOICE_ID
 				: person === 'RICK_SANCHEZ'
 				? process.env.RICK_SANCHEZ_VOICE_ID
+				: person === 'DONALD_TRUMP'
+				? process.env.DONALD_TRUMP_VOICE_ID
 				: process.env.JORDAN_PETERSON_VOICE_ID;
 
 		await generateAudio(voice_id, person, line, i);
@@ -89,7 +98,7 @@ export const music: string = ${
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/${background}-' + ${Math.floor(
-		Math.random() * 10,
+		Math.random() * 10
 	)} + '.mp4';
 export const subtitlesFileName = [
   ${audios
@@ -98,7 +107,7 @@ export const subtitlesFileName = [
     name: '${entry.person}',
     file: staticFile('srt/${entry.person}-${i}.srt'),
     asset: '${entry.image}',
-  }`,
+  }`
 		)
 		.join(',\n  ')}
 ];
@@ -126,7 +135,7 @@ export async function generateAudio(voice_id, person, line, index) {
 					similarity_boost: 0.75,
 				},
 			}),
-		},
+		}
 	);
 
 	if (!response.ok) {
@@ -134,7 +143,7 @@ export async function generateAudio(voice_id, person, line, index) {
 	}
 
 	const audioStream = fs.createWriteStream(
-		`public/voice/${person}-${index}.mp3`,
+		`public/voice/${person}-${index}.mp3`
 	);
 	response.body.pipe(audioStream);
 
@@ -162,14 +171,14 @@ async function fetchValidImages(transcript, length, ai, duration) {
 		for (let i = 0; i < length; i++) {
 			const imageFetch = await fetch(
 				`https://www.googleapis.com/customsearch/v1?q=${encodeURI(
-					transcript[i].asset,
+					transcript[i].asset
 				)}&cx=${process.env.GOOGLE_CX}&searchType=image&key=${
 					process.env.GOOGLE_API_KEY
 				}&num=${4}`,
 				{
 					method: 'GET',
 					headers: { 'Content-Type': 'application/json' },
-				},
+				}
 			);
 			const imageResponse = await imageFetch.json();
 			if (!imageResponse.items || imageResponse.items.length === 0) {
