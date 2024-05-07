@@ -24,7 +24,7 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 - https://platform.openai.com/api-keys
 
-#### how to get grok api credentials:
+#### how to get groq api credentials:
 
 - https://console.groq.com/keys
 
