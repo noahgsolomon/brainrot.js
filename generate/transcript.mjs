@@ -1,18 +1,13 @@
-import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
 dotenv.config();
+import Groq from 'groq-sdk/index.mjs';
 
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
+const groq = new Groq({
+	apiKey: process.env.GROQ_API_KEY,
 });
 
-export default async function transcriptFunction(
-	topic,
-	agentA,
-	agentB,
-	duration
-) {
-	const completion = await openai.chat.completions.create({
+async function generateTranscript(topic, agentA, agentB, duration) {
+	const completion = await groq.chat.completions.create({
 		messages: [
 			{
 				role: 'system',
@@ -27,40 +22,43 @@ export default async function transcriptFunction(
 					' '
 				)} offers a deep, analytical perspective. The dialogue should be engaging and include light humor, yet still provide meaningful insights into ${topic}. Limit the dialogue to a maximum of ${
 					duration * 7
-				} exchanges, aiming for a concise transcript that would last between ${duration} minutes. The person attribute should either be ${agentA} or ${agentB}. The line attribute should be a that character's line of dialogue. I also need an asset description under the asset attribute which would be a relevant search query to find an image which should be relevant to the overall topic of the conversation. The asset descriptions shouldn't be vague, but a description of something that you think would be a good image to go along with the conversation. Specificity is key.`,
+				} exchanges, aiming for a concise transcript that would last between ${duration} minutes. The person attribute should either be ${agentA} or ${agentB}. The line attribute should be a that character's line of dialogue. I also need an asset description under the asset attribute which would be a relevant search query to find an image which should be relevant to the overall topic of the conversation. The asset descriptions shouldn't be vague, but a description of something that you think would be a good image to go along with the conversation. Specificity is key. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'person': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'line': 'their line of conversation in the dialog', asset: 'relevant search query based on the current line'} ] } }`,
 			},
-		],
-		functions: [
 			{
-				name: 'transcript',
-				description: `Transcript between two people about a topic.`,
-				parameters: {
-					type: 'object',
-					properties: {
-						transcript: {
-							type: 'array',
-							items: {
-								type: 'object',
-								properties: {
-									person: { type: 'string' },
-									line: { type: 'string' },
-									asset: { type: 'string' },
-								},
-								required: ['person', 'line', 'asset'],
-							},
-						},
-					},
-					required: ['line'],
-				},
+				role: 'user',
+				content: `generate a video about ${topic}. Both the agents should talk about it in a way they would, but extremify their qualities and make the conversation risque if either agents are controversial.`,
 			},
 		],
-		function_call: { name: 'transcript' },
-		model: 'gpt-4-turbo',
+		response_format: { type: 'json_object' },
+		model: 'llama3-70b-8192',
+		temperature: 0.5,
+		max_tokens: 4096,
+		top_p: 1,
+		stop: null,
+		stream: false,
 	});
 
-	const responseBody = await JSON.parse(
-		completion.choices[0]?.message.function_call.arguments
-	);
+	const content = completion.choices[0]?.message?.content || '';
 
-	return responseBody;
+	return content;
+}
+
+export default async function transcriptFunction(
+	topic,
+	agentA,
+	agentB,
+	duration
+) {
+	let transcript = null;
+
+	while (transcript === null) {
+		try {
+			const content = await generateTranscript(topic, agentA, agentB, duration);
+			transcript = content === '' ? null : JSON.parse(content);
+		} catch (error) {
+			console.error('Error parsing JSON:', error);
+		}
+	}
+
+	return transcript;
 }

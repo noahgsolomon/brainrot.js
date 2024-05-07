@@ -56,5 +56,6 @@ generate/venv/*
 generate/hidden/*
 generate/src/tmp/*
 generate/out/*
+generate/public/*
 .env
 bun.lockb
