@@ -18,6 +18,7 @@ import {
   Star,
   StarIcon,
   Wand,
+  X,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,6 +66,18 @@ export default function Home({
       setIsInQueue(false);
       setPendingVideo(false);
       setPendingVideoTitle("");
+    },
+  });
+
+  const cancelPendingVideoMutation = trpc.user.cancelPendingVideo.useMutation({
+    onSuccess: () => {
+      toast.success("deleted video generation!");
+      setProgress(0);
+      setStatus("Waiting in Queue");
+      setIsInQueue(false);
+      setPendingVideo(false);
+      setPendingVideoTitle("");
+      window.location.reload();
     },
   });
 
@@ -201,33 +214,35 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {placeInQueue >= 1 && !userDB?.user?.subscribed ? (
-              <p className="flex max-w-[300px] flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
-                Want to skip the queue?{" "}
-                <Link
-                  onClick={() => setIsOpen(false)}
-                  href={"/pricing"}
-                  className={buttonVariants({
-                    className: "flex flex-row items-center gap-2 ",
-                    variant: "gold",
-                    size: "sm",
-                  })}
-                >
-                  GO PRO <Crown className="size-4" />
-                </Link>
-              </p>
-            ) : null}
-            {placeInQueue >= 1 ? (
-              <div className="max-w-[300px] rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-                Sorry for the long ass queue bro 🤕. If you want to run locally
-                check{" "}
-                <Link
-                  href="https://github.com/noahgsolomon/brainrot.js"
-                  target="_blank"
-                  className="font-bold underline"
-                >
-                  here!
-                </Link>
+            {pendingVideo && placeInQueue >= 1 ? (
+              <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
+                <div>
+                  Sorry for the long ass queue bro 🤕. If you want to run
+                  locally check{" "}
+                  <Link
+                    href="https://github.com/noahgsolomon/brainrot.js"
+                    target="_blank"
+                    className="font-bold underline"
+                  >
+                    here!
+                  </Link>
+                </div>
+                {!userDB?.user?.subscribed ? (
+                  <p className="flex flex-col items-center gap-2">
+                    Want to skip the queue?{" "}
+                    <Link
+                      onClick={() => setIsOpen(false)}
+                      href={"/pricing"}
+                      className={buttonVariants({
+                        className: "flex flex-row items-center gap-2 ",
+                        variant: "gold",
+                        size: "sm",
+                      })}
+                    >
+                      GO PRO <Crown className="size-4" />
+                    </Link>
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {pendingVideo && (
@@ -266,6 +281,19 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
+            {pendingVideo && placeInQueue > 5 && progress === 0 ? (
+              <Button
+                className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
+                variant={"outline"}
+                onClick={() => {
+                  cancelPendingVideoMutation.mutate({
+                    id: videoStatus.data?.videos?.id ?? 0,
+                  });
+                }}
+              >
+                <X className="h-4 w-4 text-red-500" /> Cancel Generation
+              </Button>
+            ) : null}
 
             {user.isSignedIn ? (
               <>

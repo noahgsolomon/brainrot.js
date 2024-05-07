@@ -72,7 +72,11 @@ export const userRouter = createTRPCRouter({
       }
     }
   }),
-
+  cancelPendingVideo: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.delete(pendingVideos).where(eq(pendingVideos.id, input.id));
+    }),
   findVideo: publicProcedure
     .input(z.object({ url: z.string() }))
     .query(async ({ ctx, input }) => {
