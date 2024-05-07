@@ -11,6 +11,8 @@ note: you need to create your own eleven labs voices and copy their voice id's. 
 
 #### how to get google credentials:
 
+_this is probably the most complex api to get set up, so if you want to be able to generate videos with ai images instead of google fetched images, you only need open ai api credentials, and not google credentials_
+
 - https://developers.google.com/custom-search/v1/introduction/
 - https://programmablesearchengine.google.com/controlpanel/all
 
@@ -21,6 +23,10 @@ note: you need to create your own eleven labs voices and copy their voice id's. 
 #### how to get open ai credentials:
 
 - https://platform.openai.com/api-keys
+
+#### how to get grok api credentials:
+
+- https://console.groq.com/keys
 
 https://github.com/noahgsolomon/brainrot.js/assets/111200060/db1e60c4-2db9-48c5-9826-38c7b5112b4b
 
