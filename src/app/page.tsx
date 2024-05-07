@@ -236,7 +236,7 @@ export default function Home({
                   <Loader2 className="size-4 animate-spin" />
                   <div className="flex gap-2">
                     <span className="font-bold">Place in queue:</span>{" "}
-                    {placeInQueue}
+                    {progress > 0 ? 0 : placeInQueue}
                   </div>
                 </div>
                 <div>
