@@ -195,7 +195,7 @@ export default function Home({
               </p>
             </div>
             {placeInQueue >= 1 ? (
-              <div className="max-w-[300px] rounded-lg border border-border bg-card/60 p-4 text-center text-sm shadow-sm">
+              <div className="max-w-[300px] rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 Sorry for the long ass queue bro 🤕. If you want to run locally
                 check{" "}
                 <Link
