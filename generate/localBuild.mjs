@@ -2,6 +2,7 @@ import transcribeFunction from './transcribe.mjs';
 import path from 'path';
 import { exec } from 'child_process';
 import { topics } from './topics.mjs';
+import { rm, mkdir, unlink } from 'fs/promises';
 
 export const PROCESS_ID = 0;
 
@@ -43,13 +44,13 @@ async function main() {
 	} while (agentAIndex === agentBIndex);
 
 	// CHANGE THIS VALUE FOR YOUR CHOICE OF AGENTS
-	const agentA = agents[agentAIndex];
-	const agentB = agents[agentBIndex];
+	const agentA = agents[0];
+	const agentB = agents[4];
 
 	// CHANGE THIS VALUE FOR A CUSTOM VIDEO TOPIC
-	const videoTopic = 'Kullback Leibler Divergence in ML';
+	const videoTopic = 'Proximal Policy Optimization';
 	const aiGeneratedImages = true;
-	const fps = 10;
+	const fps = 60;
 	const duration = 1; //minute
 	//MINECRAFT or TRUCK or GTA
 	const background = 'TRUCK';
