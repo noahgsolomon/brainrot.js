@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Coins,
+  Crown,
   Folder,
   Gem,
   Github,
@@ -192,14 +193,30 @@ export default function Home({
                   className="flex flex-col items-center gap-1 font-bold "
                 >
                   now open source!
-                  <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
+                  {/* <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
                     star on github{" "}
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
-                  </div>
+                  </div> */}
                 </Link>
               </p>
             </div>
+            {placeInQueue >= 1 && !userDB?.user?.subscribed ? (
+              <p className="flex max-w-[300px] flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
+                Want to skip the queue?{" "}
+                <Link
+                  onClick={() => setIsOpen(false)}
+                  href={"/pricing"}
+                  className={buttonVariants({
+                    className: "flex flex-row items-center gap-2 ",
+                    variant: "gold",
+                    size: "sm",
+                  })}
+                >
+                  GO PRO <Crown className="size-4" />
+                </Link>
+              </p>
+            ) : null}
             {placeInQueue >= 1 ? (
               <div className="max-w-[300px] rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 Sorry for the long ass queue bro 🤕. If you want to run locally
