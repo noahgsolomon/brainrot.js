@@ -15,6 +15,7 @@ import {
   HeartCrack,
   Loader2,
   Star,
+  StarIcon,
   Wand,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
@@ -120,7 +121,7 @@ export default function Home({
             {/* <div className="coarse:hidden">
             <FlyingGifs gifs={gifs} />
           </div> */}
-            <Link
+            {/* <Link
               className="flex flex-col items-center gap-1"
               href="https://www.producthunt.com/products/brainrot-js"
               target="_blank"
@@ -130,7 +131,7 @@ export default function Home({
                 src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=455445&theme=light"
                 alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
               />
-            </Link>
+            </Link> */}
             <Image
               src={"https://images.smart.wtf/brainrot.png"}
               width={200}
@@ -188,9 +189,14 @@ export default function Home({
               <p className="max-w-[30ch] text-sm italic">
                 <Link
                   href={"https://github.com/noahgsolomon/brainrot.js"}
-                  className="font-bold underline"
+                  className="flex flex-col items-center gap-1 font-bold "
                 >
                   now open source!
+                  <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
+                    <Star className="size-3 fill-yellow-500 text-yellow-400" />
+                    star on github{" "}
+                    <Star className="size-3 fill-yellow-500 text-yellow-400" />
+                  </div>
                 </Link>
               </p>
             </div>
@@ -243,17 +249,7 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            <Link
-              href={"https://www.producthunt.com/products/brainrot-js"}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "flex flex-row items-center gap-2 border border-[#DA552F]/60 font-bold text-[#DA552F]  hover:text-[#DA552F]/80",
-              )}
-              target="_blank"
-            >
-              <ProductHuntIcon />
-              Product Hunt
-            </Link>
+
             {user.isSignedIn ? (
               <>
                 <Credits />
