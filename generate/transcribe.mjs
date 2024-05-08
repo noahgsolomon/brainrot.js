@@ -6,23 +6,41 @@ import { generateCleanSrt } from './cleanSrt.mjs';
 import { query } from './dbClient.mjs';
 
 const transcribeAudio = async (audios) => {
-	try {
-		const response = await fetch('http://127.0.0.1:5000/transcribe', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ audios }),
-		});
+	const retryDelays = [1000, 2000, 3000]; // Retry delays in milliseconds
+	let retryCount = 0;
 
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
+	while (retryCount < retryDelays.length) {
+		try {
+			const response = await fetch('http://127.0.0.1:5000/transcribe', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ audios }),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error(
+				`Error transcribing audio (attempt ${retryCount + 1}):`,
+				error
+			);
+
+			if (retryCount < retryDelays.length - 1) {
+				const delay = retryDelays[retryCount];
+				console.log(`Retrying in ${delay / 1000} second(s)...`);
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+
+			retryCount++;
 		}
-
-		const data = await response.json();
-		return data;
-	} catch (error) {
-		console.error('Error transcribing audio:', error);
 	}
 };
 
@@ -46,10 +64,9 @@ function secondsToSrtTime(seconds) {
 	return `${pad(hrs, 2)}:${pad(mins, 2)}:${pad(secs, 2)},${pad(millis, 3)}`;
 }
 
-const local = true;
+const local = false;
 
 export default async function transcribeFunction(
-	local,
 	topic,
 	agentA,
 	agentB,
@@ -62,7 +79,6 @@ export default async function transcribeFunction(
 	videoId
 ) {
 	const { audios, transcript } = await generateTranscriptAudio(
-		local,
 		topic,
 		agentA,
 		agentB,
