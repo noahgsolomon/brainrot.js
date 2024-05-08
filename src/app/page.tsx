@@ -205,27 +205,13 @@ export default function Home({
                   className="flex flex-col items-center gap-1 font-bold "
                 >
                   now open source!
-                  {/* <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
+                  <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
                     star on github{" "}
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
-                  </div> */}
+                  </div>
                 </Link>
               </p>
-            </div>
-            <div className="flex flex-col gap-2 rounded-lg border border-border bg-card/80 p-4 shadow-sm">
-              <p className="text-sm font-bold">upvote for a wet kiss 😘👇</p>
-              <a
-                href="https://www.producthunt.com/posts/brainrot-js?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-brainrot&#0045;js"
-                target="_blank"
-              >
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=455445&theme=light"
-                  alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
-                  width="200"
-                  height="46"
-                />
-              </a>
             </div>
             {pendingVideo && placeInQueue >= 1 ? (
               <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
