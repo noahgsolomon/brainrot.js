@@ -146,6 +146,7 @@ export default function Home({
                 alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
               />
             </Link> */}
+
             <Image
               src={"https://images.smart.wtf/brainrot.png"}
               width={200}
@@ -153,7 +154,6 @@ export default function Home({
               alt="brainrot"
               className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
             />
-
             <div className=" flex flex-col items-center gap-2">
               <Badge
                 className="cursor-pointer text-sm md:hidden"
@@ -199,7 +199,6 @@ export default function Home({
                   </Link>
                 </Badge>
               </h1>
-
               <p className="max-w-[30ch] text-sm italic">
                 <Link
                   href={"https://github.com/noahgsolomon/brainrot.js"}
@@ -213,6 +212,20 @@ export default function Home({
                   </div> */}
                 </Link>
               </p>
+            </div>
+            <div className="flex flex-col gap-2 rounded-lg border border-border bg-card/80 p-4 shadow-sm">
+              <p className="text-sm font-bold">upvote for a wet kiss 😘👇</p>
+              <a
+                href="https://www.producthunt.com/posts/brainrot-js?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-brainrot&#0045;js"
+                target="_blank"
+              >
+                <img
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=455445&theme=light"
+                  alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
+                  width="200"
+                  height="46"
+                />
+              </a>
             </div>
             {pendingVideo && placeInQueue >= 1 ? (
               <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
