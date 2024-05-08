@@ -314,7 +314,7 @@ export default function Home({
             ) : null}
           </div>
         </div>
-        <p className="max-w-[300px] pt-12 text-center italic">
+        {/* <p className="max-w-[300px] pt-12 text-center italic">
           To anyone who supports us on{" "}
           <Link
             target="_blank"
@@ -324,7 +324,7 @@ export default function Home({
             Product Hunt
           </Link>
           ... I will kiss u fr 😽
-        </p>
+        </p> */}
         <div className="pt-48">
           <p className="text-center text-3xl font-bold">Recent Generations</p>
           <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">
