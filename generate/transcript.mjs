@@ -22,7 +22,7 @@ async function generateTranscript(topic, agentA, agentB, duration) {
 					' '
 				)} offers a deep, analytical perspective. The dialogue should be engaging and include light humor, yet still provide meaningful insights into ${topic}. Limit the dialogue to a maximum of ${
 					duration * 7
-				} exchanges, aiming for a concise transcript that would last between ${duration} minutes. The person attribute should either be ${agentA} or ${agentB}. The line attribute should be a that character's line of dialogue. I also need an asset description under the asset attribute which would be a relevant search query to find an image which should be relevant to the overall topic of the conversation. The asset descriptions shouldn't be vague, but a description of something that you think would be a good image to go along with the conversation. Specificity is key. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'person': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'line': 'their line of conversation in the dialog', asset: 'relevant search query based on the current line'} ] } }`,
+				} exchanges, aiming for a concise transcript that would last between ${duration} minutes. The person attribute should either be ${agentA} or ${agentB}. The line attribute should be that character's line of dialogue. I also need an asset description under the asset attribute which would be a relevant search query to find an image which should be relevant to the overall topic of the conversation. The asset descriptions shouldn't be vague, but a description of something that you think would be a good image to go along with the conversation. Specificity is key. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'person': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'line': 'their line of conversation in the dialog', asset: 'relevant search query based on the current line'} ] } }`,
 			},
 			{
 				role: 'user',
@@ -50,15 +50,22 @@ export default async function transcriptFunction(
 	duration
 ) {
 	let transcript = null;
+	let attempts = 0;
 
-	while (transcript === null) {
+	while (attempts < 5) {
 		try {
 			const content = await generateTranscript(topic, agentA, agentB, duration);
 			transcript = content === '' ? null : JSON.parse(content);
+			if (transcript !== null) {
+				return transcript;
+			}
 		} catch (error) {
-			console.error('Error parsing JSON:', error);
+			console.error('Attempt failed:', error);
 		}
+		attempts++;
 	}
 
-	return transcript;
+	throw new Error(
+		`Failed to generate valid transcript after 5 attempts for topic: ${topic}`
+	);
 }
