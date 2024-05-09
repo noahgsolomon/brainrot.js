@@ -44,16 +44,20 @@ export default function Page() {
             </div>
             <div className="flex flex-row items-center gap-2">
               <BadgeCheck className="size-4 " />
-              No watermarks
+              My love and admiration
             </div>
             <div className="flex flex-row items-center gap-2">
+              <BadgeCheck className="size-4 " />
+              all agents, 3+ min video, more (coming soon)
+            </div>
+            {/* <div className="flex flex-row items-center gap-2">
               <BadgeCheck className="size-4 " />
               Access to all agents
             </div>
             <div className="flex flex-row items-center gap-2">
               <BadgeCheck className="size-4 " />
               Up to 3 minute long videos
-            </div>
+            </div> */}
             <div className="flex flex-row items-center gap-2">
               <BadgeCheck className="size-4 " />
               60 fps
