@@ -226,7 +226,7 @@ export default function Home({
                     here!
                   </Link>
                 </div>
-                {/* {!userDB?.user?.subscribed ? (
+                {!userDB?.user?.subscribed ? (
                   <p className="flex flex-col items-center gap-2">
                     Want to skip the queue?{" "}
                     <Link
@@ -241,7 +241,7 @@ export default function Home({
                       GO PRO <Crown className="size-4" />
                     </Link>
                   </p>
-                ) : null} */}
+                ) : null}
               </div>
             ) : null}
             {pendingVideo && (
