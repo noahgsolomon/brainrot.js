@@ -275,7 +275,10 @@ export default function Home({
                 </div>
                 <div>
                   <span className="font-bold">Est. time remaining: </span>{" "}
-                  {(placeInQueue * 3 + ((100 - progress) / 100) * 3).toFixed(2)}{" "}
+                  {(progress > 0
+                    ? 0
+                    : placeInQueue * 4 + ((100 - progress) / 100) * 4
+                  ).toFixed(2)}{" "}
                   mins
                 </div>
 
