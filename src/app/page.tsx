@@ -214,7 +214,7 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {pendingVideo && placeInQueue >= 1 ? (
+            {pendingVideo && placeInQueue >= 1 && progress === 0 ? (
               <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div>
                   Sorry for the long ass queue bro 🤕. If you want to run
