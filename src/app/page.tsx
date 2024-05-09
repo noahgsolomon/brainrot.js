@@ -245,7 +245,9 @@ export default function Home({
                 ) : null}
               </div>
             ) : null}
-            {!userDB?.user?.subscribed && userDB?.user?.credits === 0 ? (
+            {!userDB?.user?.subscribed &&
+            userDB?.user?.credits === 0 &&
+            !pendingVideo ? (
               <div className="rounded-lg border border-destructive bg-destructive/60 p-4 text-sm text-secondary shadow-sm dark:text-primary">
                 You are all out of credits 😥...{" "}
                 <ProButton>
