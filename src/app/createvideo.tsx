@@ -40,6 +40,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import ProButton from "./ProButton";
 
 export default function CreateVideo({
   visible = false,
@@ -773,17 +774,15 @@ export default function CreateVideo({
                 <div className="relative">
                   {!userDB?.subscribed ? (
                     <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
-                      <Link
-                        onClick={() => setIsOpen(false)}
-                        href={"/pricing"}
-                        className={buttonVariants({
-                          className: "flex flex-row items-center gap-2 ",
-                          variant: "brain",
-                          size: "sm",
-                        })}
-                      >
-                        GO PRO <Crown className="size-4" />
-                      </Link>{" "}
+                      <ProButton>
+                        <Button
+                          className="flex flex-row items-center gap-2 "
+                          variant="brain"
+                          size="sm"
+                        >
+                          GO PRO <Crown className="size-4" />
+                        </Button>
+                      </ProButton>
                     </div>
                   ) : null}
                   <div className=" flex flex-col gap-2 p-4">
