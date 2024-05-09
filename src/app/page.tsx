@@ -280,13 +280,14 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            {pendingVideo && placeInQueue > 5 && progress === 0 ? (
+            {pendingVideo ? (
               <Button
                 className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
                 variant={"outline"}
                 onClick={() => {
                   cancelPendingVideoMutation.mutate({
                     id: videoStatus.data?.videos?.id ?? 0,
+                    credits: videoStatus.data?.videos?.credits ?? 0,
                   });
                 }}
               >
