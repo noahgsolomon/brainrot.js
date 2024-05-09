@@ -297,7 +297,7 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            {!userDB?.user?.subscribed ? (
+            {userDB?.user?.id && !userDB?.user?.subscribed ? (
               <ProButton>
                 <Button
                   className={"flex w-full flex-row items-center gap-2"}
