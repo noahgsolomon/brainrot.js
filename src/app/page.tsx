@@ -245,6 +245,20 @@ export default function Home({
                 ) : null}
               </div>
             ) : null}
+            {!userDB?.user?.subscribed && userDB?.user?.credits === 0 ? (
+              <div className="rounded-lg border border-destructive bg-destructive/60 p-4 text-sm text-secondary shadow-sm dark:text-primary">
+                You are all out of credits 😥...{" "}
+                <ProButton>
+                  <Button
+                    className="p-0 text-secondary underline dark:text-primary"
+                    variant={"link"}
+                  >
+                    subscribe
+                  </Button>
+                </ProButton>
+                to get more (250 credits)
+              </div>
+            ) : null}
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
                 <div className="flex flex-row items-center gap-2">

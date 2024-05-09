@@ -49,18 +49,6 @@ const UserButton = () => {
         </Link> */}
         <div className="border-t border-border">
           <DropdownMenuItem
-            asChild
-            className="mx-1 my-1 cursor-pointer gap-4 text-sm"
-          >
-            <Link
-              className="flex flex-row items-center gap-2"
-              href={"/settings/billing"}
-            >
-              <Landmark className="size-4" />
-              Billing
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
             className="mx-1 my-1 cursor-pointer gap-4 text-sm"
             onClick={logOutHandler}
           >
