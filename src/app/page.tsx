@@ -32,6 +32,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import ProductHuntIcon from "@/components/svg/ProductHuntIcon";
+import ProButton from "./ProButton";
 
 export default function Home({
   searchParams,
@@ -280,6 +281,16 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
+            {!userDB?.user?.subscribed ? (
+              <ProButton>
+                <Button
+                  className={"flex w-full flex-row items-center gap-2"}
+                  variant={"gold"}
+                >
+                  GO PRO <Crown className="size-4" />
+                </Button>
+              </ProButton>
+            ) : null}
             {pendingVideo ? (
               <Button
                 className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
@@ -329,12 +340,9 @@ export default function Home({
         <div className="pt-48">
           <p className="text-center text-3xl font-bold">Recent Generations</p>
           <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">
-            <Tweet id="1780025664608821715" />
-            <Tweet id="1779908542306345061" />
-            <Tweet id="1778059188742099419" />
-            <Tweet id="1777944936874393936" />
-            <Tweet id="1778012232250532213" />
-            <Tweet id="1777789848645959783" />
+            <Tweet id="1787633614835843302" />
+            <Tweet id="1787434978780819569" />
+            <Tweet id="1786844526646063208" />
           </div>
         </div>
       </main>
