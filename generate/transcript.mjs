@@ -43,6 +43,10 @@ async function generateTranscript(topic, agentA, agentB, duration) {
 	return content;
 }
 
+function delay(ms) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function transcriptFunction(
 	topic,
 	agentA,
@@ -61,6 +65,7 @@ export default async function transcriptFunction(
 			}
 		} catch (error) {
 			console.error('Attempt failed:', error);
+			await delay(15000);
 		}
 		attempts++;
 	}

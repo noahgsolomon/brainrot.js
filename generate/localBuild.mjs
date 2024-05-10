@@ -29,6 +29,9 @@ const agents = [
 	'JORDAN_PETERSON',
 	'JOE_ROGAN',
 	'DONALD_TRUMP',
+	'MARK_ZUCKERBERG',
+	'JOE_BIDEN',
+	'LIL_YACHTY',
 	// 'RICK_SANCHEZ',
 ];
 

@@ -73,6 +73,12 @@ export async function generateTranscriptAudio(
 				? process.env.RICK_SANCHEZ_VOICE_ID
 				: person === 'DONALD_TRUMP'
 				? process.env.DONALD_TRUMP_VOICE_ID
+				: person === 'MARK_ZUCKERBERG'
+				? process.env.MARK_ZUCKERBERG_VOICE_ID
+				: person === 'JOE_BIDEN'
+				? process.env.JOE_BIDEN_VOICE_ID
+				: person === 'LIL_YACHTY'
+				? process.env.LIL_YACHTY_VOICE_ID
 				: process.env.JORDAN_PETERSON_VOICE_ID;
 
 		await generateAudio(voice_id, person, line, i);
@@ -181,20 +187,40 @@ async function fetchValidImages(transcript, length, ai, duration) {
 				}
 			);
 			const imageResponse = await imageFetch.json();
-			if (!imageResponse.items || imageResponse.items.length === 0) {
+
+			// Check if the response contains 'items' and they are iterable
+			if (
+				!Array.isArray(imageResponse.items) ||
+				imageResponse.items.length === 0
+			) {
+				console.log(
+					'No images found or items not iterable',
+					imageResponse.items
+				);
 				images.push({ link: 'https://images.smart.wtf/black.png' });
+				continue; // Skip to the next iteration
 			}
+
 			const validMimeTypes = ['image/png', 'image/jpeg'];
+			let imageAdded = false;
+
 			for (let image of imageResponse.items) {
 				if (validMimeTypes.includes(image.mime)) {
 					const isViewable = await checkImageHeaders(image.link);
 					if (isViewable) {
 						images.push(image);
-						break;
+						imageAdded = true;
+						break; // Stop after adding one valid image
 					}
 				}
 			}
+
+			// If no valid images were added, push a default image
+			if (!imageAdded) {
+				images.push({ link: 'https://images.smart.wtf/black.png' });
+			}
 		}
+
 		return images;
 	}
 }
