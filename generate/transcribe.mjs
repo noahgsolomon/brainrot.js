@@ -60,13 +60,12 @@ function secondsToSrtTime(seconds) {
 	const hrs = Math.floor(seconds / 3600);
 	const mins = Math.floor((seconds % 3600) / 60);
 	const secs = Math.floor(seconds % 60);
-	const millis = Math.round((seconds % 1) * 1000); // Round the milliseconds
+	const millis = Math.round((seconds % 1) * 1000);
 	return `${pad(hrs, 2)}:${pad(mins, 2)}:${pad(secs, 2)},${pad(millis, 3)}`;
 }
 
-const local = false;
-
 export default async function transcribeFunction(
+	local,
 	topic,
 	agentA,
 	agentB,
@@ -79,6 +78,7 @@ export default async function transcribeFunction(
 	videoId
 ) {
 	const { audios, transcript } = await generateTranscriptAudio(
+		local,
 		topic,
 		agentA,
 		agentB,
