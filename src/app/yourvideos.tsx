@@ -79,6 +79,12 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                     ? "https://images.smart.wtf/BEN_SHAPIRO.png"
                     : agent1 === "DONALD_TRUMP"
                     ? "https://images.smart.wtf/DONALD_TRUMP.png"
+                    : agent1 === "LIL_YACHTY"
+                    ? "https://images.smart.wtf/LIL_YACHTY.png"
+                    : agent1 === "JOE_BIDEN"
+                    ? "https://images.smart.wtf/JOE_BIDEN.png"
+                    : agent1 === "MARK_ZUCKERBERG"
+                    ? "https://images.smart.wtf/MARK_ZUCKERBERG.png"
                     : "https://images.smart.wtf/BEN_SHAPIRO.png";
 
                 const agent2Img =
@@ -90,8 +96,14 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                     ? "https://images.smart.wtf/BARACK_OBAMA.png"
                     : agent2 === "BEN_SHAPIRO"
                     ? "https://images.smart.wtf/BEN_SHAPIRO.png"
-                    : agent1 === "DONALD_TRUMP"
+                    : agent2 === "DONALD_TRUMP"
                     ? "https://images.smart.wtf/DONALD_TRUMP.png"
+                    : agent2 === "LIL_YACHTY"
+                    ? "https://images.smart.wtf/LIL_YACHTY.png"
+                    : agent2 === "JOE_BIDEN"
+                    ? "https://images.smart.wtf/JOE_BIDEN.png"
+                    : agent2 === "MARK_ZUCKERBERG"
+                    ? "https://images.smart.wtf/MARK_ZUCKERBERG.png"
                     : "https://images.smart.wtf/BEN_SHAPIRO.png";
 
                 return (
