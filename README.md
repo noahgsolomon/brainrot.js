@@ -62,3 +62,11 @@ https://brainrotbackground.s3.amazonaws.com/TRUCK-6.mp4
 https://brainrotbackground.s3.amazonaws.com/TRUCK-7.mp4
 https://brainrotbackground.s3.amazonaws.com/TRUCK-8.mp4
 https://brainrotbackground.s3.amazonaws.com/TRUCK-9.mp4
+
+#### common problems
+
+- FFMPEG is not installed.
+- You don't have the flask python server running (or not on port 5000)
+- Dalle 3 API rate limit exceeded: this is because each dialogue transition has an image, and it is prompted to have 7 dialogue transitions. However, typical tier 1 open ai accounts can only generate 5 images per minute.
+- You don't have folders public/srt and public/voice and src/tmp
+- You have concurrency set too high for your computer (check remotion.config.ts)
