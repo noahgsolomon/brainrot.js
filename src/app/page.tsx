@@ -10,11 +10,13 @@ import { toast } from "sonner";
 import {
   Coins,
   Crown,
+  Eye,
   Folder,
   Gem,
   Github,
   HeartCrack,
   Loader2,
+  Skull,
   Star,
   StarIcon,
   Wand,
@@ -155,58 +157,21 @@ export default function Home({
               alt="brainrot"
               className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
             />
-            <div className=" flex flex-col items-center gap-2">
-              <Badge
-                className="cursor-pointer text-sm md:hidden"
-                variant={userDB?.user?.subscribed ? "hard" : "blue"}
-              >
-                <Link
-                  target="_blank"
-                  className="flex flex-row items-center gap-2"
-                  href={"https://github.com/noahgsolomon/brainrot.js"}
-                >
-                  {userDB?.user?.subscribed ? (
-                    <>
-                      PRO <Gem className="size-4  fill-teal-500" />
-                    </>
-                  ) : (
-                    <>
-                      Free Mode <HeartCrack className="size-4 fill-red-500" />
-                    </>
-                  )}
-                </Link>
-              </Badge>
 
+            <div className=" flex flex-col items-center gap-2">
               <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
                 BRAINROT.JS
-                <Badge
-                  className="absolute -top-8 hidden cursor-pointer text-sm md:-right-12 md:block"
-                  variant={userDB?.user?.subscribed ? "hard" : "blue"}
-                >
-                  <Link
-                    className="flex flex-row items-center gap-2"
-                    target="_blank"
-                    href={"https://github.com/noahgsolomon/brainrot.js"}
-                  >
-                    {userDB?.user?.subscribed ? (
-                      <>
-                        PRO <Gem className="size-4  fill-teal-500" />
-                      </>
-                    ) : (
-                      <>
-                        Free Mode <HeartCrack className="size-4 fill-red-500" />
-                      </>
-                    )}
-                  </Link>
-                </Badge>
+                <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-sm font-normal italic">
+                  5,000+ videos generated 💀
+                </p>
               </h1>
+
               <p className="max-w-[30ch] text-sm italic">
                 <Link
                   href={"https://github.com/noahgsolomon/brainrot.js"}
                   className="flex flex-col items-center gap-1 font-bold "
                 >
-                  now open source!
-                  <div className="flex flex-row items-center gap-2 underline transition-all hover:text-primary/80">
+                  <div className="flex flex-row items-center gap-2 rounded-lg border  border-yellow-500/60 bg-yellow-500/20 p-1 underline shadow-sm transition-all hover:text-primary/80">
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
                     star on github{" "}
                     <Star className="size-3 fill-yellow-500 text-yellow-400" />
@@ -300,7 +265,22 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            {userDB?.user?.id && !userDB?.user?.subscribed ? (
+            <Link
+              href={"/watch"}
+              className={buttonVariants({
+                variant: "outline",
+                className: "relative flex flex-row items-center gap-2",
+              })}
+            >
+              <Eye className="size-4" /> Watch
+              <Badge
+                className="absolute -right-3 -top-[0.4rem] px-[0.2rem] py-[0.1rem] text-xs opacity-90"
+                variant={"red"}
+              >
+                NEW
+              </Badge>
+            </Link>
+            {/* {userDB?.user?.id && !userDB?.user?.subscribed ? (
               <ProButton>
                 <Button
                   className={"flex w-full flex-row items-center gap-2"}
@@ -309,7 +289,7 @@ export default function Home({
                   GO PRO <Crown className="size-4" />
                 </Button>
               </ProButton>
-            ) : null}
+            ) : null} */}
             {pendingVideo ? (
               <Button
                 className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
