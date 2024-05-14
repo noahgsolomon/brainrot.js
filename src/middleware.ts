@@ -6,11 +6,13 @@ export default authMiddleware({
     "/",
     "/api/create",
     "/api/trpc/user.videoStatus",
+    "/api/trpc/user.getVideos",
     "/api/trpc/user.user",
     "/api/trpc/user.videoStatus,user.user",
     "/renders/((?!_next|static|favicon.ico).*)",
     "/api/webhooks/stripe",
     "/api/((?!_next|static|favicon.ico).*)",
+    "/watch",
   ],
   ignoredRoutes: ["/api/webhooks/stripe"],
 });

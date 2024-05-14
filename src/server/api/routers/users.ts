@@ -8,7 +8,7 @@ import {
   pendingVideos,
   videos,
 } from "@/server/db/schemas/users/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs";
 import { z } from "zod";
 import OpenAI from "openai";
@@ -179,6 +179,17 @@ export const userRouter = createTRPCRouter({
     return { videos: userVideosDb };
   }),
 
+  getVideos: publicProcedure
+    .input(z.object({ page: z.number().optional() }))
+    .query(async ({ ctx, input }) => {
+      const userVideosDb = await ctx.db.query.videos.findMany({
+        limit: 5,
+        orderBy: sql`rand()`,
+      });
+
+      return { videos: userVideosDb };
+    }),
+
   newUserVideo: protectedProcedure.query(async ({ ctx }) => {
     const userVideosDb = await ctx.db.query.videos.findMany({
       where: eq(videos.user_id, ctx.user_id),
@@ -318,6 +329,11 @@ export const userRouter = createTRPCRouter({
       ],
       metadata: {
         userId: ctx.user_id,
+      },
+      subscription_data: {
+        metadata: {
+          userId: ctx.user_id,
+        },
       },
     });
 
