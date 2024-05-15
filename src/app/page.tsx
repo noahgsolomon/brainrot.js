@@ -179,11 +179,13 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {pendingVideo && placeInQueue >= 1 && progress === 0 ? (
+            {pendingVideo ? (
               <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div>
-                  Sorry for the long ass queue bro 🤕. If you want to run
-                  locally check{" "}
+                  {placeInQueue >= 1 && progress === 0 ? (
+                    <>Sorry for the long ass queue bro 🤕.</>
+                  ) : null}{" "}
+                  If you want to run locally check{" "}
                   <Link
                     href="https://github.com/noahgsolomon/brainrot.js"
                     target="_blank"
