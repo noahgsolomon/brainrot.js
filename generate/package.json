@@ -21,7 +21,7 @@
 		"fluent-ffmpeg": "^2.1.2",
 		"groq-sdk": "^0.3.3",
 		"mysql2": "^3.9.1",
-		"openai": "^4.26.0",
+		"openai": "^4.46.1",
 		"parse-srt": "1.0.0-alpha",
 		"react": "^18.0.0",
 		"react-dom": "^18.0.0",
