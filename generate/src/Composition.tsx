@@ -10,7 +10,6 @@ import {
 	staticFile,
 	useCurrentFrame,
 	useVideoConfig,
-	Video,
 } from 'remotion';
 import { fps, music } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
