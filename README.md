@@ -28,7 +28,7 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 - https://console.groq.com/keys
 
-https://www.youtube.com/watch?v=-Ff0xG1eNjw
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-Ff0xG1eNjw?si=neokr-3_ALB_yjXy" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 #### assets to download
 
