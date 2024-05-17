@@ -27,8 +27,11 @@ _this is probably the most complex api to get set up, so if you want to be able 
 #### how to get groq api credentials:
 
 - https://console.groq.com/keys
+)
+https://github.com/noahgsolomon/brainrot.js/assets/111200060/edab5792-6c04-4355-8e89-dc61ad16cbdf
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/-Ff0xG1eNjw?si=neokr-3_ALB_yjXy" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+[![Thumbnail](https://github.com/noahgsolomon/brainrot.js/assets/111200060/edab5792-6c04-4355-8e89-dc61ad16cbdf)](https://www.youtube.com/watch?v=-Ff0xG1eNjw)
 
 #### assets to download
 
