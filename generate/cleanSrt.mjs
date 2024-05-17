@@ -1,10 +1,11 @@
-import { writeFile } from 'fs/promises';
+import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
-dotenv.config();
-import Groq from 'groq-sdk/index.mjs';
+import { writeFile } from 'fs/promises';
 
-const groq = new Groq({
-	apiKey: process.env.GROQ_API_KEY,
+dotenv.config();
+
+const openai = new OpenAI({
+	apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function generateCleanSrt(transcript, srt) {
@@ -23,7 +24,7 @@ export async function generateCleanSrt(transcript, srt) {
 }
 
 async function cleanSrt(transcript, srt, i) {
-	const completion = await groq.chat.completions.create({
+	const completion = await openai.chat.completions.create({
 		messages: [
 			{
 				role: 'system',
@@ -36,14 +37,9 @@ async function cleanSrt(transcript, srt, i) {
                             ${srt}`,
 			},
 		],
-		model: 'llama3-8b-8192',
-		temperature: 0.5,
-		max_tokens: 4096,
-		top_p: 1,
-		stop: null,
-		stream: false,
+		model: 'gpt-4-turbo',
 	});
 
-	const content = completion.choices[0]?.message?.content || '';
+	const content = completion.choices[0].message.content;
 	return { content, i };
 }

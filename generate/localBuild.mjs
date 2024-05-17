@@ -53,7 +53,7 @@ async function main() {
 	// CHANGE THIS VALUE FOR A CUSTOM VIDEO TOPIC
 	const videoTopic = 'Proximal Policy Optimization';
 	const aiGeneratedImages = true;
-	const fps = 60;
+	const fps = 15;
 	const duration = 1; //minute
 	//MINECRAFT or TRUCK or GTA
 	const background = 'TRUCK';
