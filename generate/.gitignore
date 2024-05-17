@@ -1,6 +1,5 @@
 /.env
 /node_modules
-/out
 /package-lock.json
 /public/out
 /venv/
