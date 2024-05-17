@@ -28,7 +28,7 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 - https://console.groq.com/keys
 
-https://github.com/noahgsolomon/brainrot.js/assets/111200060/db1e60c4-2db9-48c5-9826-38c7b5112b4b
+https://www.youtube.com/watch?v=-Ff0xG1eNjw
 
 #### assets to download
 
