@@ -46,6 +46,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 src/env.mjs
+generate/deepai/*
 
 some.mjs
 public/workbox-e34f44db.js.map
