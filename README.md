@@ -28,7 +28,9 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 - https://console.groq.com/keys
 
-https://www.youtube.com/watch?v=-Ff0xG1eNjw
+<h1>Video explaining how to run 👇 locally</h1>
+
+[![Thumbnail](https://github.com/noahgsolomon/brainrot.js/assets/111200060/edab5792-6c04-4355-8e89-dc61ad16cbdf)](https://www.youtube.com/watch?v=-Ff0xG1eNjw)
 
 #### assets to download
 
