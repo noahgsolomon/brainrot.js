@@ -183,7 +183,7 @@ export const userRouter = createTRPCRouter({
     .input(z.object({ page: z.number().optional() }))
     .query(async ({ ctx, input }) => {
       const userVideosDb = await ctx.db.query.videos.findMany({
-        limit: 5,
+        limit: 15,
         orderBy: sql`rand()`,
       });
 
