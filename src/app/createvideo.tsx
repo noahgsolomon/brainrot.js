@@ -1084,8 +1084,15 @@ export default function CreateVideo({
           <>
             {(userDB?.credits ?? 0) < credits && (
               <p className="flex flex-row items-center gap-1 text-sm text-red-500/80">
-                <AlertTriangle className="size-3" />
-                You have insufficient credits for this generation
+                <ProButton>
+                  <Button
+                    className="p-0 text-left text-red-500/80"
+                    variant={"link"}
+                  >
+                    You have insufficient credits for this generation. to get
+                    more, subscribe
+                  </Button>
+                </ProButton>
               </p>
             )}
             {videoStatus.data?.videos !== null && (

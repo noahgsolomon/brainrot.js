@@ -5,6 +5,11 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  backface-visibility: hidden;
+}
+
+button {
+  backface-visibility: hidden;
 }
 
 @layer base {

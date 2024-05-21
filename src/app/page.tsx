@@ -215,18 +215,34 @@ export default function Home({
             {!userDB?.user?.subscribed &&
             userDB?.user?.credits === 0 &&
             !pendingVideo ? (
-              <div className="rounded-lg border border-destructive bg-destructive/60 p-4 text-sm text-secondary shadow-sm dark:text-primary">
-                You are all out of credits 😥...{" "}
-                <ProButton>
-                  <Button
-                    className="p-0 text-secondary underline dark:text-primary"
-                    variant={"link"}
-                  >
-                    subscribe
-                  </Button>
-                </ProButton>
-                to get more (250 credits)
-              </div>
+              <>
+                <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-destructive bg-destructive/60 p-4 text-center text-sm text-secondary shadow-sm dark:text-primary">
+                  <div>
+                    You are all out of credits 😥... to get more (250 credits ≈
+                    25)
+                    <ProButton>
+                      <Button
+                        className="p-0 text-secondary underline dark:text-primary"
+                        variant={"link"}
+                      >
+                        subscribe
+                      </Button>
+                    </ProButton>
+                  </div>
+                </div>
+                <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
+                  <div>
+                    If you want to run locally check{" "}
+                    <Link
+                      href="https://github.com/noahgsolomon/brainrot.js"
+                      target="_blank"
+                      className="font-bold underline"
+                    >
+                      here!
+                    </Link>
+                  </div>
+                </div>
+              </>
             ) : null}
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
