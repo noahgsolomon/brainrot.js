@@ -248,7 +248,7 @@ export const userRouter = createTRPCRouter({
       }) => {
         try {
           const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo-1106",
+            model: process.env.GPT_VERSION!,
             messages: [
               {
                 role: "system",
