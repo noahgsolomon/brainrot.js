@@ -22,6 +22,7 @@ const buttonVariants = cva(
         outline:
           " hover:scale-[101%] active:scale-[99%] transition-all border border-primary/20 bg-card/50 hover:bg-accent hover:text-accent-foreground",
         gold: " hover:scale-[101%] active:scale-[99%] transition-all border border-primary/20 gold text-secondary dark:text-primary hover:opacity-[80%] hover:text-gold",
+        red: "hover:scale-[101%] active:scale-[99%] transition-all border border-red-500/20 red bg-red-500 text-secondary dark:text-primary hover:opacity-[80%]",
         secondary:
           "shadow-sm hover:scale-[101%] active:scale-[99%] transition-all bg-accent text-secondary-foreground hover:bg-primary/10 dark:hover:bg-accent/80",
         ghost:
