@@ -48,13 +48,13 @@
     "aws-sdk": "^2.1517.0",
     "class-variance-authority": "^0.7.0",
     "clerk": "latest",
-    "clsx": "^2.0.0",
+    "clsx": "^2.1.1",
     "cmdk": "^0.2.0",
     "date-fns": "^2.30.0",
     "drizzle": "latest",
     "drizzle-orm": "^0.28.6",
     "embla-carousel-react": "^8.0.2",
-    "framer-motion": "^10.16.4",
+    "framer-motion": "^11.2.6",
     "geist": "^1.0.0",
     "install": "^0.13.0",
     "locomotive-scroll": "beta",
@@ -80,7 +80,7 @@
     "stripe": "^15.2.0",
     "superjson": "^2.0.0",
     "tailwind-classes-sorter": "^0.2.5",
-    "tailwind-merge": "^1.14.0",
+    "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "to-vfile": "^8.0.0",
     "vaul": "^0.8.0",
@@ -104,7 +104,7 @@
     "postcss": "^8",
     "prettier": "3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.1",
-    "tailwindcss": "^3",
+    "tailwindcss": "latest",
     "typescript": "^5"
   }
 }
