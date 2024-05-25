@@ -39,6 +39,8 @@ import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
 import TypingAnimation from "@/components/magicui/typing-animation";
 import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
+import { Footer } from "./Footer";
+import { Companies } from "@/components/magicui/social-proof-companies";
 
 export default function Home({
   searchParams,
@@ -261,7 +263,7 @@ export default function Home({
           userDB?.user?.credits === 0 &&
           !pendingVideo ? (
             <>
-              <div className="mb-2 flex flex-row items-center justify-center gap-1 rounded-lg border border-red-500 bg-red-500/50 px-1 text-sm text-secondary dark:text-primary">
+              <Button className="mb-2 flex flex-row items-center justify-center gap-1 rounded-lg border border-red-500 bg-red-500/50 px-1 text-sm text-secondary hover:bg-red-500/40 dark:text-primary">
                 <ProButton>
                   <Button
                     variant="link"
@@ -271,7 +273,7 @@ export default function Home({
                   </Button>
                 </ProButton>{" "}
                 for credits
-              </div>
+              </Button>
             </>
           ) : null} */}
           <div className="flex flex-col gap-2">
@@ -289,7 +291,7 @@ export default function Home({
               <ProButton>
                 <Button
                   className={"flex w-full flex-row items-center gap-2"}
-                  variant={"gold"}
+                  variant={"red"}
                 >
                   GO PRO <Crown className="size-4" />
                 </Button>
