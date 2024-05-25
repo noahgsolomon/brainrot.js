@@ -153,7 +153,7 @@ export default function Home({
                 alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
               />
             </Link> */}
-            <Link
+            {/* <Link
               href={"https://github.com/noahgsolomon/brainrot.js"}
               target="_blank"
             >
@@ -167,7 +167,7 @@ export default function Home({
                   Star on GitHub
                 </span>
               </AnimatedGradientText>
-            </Link>
+            </Link> */}
 
             <Image
               src={"https://images.smart.wtf/brainrot.png"}
