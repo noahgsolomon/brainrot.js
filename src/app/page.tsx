@@ -8,6 +8,7 @@ import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
+  ChevronRight,
   Coins,
   Crown,
   Eye,
@@ -35,6 +36,9 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import ProductHuntIcon from "@/components/svg/ProductHuntIcon";
 import ProButton from "./ProButton";
+import NumberTicker from "@/components/magicui/number-ticker";
+import TypingAnimation from "@/components/magicui/typing-animation";
+import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
 
 export default function Home({
   searchParams,
@@ -149,6 +153,21 @@ export default function Home({
                 alt="Brainrot&#0046;js - Rot&#0032;your&#0032;brain&#0032;one&#0032;AI&#0032;generated&#0032;video&#0032;at&#0032;a&#0032;time&#0046; | Product Hunt"
               />
             </Link> */}
+            <Link
+              href={"https://github.com/noahgsolomon/brainrot.js"}
+              target="_blank"
+            >
+              <AnimatedGradientText className="cursor-pointer">
+                ⭐ <hr className="mx-2 h-4 w-[1px] shrink-0 bg-gray-300" />{" "}
+                <span
+                  className={cn(
+                    `animate-gradient inline bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
+                  )}
+                >
+                  Star on GitHub
+                </span>
+              </AnimatedGradientText>
+            </Link>
 
             <Image
               src={"https://images.smart.wtf/brainrot.png"}
@@ -159,23 +178,21 @@ export default function Home({
             />
 
             <div className=" flex flex-col items-center gap-2">
-              <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
-                BRAINROT.JS
-                <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-sm font-normal italic">
-                  5,000+ videos generated 💀
+              <div>
+                <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
+                  BRAINROT.JS
+                </h1>
+                <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
+                  <NumberTicker value={5232} /> videos generated 💀
                 </p>
-              </h1>
+              </div>
 
               <p className="max-w-[30ch] text-sm italic">
                 <Link
                   href={"https://github.com/noahgsolomon/brainrot.js"}
-                  className="flex flex-col items-center gap-1 font-bold "
+                  className="flex flex-col items-center gap-1 font-bold underline "
                 >
-                  <div className="flex flex-row items-center gap-2 rounded-lg border  border-yellow-500/60 bg-yellow-500/20 p-1 underline shadow-sm transition-all hover:text-primary/80">
-                    <Star className="size-3 fill-yellow-500 text-yellow-400" />
-                    star on github{" "}
-                    <Star className="size-3 fill-yellow-500 text-yellow-400" />
-                  </div>
+                  now open source!{" "}
                 </Link>
               </p>
             </div>
