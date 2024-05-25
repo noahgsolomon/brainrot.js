@@ -212,38 +212,6 @@ export default function Home({
                 ) : null}
               </div>
             ) : null}
-            {!userDB?.user?.subscribed &&
-            userDB?.user?.credits === 0 &&
-            !pendingVideo ? (
-              <>
-                <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-destructive bg-destructive/60 p-4 text-center text-sm text-secondary shadow-sm dark:text-primary">
-                  <div>
-                    You are all out of credits 😥... to get more (250 credits ≈
-                    25)
-                    <ProButton>
-                      <Button
-                        className="p-0 text-secondary underline dark:text-primary"
-                        variant={"link"}
-                      >
-                        subscribe
-                      </Button>
-                    </ProButton>
-                  </div>
-                </div>
-                <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-                  <div>
-                    If you want to run locally check{" "}
-                    <Link
-                      href="https://github.com/noahgsolomon/brainrot.js"
-                      target="_blank"
-                      className="font-bold underline"
-                    >
-                      here!
-                    </Link>
-                  </div>
-                </div>
-              </>
-            ) : null}
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
                 <div className="flex flex-row items-center gap-2">
@@ -272,6 +240,23 @@ export default function Home({
               </div>
             )}
           </div>
+          {/* {!userDB?.user?.subscribed &&
+          userDB?.user?.credits === 0 &&
+          !pendingVideo ? (
+            <>
+              <div className="mb-2 flex flex-row items-center justify-center gap-1 rounded-lg border border-red-500 bg-red-500/50 px-1 text-sm text-secondary dark:text-primary">
+                <ProButton>
+                  <Button
+                    variant="link"
+                    className="m-0 p-0 font-bold text-secondary  dark:text-primary"
+                  >
+                    subscribe
+                  </Button>
+                </ProButton>{" "}
+                for credits
+              </div>
+            </>
+          ) : null} */}
           <div className="flex flex-col gap-2">
             <Button
               className="flex flex-row items-center gap-2"
@@ -283,6 +268,16 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
+            {userDB?.user?.id && !userDB?.user?.subscribed ? (
+              <ProButton>
+                <Button
+                  className={"flex w-full flex-row items-center gap-2"}
+                  variant={"gold"}
+                >
+                  GO PRO <Crown className="size-4" />
+                </Button>
+              </ProButton>
+            ) : null}
             <Link
               href={"/watch"}
               className={buttonVariants({
@@ -298,16 +293,7 @@ export default function Home({
                 NEW
               </Badge>
             </Link>
-            {/* {userDB?.user?.id && !userDB?.user?.subscribed ? (
-              <ProButton>
-                <Button
-                  className={"flex w-full flex-row items-center gap-2"}
-                  variant={"gold"}
-                >
-                  GO PRO <Crown className="size-4" />
-                </Button>
-              </ProButton>
-            ) : null} */}
+
             {pendingVideo ? (
               <Button
                 className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
@@ -354,16 +340,8 @@ export default function Home({
           </Link>
           ... I will kiss u fr 😽
         </p> */}
-        <div className="pt-48">
-          <p className="text-center text-3xl font-bold">Recent Generations</p>
-          <div className="mx-auto flex max-w-[80%] flex-col items-center justify-center gap-4 md:max-w-[1200px] md:flex-row md:flex-wrap">
-            <Tweet id="1787633614835843302" />
-            <Tweet id="1787434978780819569" />
-            <Tweet id="1786844526646063208" />
-          </div>
-        </div>
       </main>
-      <footer className="flex w-screen justify-center border-t border-border bg-secondary px-4 py-4">
+      {/* <footer className="flex w-screen justify-center border-t border-border bg-secondary px-4 py-4">
         <div className="flex w-full items-center justify-between px-[5%] py-1 md:px-[10%]">
           <Image
             src={"https://images.smart.wtf/brainrot.png"}
@@ -381,7 +359,7 @@ export default function Home({
             </Link>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </>
   );
 }
