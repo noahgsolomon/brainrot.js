@@ -13,9 +13,6 @@ import {
   Crown,
   Eye,
   Folder,
-  Gem,
-  Github,
-  HeartCrack,
   Loader2,
   Skull,
   Star,
@@ -30,17 +27,10 @@ import Link from "next/link";
 import { Tweet } from "react-tweet";
 import XIcon from "@/components/svg/XIcon";
 import Credits from "./credits";
-import { subscribe } from "diagnostics_channel";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import ProductHuntIcon from "@/components/svg/ProductHuntIcon";
 import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
-import TypingAnimation from "@/components/magicui/typing-animation";
-import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
-import { Footer } from "./Footer";
-import { Companies } from "@/components/magicui/social-proof-companies";
 
 export default function Home({
   searchParams,
