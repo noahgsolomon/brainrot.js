@@ -188,39 +188,34 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {pendingVideo ? (
-              <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-                <div>
-                  {placeInQueue >= 1 && progress === 0 ? (
-                    <>Sorry for the long ass queue bro 🤕.</>
-                  ) : null}{" "}
-                  If you want to run locally check{" "}
-                  <Link
-                    href="https://github.com/noahgsolomon/brainrot.js"
-                    target="_blank"
-                    className="font-bold underline"
-                  >
-                    here!
-                  </Link>
-                </div>
-                {!userDB?.user?.subscribed ? (
-                  <p className="flex flex-col items-center gap-2">
-                    Want to skip the queue?{" "}
-                    <Link
-                      onClick={() => setIsOpen(false)}
-                      href={"/pricing"}
-                      className={buttonVariants({
-                        className: "flex flex-row items-center gap-2 ",
-                        variant: "gold",
-                        size: "sm",
-                      })}
-                    >
-                      GO PRO <Crown className="size-4" />
-                    </Link>
-                  </p>
-                ) : null}
+            <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
+              <div>
+                If you want to run locally check{" "}
+                <Link
+                  href="https://github.com/noahgsolomon/brainrot.js"
+                  target="_blank"
+                  className="font-bold underline"
+                >
+                  here!
+                </Link>
               </div>
-            ) : null}
+              {/* {!userDB?.user?.subscribed ? (
+                <p className="flex flex-col items-center gap-2">
+                  Want to skip the queue?{" "}
+                  <Link
+                    onClick={() => setIsOpen(false)}
+                    href={"/pricing"}
+                    className={buttonVariants({
+                      className: "flex flex-row items-center gap-2 ",
+                      variant: "gold",
+                      size: "sm",
+                    })}
+                  >
+                    GO PRO <Crown className="size-4" />
+                  </Link>
+                </p>
+              ) : null} */}
+            </div>
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
                 <div className="flex flex-row items-center gap-2">
