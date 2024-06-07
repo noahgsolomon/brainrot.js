@@ -294,7 +294,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									/*@ts-ignore */
 									e.target.onerror = null; // Prevent looping if the fallback also fails
 									/*@ts-ignore */
-									e.target.src = 'https://images.smart.wtf/black.png';
+									e.target.src = '/black.png';
 								}}
 								className="w-full h-full"
 							/>
@@ -304,7 +304,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									width={200}
 									height={200}
 									className="z-30 transition-all rounded-full"
-									src={`https://images.smart.wtf/${
+									src={`/${
 										currentAgentName || initialAgentName
 									}.png`}
 								/>
