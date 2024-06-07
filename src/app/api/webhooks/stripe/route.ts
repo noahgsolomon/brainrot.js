@@ -86,6 +86,29 @@ export async function POST(request: Request) {
     console.log("User subscription details updated successfully");
   }
 
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription as string,
+    );
+    await db
+      .update(brainrotusers)
+      .set({
+        stripePriceId: null,
+        stripeCurrentPeriodEnd: null,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscribed: false,
+      })
+      .where(
+        eq(
+          brainrotusers.id,
+          parseInt(subscription.metadata.userId ?? "0") ?? 0,
+        ),
+      );
+
+    console.log("User subscription deleted successfully");
+  }
+
   console.log("Webhook handling completed");
   return new Response(null, { status: 200 });
 }
