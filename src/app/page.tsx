@@ -188,10 +188,10 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-              {!userDB?.user?.subscribed &&
-              userDB?.user?.credits === 0 &&
-              !pendingVideo ? (
+            {!userDB?.user?.subscribed &&
+            userDB?.user?.credits === 0 &&
+            !pendingVideo ? (
+              <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div className="flex flex-col gap-2 font-bold">
                   <div className="flex flex-col gap-1">
                     {" "}
@@ -210,9 +210,10 @@ export default function Home({
                     </Button>
                   </ProButton>
                 </div>
-              ) : null}
+              </div>
+            ) : null}
 
-              {/* {!userDB?.user?.subscribed ? (
+            {/* {!userDB?.user?.subscribed ? (
                 <p className="flex flex-col items-center gap-2">
                   Want to skip the queue?{" "}
                   <Link
@@ -228,7 +229,6 @@ export default function Home({
                   </Link>
                 </p>
               ) : null} */}
-            </div>
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
                 <div className="flex flex-row items-center gap-2">
