@@ -326,7 +326,7 @@ export default function CreateVideo({
                 alt="trump"
               />
             </div>
-            {/* <div
+            <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                 `${
@@ -378,7 +378,7 @@ export default function CreateVideo({
                 height={75}
                 alt="jordan"
               />
-            </div> */}
+            </div>
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
