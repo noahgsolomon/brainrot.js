@@ -304,9 +304,9 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									width={200}
 									height={200}
 									className="z-30 transition-all rounded-full"
-									src={`/${
-										currentAgentName || initialAgentName
-									}.png`}
+									src={staticFile(
+										`/${currentAgentName || initialAgentName}.png`
+									)}
 								/>
 
 								<div>
