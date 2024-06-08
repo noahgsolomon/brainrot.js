@@ -175,7 +175,7 @@ export default function Home({
                   BRAINROT.JS
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
-                  <NumberTicker value={5232} /> videos generated 💀
+                  <NumberTicker value={5994} /> videos generated 💀
                 </p>
               </div>
 
@@ -188,17 +188,30 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            <div className="flex max-w-[300px] flex-col gap-4 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-              <div>
-                If you want to run locally check{" "}
-                <Link
-                  href="https://github.com/noahgsolomon/brainrot.js"
-                  target="_blank"
-                  className="font-bold underline"
-                >
-                  here!
-                </Link>
-              </div>
+            <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
+              {!userDB?.user?.subscribed &&
+              userDB?.user?.credits === 0 &&
+              !pendingVideo ? (
+                <div className="flex flex-col gap-2 font-bold">
+                  <div className="flex flex-col gap-1">
+                    {" "}
+                    go pro to generate videos!
+                    <span className="text-xs font-normal italic">
+                      (and to support me 🥹🫶)
+                    </span>
+                  </div>
+
+                  <ProButton>
+                    <Button
+                      className={"flex w-full flex-row items-center gap-2"}
+                      variant={"red"}
+                    >
+                      GO PRO <Crown className="size-4" />
+                    </Button>
+                  </ProButton>
+                </div>
+              ) : null}
+
               {/* {!userDB?.user?.subscribed ? (
                 <p className="flex flex-col items-center gap-2">
                   Want to skip the queue?{" "}
@@ -244,23 +257,6 @@ export default function Home({
               </div>
             )}
           </div>
-          {/* {!userDB?.user?.subscribed &&
-          userDB?.user?.credits === 0 &&
-          !pendingVideo ? (
-            <>
-              <Button className="mb-2 flex flex-row items-center justify-center gap-1 rounded-lg border border-red-500 bg-red-500/50 px-1 text-sm text-secondary hover:bg-red-500/40 dark:text-primary">
-                <ProButton>
-                  <Button
-                    variant="link"
-                    className="m-0 p-0 font-bold text-secondary  dark:text-primary"
-                  >
-                    subscribe
-                  </Button>
-                </ProButton>{" "}
-                for credits
-              </Button>
-            </>
-          ) : null} */}
           <div className="flex flex-col gap-2">
             <Button
               className="flex flex-row items-center gap-2"
@@ -272,16 +268,6 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            {userDB?.user?.id && !userDB?.user?.subscribed ? (
-              <ProButton>
-                <Button
-                  className={"flex w-full flex-row items-center gap-2"}
-                  variant={"red"}
-                >
-                  GO PRO <Crown className="size-4" />
-                </Button>
-              </ProButton>
-            ) : null}
             <Link
               href={"/watch"}
               className={buttonVariants({
