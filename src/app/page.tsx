@@ -166,7 +166,7 @@ export default function Home({
               width={200}
               height={200}
               alt="brainrot"
-              className="cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary"
+              className="h-[200px] w-[200px] cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary coarse:h-[150px] coarse:w-[150px] coarse:border-[5px]"
             />
 
             <div className=" flex flex-col items-center gap-2">

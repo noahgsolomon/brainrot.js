@@ -1,22 +1,11 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Use named export for authMiddleware
-export default authMiddleware({
-  publicRoutes: [
-    "/",
-    "/api/create",
-    "/api/trpc/user.videoStatus",
-    "/api/trpc/user.getVideos",
-    "/api/trpc/user.user",
-    "/api/trpc/user.videoStatus,user.user",
-    "/renders/((?!_next|static|favicon.ico).*)",
-    "/api/webhooks/stripe",
-    "/api/((?!_next|static|favicon.ico).*)",
-    "/watch",
-  ],
-  ignoredRoutes: ["/api/webhooks/stripe"],
+const isProtectedRoute = createRouteMatcher([]);
+
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) auth().protect();
 });
 
 export const config = {
-  matcher: ["/((?!_next|static|favicon.ico).*)"],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
