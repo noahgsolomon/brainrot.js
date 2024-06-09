@@ -1,7 +1,7 @@
 import { PLANS } from "@/config/stripe";
 import { db } from "@/server/db";
 import { brainrotusers } from "@/server/db/schemas/users/schema";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 
