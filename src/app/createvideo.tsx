@@ -166,6 +166,7 @@ export default function CreateVideo({
               </p>
               <div className="flex flex-row items-center gap-2">
                 <Button
+                  variant={"darkMode"}
                   onClick={() => {
                     setIsOpen(false);
                     router.push("/login");
