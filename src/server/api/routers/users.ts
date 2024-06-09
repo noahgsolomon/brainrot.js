@@ -9,7 +9,7 @@ import {
   videos,
 } from "@/server/db/schemas/users/schema";
 import { eq, or, sql } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { absoluteUrl } from "@/lib/utils";
