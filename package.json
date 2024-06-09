@@ -14,8 +14,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.554.0",
     "@azure/service-bus": "^7.9.4",
-    "@clerk/nextjs": "4.30.0",
-    "@clerk/themes": "^1.7.7",
+    "@clerk/nextjs": "^5.0.6",
+    "@clerk/themes": "^2.1.2",
     "@hookform/resolvers": "^3.3.2",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -56,6 +56,7 @@
     "embla-carousel-react": "^8.0.2",
     "framer-motion": "^11.2.6",
     "geist": "^1.0.0",
+    "input-otp": "^1.2.4",
     "install": "^0.13.0",
     "locomotive-scroll": "beta",
     "lucide-react": "^0.285.0",

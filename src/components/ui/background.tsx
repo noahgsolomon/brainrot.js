@@ -118,7 +118,7 @@ export function Background() {
           <div style={styles.backgroundContent} />
         )}
       </div>
-      <RetroGrid />
+      {path !== "/login" && path !== "/signup" && <RetroGrid />}
     </>
   );
 }

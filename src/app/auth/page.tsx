@@ -15,9 +15,10 @@ const Page = () => {
   useEffect(() => {
     const mutation = () => {
       existsMutation.mutate();
+      redirect("/");
     };
     mutation();
-  }, []);
+  }, [existsMutation]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
