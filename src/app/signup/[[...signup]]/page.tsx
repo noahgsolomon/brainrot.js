@@ -77,12 +77,16 @@ export default function Page() {
     try {
       setPendingSignUp(true);
 
-      await signUp.create({
+      console.log(data);
+
+      const sup = await signUp.create({
         emailAddress: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
         redirectUrl: "/auth",
       });
+
+      console.log(sup);
 
       await signUp.prepareEmailAddressVerification({
         strategy: "email_code",
@@ -179,6 +183,7 @@ export default function Page() {
                 </Form>
               </FormProvider>
             )}
+            <div className="my-2 w-full border-b border-primary/20"></div>
             <SignUpOAuthButtons />
           </div>
           <div className="mt-4 text-center text-sm">
