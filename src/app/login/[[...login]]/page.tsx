@@ -128,6 +128,7 @@ export default function Page() {
                 </form>
               </FormProvider>
             )}
+            <div className="my-2 w-full border-b border-primary/20"></div>
             <LogInOAuthButtons />
           </div>
           <div className="mt-4 text-center text-sm">
