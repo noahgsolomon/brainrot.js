@@ -21,6 +21,7 @@ export const brainrotusers = mysqlTable(
     created_at: datetime("created_at", { mode: "date" })
       .notNull()
       .default(new Date()),
+    pfp: varchar("pfp", { length: 255 }),
     credits: int("credits").default(0).notNull(),
     subscribed: boolean("subscribed").notNull().default(false),
     stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
