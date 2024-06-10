@@ -72,18 +72,12 @@ export default function Page() {
       return;
     }
     try {
-      const { supportedFirstFactors } = await signIn.create({
+      await signIn.create({
         identifier: data.email,
         strategy: "email_code",
       });
 
-      const info =
-        supportedFirstFactors[0]?.strategy === "email_code" ||
-        supportedFirstFactors[0]?.strategy === "oauth_google";
-
-      if (info) {
-        setPendingVerification(true);
-      }
+      setPendingVerification(true);
     } catch (err: any) {
       toast.error(err.errors[0].message);
       console.error(JSON.stringify(err, null, 2));
