@@ -77,16 +77,12 @@ export default function Page() {
     try {
       setPendingSignUp(true);
 
-      console.log(data);
-
-      const sup = await signUp.create({
+      await signUp.create({
         emailAddress: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
         redirectUrl: "/auth",
       });
-
-      console.log(sup);
 
       await signUp.prepareEmailAddressVerification({
         strategy: "email_code",
