@@ -175,7 +175,7 @@ export default function Home({
                   BRAINROT.JS
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
-                  <NumberTicker value={5994} /> videos generated 💀
+                  <NumberTicker value={6520} /> videos generated 💀
                 </p>
               </div>
 
