@@ -2,14 +2,14 @@ import type { Config } from "drizzle-kit";
 import * as dotenv from "dotenv";
 
 dotenv.config({
-  path: ".env.local",
+  path: ".env",
 });
 
 export default {
   schema: "./src/server/db/**/schema.ts",
   out: "./drizzle",
-  driver: "mysql2",
+  dialect: "mysql",
   dbCredentials: {
-    connectionString: process.env.DB_URL!,
+    url: process.env.DB_URL!,
   },
 } satisfies Config;
