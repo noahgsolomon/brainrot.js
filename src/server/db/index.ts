@@ -8,7 +8,6 @@ const connection = await mysql.createConnection({
   user: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   uri: process.env.DB_URL,
-  database: process.env.DB_NAME,
 });
 
 export const db = drizzle(connection, {
