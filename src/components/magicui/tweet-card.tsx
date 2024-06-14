@@ -189,8 +189,8 @@ export const TweetMedia = ({ tweet }: { tweet: EnrichedTweet }) => (
             loop
             playsInline
             controls
-            src={tweet.video.variants[4]?.src}
             className="rounded-xl border shadow-sm"
+            src={tweet.video.variants[4]?.src}
           ></video>
         );
       })()}
