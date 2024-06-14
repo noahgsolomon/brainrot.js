@@ -280,69 +280,117 @@ export const userRouter = createTRPCRouter({
     ),
 
   // Mutation to create a Stripe checkout session for the user
-  createStripeSession: protectedProcedure.mutation(async ({ ctx }) => {
-    console.log("HIT CREATE STRIPE SESSION");
-    // Retrieve the user from the database
-    const dbUser = await ctx.db.query.brainrotusers.findFirst({
-      where: eq(brainrotusers.id, ctx.user_id),
-    });
+  createStripeSession: protectedProcedure
+    .input(
+      z
+        .object({
+          searchParams: z
+            .object({
+              agent1Id: z.string().optional(),
+              agent2Id: z.string().optional(),
+              agent1Name: z.string().optional(),
+              agent2Name: z.string().optional(),
+              title: z.string().optional(),
+              credits: z.string().optional(),
+              music: z.string().optional(),
+              background: z.string().optional(),
+              assetType: z.string().optional(),
+              duration: z.string().optional(),
+              fps: z.string().optional(),
+            })
+            .optional(),
+          searchQueryString: z.string().optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const searchParams = input?.searchParams ?? {};
+      const searchQueryString = input?.searchQueryString
+        ? input?.searchQueryString
+        : `?agent1Id=${encodeURIComponent(
+            searchParams.agent1Id || "",
+          )}&agent2Id=${encodeURIComponent(
+            searchParams.agent2Id || "",
+          )}&agent1Name=${encodeURIComponent(
+            searchParams.agent1Name || "",
+          )}&agent2Name=${encodeURIComponent(
+            searchParams.agent2Name || "",
+          )}&title=${encodeURIComponent(
+            searchParams.title || "",
+          )}&credits=${encodeURIComponent(
+            searchParams.credits || "",
+          )}&music=${encodeURIComponent(
+            searchParams.music || "",
+          )}&background=${encodeURIComponent(
+            searchParams.background || "",
+          )}&assetType=${encodeURIComponent(
+            searchParams.assetType || "",
+          )}&duration=${encodeURIComponent(
+            searchParams.duration || "",
+          )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
 
-    if (!dbUser) {
-      throw new Error("No user found");
-    }
-    console.log("FOUND USER");
-
-    const subscriptionPlan = await getUserSubscriptionPlan();
-
-    console.log("FOUND SUBSCRIPTION PLAN");
-    console.log(subscriptionPlan);
-
-    // If the user is already subscribed and has a Stripe customer ID, create a billing portal session
-    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
-      const session = await stripe.billingPortal.sessions.create({
-        customer: dbUser.stripeCustomerId,
-        return_url: absoluteUrl("/"),
+      console.log("HIT CREATE STRIPE SESSION");
+      // Retrieve the user from the database
+      const dbUser = await ctx.db.query.brainrotusers.findFirst({
+        where: eq(brainrotusers.id, ctx.user_id),
       });
 
-      console.log(JSON.stringify(session, null, 2));
+      if (!dbUser) {
+        throw new Error("No user found");
+      }
+      console.log("FOUND USER");
 
-      return { url: session.url };
-    }
+      const subscriptionPlan = await getUserSubscriptionPlan();
 
-    console.log(subscriptionPlan);
+      console.log("FOUND SUBSCRIPTION PLAN");
+      console.log(subscriptionPlan);
 
-    console.log("about to create session");
+      // If the user is already subscribed and has a Stripe customer ID, create a billing portal session
+      if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
+        const session = await stripe.billingPortal.sessions.create({
+          customer: dbUser.stripeCustomerId,
+          return_url: absoluteUrl("/"),
+        });
 
-    // Otherwise, create a new Stripe checkout session for a subscription
-    const session = await stripe.checkout.sessions.create({
-      success_url: absoluteUrl("/?subscribed=true"),
-      cancel_url: absoluteUrl("/"),
-      payment_method_types: ["card"],
-      mode: "subscription",
-      billing_address_collection: "auto",
-      line_items: [
-        {
-          price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds
-            .production,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        userId: ctx.user_id,
-      },
-      subscription_data: {
+        console.log(JSON.stringify(session, null, 2));
+
+        return { url: session.url };
+      }
+
+      console.log(subscriptionPlan);
+
+      console.log("about to create session");
+
+      // Otherwise, create a new Stripe checkout session for a subscription
+      const session = await stripe.checkout.sessions.create({
+        success_url: absoluteUrl(`/${searchQueryString}`),
+        cancel_url: absoluteUrl(`/${searchQueryString}`),
+        payment_method_types: ["card"],
+        mode: "subscription",
+        billing_address_collection: "auto",
+        line_items: [
+          {
+            price: PLANS.find((plan) => plan.slug === "pro")?.price.priceIds
+              .production,
+            quantity: 1,
+          },
+        ],
         metadata: {
           userId: ctx.user_id,
         },
-      },
-    });
+        subscription_data: {
+          metadata: {
+            userId: ctx.user_id,
+          },
+        },
+      });
 
-    console.log("created session!");
+      console.log("created session!");
 
-    console.log(session.url);
+      console.log(session.url);
 
-    return { url: session.url };
-  }),
+      return { url: session.url };
+    }),
   getSubscriptionPlan: protectedProcedure.query(async ({ ctx }) => {
     const subscriptionPlan = await getUserSubscriptionPlan();
     return subscriptionPlan;

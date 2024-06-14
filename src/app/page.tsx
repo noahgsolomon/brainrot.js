@@ -31,11 +31,27 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
+import { useGenerationType } from "./usegenerationtype";
 
 export default function Home({
   searchParams,
 }: {
-  searchParams: { loggedIn?: string; subscribed?: string };
+  searchParams: {
+    loggedIn?: string;
+    subscribed?: string;
+    // all for create video
+    agent1Id?: string;
+    agent2Id?: string;
+    agent1Name?: string;
+    agent2Name?: string;
+    title?: string;
+    credits?: string;
+    music?: string;
+    background?: string;
+    assetType?: string;
+    duration?: string;
+    fps?: string;
+  };
 }) {
   const user = useUser();
   const router = useRouter();
@@ -44,6 +60,67 @@ export default function Home({
     toast.success("🎉 welcome to the family");
     router.push("/");
   }
+
+  const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
+    useGenerationType();
+
+  useEffect(() => {
+    console.log(searchParams);
+
+    if (
+      searchParams.agent1Id &&
+      searchParams.agent2Id &&
+      searchParams.agent1Name &&
+      searchParams.agent2Name &&
+      searchParams.title &&
+      searchParams.credits &&
+      searchParams.fps
+    ) {
+      setVideoDetails({
+        brainrot: {
+          agents: [
+            {
+              id: parseInt(searchParams.agent1Id),
+              name: searchParams.agent1Name as
+                | "JORDAN_PETERSON"
+                | "BEN_SHAPIRO"
+                | "JOE_ROGAN"
+                | "BARACK_OBAMA"
+                | "DONALD_TRUMP"
+                | "MARK_ZUCKERBERG"
+                | "LIL_YACHTY"
+                | "JOE_BIDEN",
+            },
+            {
+              id: parseInt(searchParams.agent2Id),
+              name: searchParams.agent2Name as
+                | "JORDAN_PETERSON"
+                | "BEN_SHAPIRO"
+                | "JOE_ROGAN"
+                | "BARACK_OBAMA"
+                | "DONALD_TRUMP"
+                | "MARK_ZUCKERBERG"
+                | "LIL_YACHTY"
+                | "JOE_BIDEN",
+            },
+          ],
+          assetType: searchParams.assetType ?? "GOOGLE",
+          background: searchParams?.background ?? "MINECRAFT",
+          cost: parseInt(searchParams.credits),
+          duration: searchParams?.duration
+            ? parseInt(searchParams?.duration)
+            : 1,
+          fps: parseInt(searchParams.fps),
+          music: searchParams.music ?? "NONE",
+          title: searchParams.title,
+          // not used in this case
+          remainingCredits: 0,
+        },
+        math: {},
+      });
+      setIsGenerationTypeOpen(true);
+    }
+  }, [searchParams]);
 
   const userDB = trpc.user.user.useQuery().data;
 
@@ -261,6 +338,7 @@ export default function Home({
             <Button
               className="flex flex-row items-center gap-2"
               variant={"brain"}
+              size={"lg"}
               disabled={pendingVideo}
               onClick={() => {
                 setIsOpen(true);
@@ -268,7 +346,7 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            <Link
+            {/* <Link
               href={"/watch"}
               className={buttonVariants({
                 variant: "outline",
@@ -282,7 +360,7 @@ export default function Home({
               >
                 NEW
               </Badge>
-            </Link>
+            </Link> */}
 
             {pendingVideo ? (
               <Button
@@ -313,8 +391,8 @@ export default function Home({
               </>
             ) : !user.isLoaded ? (
               <>
-                <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
-                <Skeleton className="h-[2.4rem] w-[9.3rem] rounded-lg"></Skeleton>
+                <Skeleton className="h-[2.4rem] w-[11rem] rounded-lg"></Skeleton>
+                <Skeleton className="h-[2.4rem] w-[11rem] rounded-lg"></Skeleton>
               </>
             ) : null}
           </div>
