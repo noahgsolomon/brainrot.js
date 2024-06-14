@@ -14,6 +14,7 @@ const config = {
     // These opinionated rules are enabled in stylistic-type-checked above.
     // Feel free to reconfigure them to your own preference.
     "@typescript-eslint/array-type": "off",
+    "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/prefer-optional-chain": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
