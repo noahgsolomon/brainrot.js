@@ -32,6 +32,8 @@ import { Progress } from "@/components/ui/progress";
 import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
+import TweetCard from "@/components/magicui/tweet-card";
+import ClientTweetCard from "@/components/magicui/client-tweet-card";
 
 export default function Home({
   searchParams,
@@ -408,6 +410,15 @@ export default function Home({
           </Link>
           ... I will kiss u fr 😽
         </p> */}
+        <div className="flex flex-col items-center gap-4 py-12">
+          <p className="text-xl font-bold">Recent Generations</p>
+          <div className="flex max-w-[90%] flex-wrap items-center justify-center gap-4 ">
+            <ClientTweetCard className="bg-card/80" id="1792683488992182353" />
+            <ClientTweetCard className="bg-card/80" id="1787633614835843302" />
+            <ClientTweetCard className="bg-card/80" id="1787434978780819569" />
+            <ClientTweetCard className="bg-card/80" id="1780386464091591078" />
+          </div>
+        </div>
       </main>
       {/* <footer className="flex w-screen justify-center border-t border-border bg-secondary px-4 py-4">
         <div className="flex w-full items-center justify-between px-[5%] py-1 md:px-[10%]">
