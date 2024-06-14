@@ -12,6 +12,7 @@ import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import GenerationType from "@/app/generationtype";
 
 const NavBar = () => {
   const { userId } = useAuth();
@@ -84,6 +85,7 @@ const NavBar = () => {
         </div>
       </header>
       <CreateVideo />
+      <GenerationType />
       {userId && path === "/" && <YourVideos />}
     </>
   );
