@@ -55,7 +55,24 @@ function getRandomQuote() {
   return quotes[randomIndex];
 }
 
-export default function Page() {
+export default function Page({
+  searchParams,
+}: {
+  searchParams: {
+    // all for create video
+    agent1Id?: string;
+    agent2Id?: string;
+    agent1Name?: string;
+    agent2Name?: string;
+    title?: string;
+    credits?: string;
+    music?: string;
+    background?: string;
+    assetType?: string;
+    duration?: string;
+    fps?: string;
+  };
+}) {
   const formSchema = z.object({
     email: z.string().email({ message: "please provide a valid email." }),
   });
@@ -86,6 +103,28 @@ export default function Page() {
 
   const randomQuote = useMemo(() => getRandomQuote(), []);
 
+  const searchQueryString = `?agent1Id=${encodeURIComponent(
+    searchParams.agent1Id || "",
+  )}&agent2Id=${encodeURIComponent(
+    searchParams.agent2Id || "",
+  )}&agent1Name=${encodeURIComponent(
+    searchParams.agent1Name || "",
+  )}&agent2Name=${encodeURIComponent(
+    searchParams.agent2Name || "",
+  )}&title=${encodeURIComponent(
+    searchParams.title || "",
+  )}&credits=${encodeURIComponent(
+    searchParams.credits || "",
+  )}&music=${encodeURIComponent(
+    searchParams.music || "",
+  )}&background=${encodeURIComponent(
+    searchParams.background || "",
+  )}&assetType=${encodeURIComponent(
+    searchParams.assetType || "",
+  )}&duration=${encodeURIComponent(
+    searchParams.duration || "",
+  )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
       <div className="flex items-center justify-center py-12">
@@ -98,7 +137,7 @@ export default function Page() {
           </div>
           <div className="grid gap-4">
             {pendingVerification ? (
-              <OneTimePassword />
+              <OneTimePassword searchParams={searchParams} />
             ) : (
               <FormProvider {...form}>
                 <form
@@ -123,11 +162,11 @@ export default function Page() {
               </FormProvider>
             )}
             <div className="my-2 w-full border-b border-primary/20"></div>
-            <LogInOAuthButtons />
+            <LogInOAuthButtons searchParams={searchParams} />
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline">
+            <Link href={`/signup${searchQueryString}`} className="underline">
               Sign up
             </Link>
           </div>

@@ -29,7 +29,24 @@ const FormSchema = z.object({
   }),
 });
 
-export default function OneTimePassword() {
+export default function OneTimePassword({
+  searchParams,
+}: {
+  searchParams: {
+    // all for create video
+    agent1Id?: string;
+    agent2Id?: string;
+    agent1Name?: string;
+    agent2Name?: string;
+    title?: string;
+    credits?: string;
+    music?: string;
+    background?: string;
+    assetType?: string;
+    duration?: string;
+    fps?: string;
+  };
+}) {
   const { signUp } = useSignUp();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -50,6 +67,28 @@ export default function OneTimePassword() {
     }
   }, [pin]);
 
+  const searchQueryString = `?agent1Id=${encodeURIComponent(
+    searchParams.agent1Id || "",
+  )}&agent2Id=${encodeURIComponent(
+    searchParams.agent2Id || "",
+  )}&agent1Name=${encodeURIComponent(
+    searchParams.agent1Name || "",
+  )}&agent2Name=${encodeURIComponent(
+    searchParams.agent2Name || "",
+  )}&title=${encodeURIComponent(
+    searchParams.title || "",
+  )}&credits=${encodeURIComponent(
+    searchParams.credits || "",
+  )}&music=${encodeURIComponent(
+    searchParams.music || "",
+  )}&background=${encodeURIComponent(
+    searchParams.background || "",
+  )}&assetType=${encodeURIComponent(
+    searchParams.assetType || "",
+  )}&duration=${encodeURIComponent(
+    searchParams.duration || "",
+  )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       const attempt = await signUp?.attemptVerification({
@@ -60,7 +99,7 @@ export default function OneTimePassword() {
       if (attempt?.status === "complete") {
         toast.success("success!", { icon: "🎉" });
         setTimeout(() => {
-          window.location.href = "/auth";
+          window.location.href = `/auth${searchQueryString}`;
         }, 1000);
       } else {
         console.log(attempt);

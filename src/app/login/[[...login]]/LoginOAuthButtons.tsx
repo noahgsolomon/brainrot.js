@@ -3,14 +3,53 @@ import { useSignIn } from "@clerk/nextjs";
 import { OAuthStrategy } from "@clerk/types";
 import Image from "next/image";
 
-export default function LogInOAuthButtons() {
+export default function LogInOAuthButtons({
+  searchParams,
+}: {
+  searchParams: {
+    // all for create video
+    agent1Id?: string;
+    agent2Id?: string;
+    agent1Name?: string;
+    agent2Name?: string;
+    title?: string;
+    credits?: string;
+    music?: string;
+    background?: string;
+    assetType?: string;
+    duration?: string;
+    fps?: string;
+  };
+}) {
+  const searchQueryString = `?agent1Id=${encodeURIComponent(
+    searchParams.agent1Id || "",
+  )}&agent2Id=${encodeURIComponent(
+    searchParams.agent2Id || "",
+  )}&agent1Name=${encodeURIComponent(
+    searchParams.agent1Name || "",
+  )}&agent2Name=${encodeURIComponent(
+    searchParams.agent2Name || "",
+  )}&title=${encodeURIComponent(
+    searchParams.title || "",
+  )}&credits=${encodeURIComponent(
+    searchParams.credits || "",
+  )}&music=${encodeURIComponent(
+    searchParams.music || "",
+  )}&background=${encodeURIComponent(
+    searchParams.background || "",
+  )}&assetType=${encodeURIComponent(
+    searchParams.assetType || "",
+  )}&duration=${encodeURIComponent(
+    searchParams.duration || "",
+  )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+
   const { signIn } = useSignIn();
 
   const signInWith = (strategy: OAuthStrategy) => {
     return signIn?.authenticateWithRedirect({
       strategy,
-      redirectUrl: "/auth",
-      redirectUrlComplete: "/auth",
+      redirectUrl: `/auth${searchQueryString}`,
+      redirectUrlComplete: `/auth${searchQueryString}`,
     });
   };
 
