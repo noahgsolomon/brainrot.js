@@ -413,7 +413,6 @@ export default function Home({
         <div className="flex flex-col items-center gap-4 py-12">
           <p className="text-xl font-bold">Recent Generations</p>
           <div className="flex max-w-[90%] flex-wrap items-center justify-center gap-4 ">
-            <ClientTweetCard className="bg-card/80" id="1792683488992182353" />
             <ClientTweetCard className="bg-card/80" id="1787633614835843302" />
             <ClientTweetCard className="bg-card/80" id="1787434978780819569" />
             <ClientTweetCard className="bg-card/80" id="1780386464091591078" />
