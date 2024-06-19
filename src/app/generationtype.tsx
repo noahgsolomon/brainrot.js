@@ -193,7 +193,7 @@ export default function GenerationType() {
               </div>
             </div>
           ) : null}
-          {user.userId && !userDB?.subscribed ? (
+          {user.userId && !userDB?.subscribed && userDB?.credits === 0 ? (
             <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 ">
               <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div className="flex flex-col gap-2 font-bold">
