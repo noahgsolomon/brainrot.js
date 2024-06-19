@@ -225,7 +225,7 @@ export default function GenerationType() {
               typeSelected === "math" ||
               generating ||
               !user.userId ||
-              !userDB?.subscribed
+              userDB?.credits === 0
             }
             onClick={() => {
               // router.push(`/notes/${noteId}`);
@@ -252,7 +252,7 @@ export default function GenerationType() {
               typeSelected === "math" ||
               generating ||
               !user.userId ||
-              !userDB?.subscribed
+              userDB?.credits === 0
             }
             onClick={() => {
               setGenerating(true);
