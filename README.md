@@ -34,36 +34,7 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 #### assets to download
 
-put these assets in public/generate/background with the same name they have:
-https://brainrotbackground.s3.amazonaws.com/GTA-1.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-2.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-3.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-4.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-5.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-6.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-7.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-8.mp4
-https://brainrotbackground.s3.amazonaws.com/GTA-9.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-0.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-1.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-2.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-3.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-4.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-5.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-6.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-7.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-8.mp4
-https://brainrotbackground.s3.amazonaws.com/MINECRAFT-9.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-0.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-1.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-2.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-3.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-4.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-5.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-6.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-7.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-8.mp4
-https://brainrotbackground.s3.amazonaws.com/TRUCK-9.mp4
+I have removed assets for download. If you want your own GTA / Minecraft / etc. bottom half video just find some on youtube.
 
 #### common problems
 
