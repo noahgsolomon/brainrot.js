@@ -13,6 +13,7 @@ import {
   Crown,
   Eye,
   Folder,
+  Github,
   Loader2,
   Skull,
   Star,
@@ -34,6 +35,8 @@ import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
 import TweetCard from "@/components/magicui/tweet-card";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
+import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
+import { cn } from "@/lib/utils";
 
 export default function Home({
   searchParams,
@@ -232,7 +235,7 @@ export default function Home({
                 ⭐ <hr className="mx-2 h-4 w-[1px] shrink-0 bg-gray-300" />{" "}
                 <span
                   className={cn(
-                    `animate-gradient inline bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
+                    `inline animate-gradient bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent`,
                   )}
                 >
                   Star on GitHub
@@ -348,6 +351,18 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
+            <Link
+              href={"https://github.com/noahgsolomon/brainrot.js"}
+              target="_blank"
+              className={buttonVariants({
+                className: "flex flex-row items-center gap-2",
+                size: "lg",
+                variant: "outline",
+              })}
+            >
+              <Github className="h-4 w-4" />
+              Run Locally
+            </Link>
             {/* <Link
               href={"/watch"}
               className={buttonVariants({
