@@ -249,7 +249,7 @@ async function checkImageHeaders(url) {
 const imagePrompt = async (title) => {
 	try {
 		const response = await openai.chat.completions.create({
-			model: 'ft:gpt-3.5-turbo-1106:personal::8TEhcfKm',
+			model: process.env.GPT_VERSION,
 			messages: [
 				{
 					role: 'user',
