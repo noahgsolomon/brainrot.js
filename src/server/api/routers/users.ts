@@ -264,7 +264,7 @@ export const userRouter = createTRPCRouter({
           );
 
           if (!argumentsData.valid) {
-            return { valid: false };
+            return { valid: true };
           }
 
           await ctx.db
