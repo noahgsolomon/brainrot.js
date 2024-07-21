@@ -248,14 +248,13 @@ export const userRouter = createTRPCRouter({
       }) => {
         try {
           const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo-1106",
+            model: "gpt-4o-mini",
             messages: [
               {
                 role: "system",
                 content: `Assess the legibility of the following title: "${title}". If the title consists of random characters (e.g., "c3fwgerwfg"), return a JSON object with 'valid': false. Otherwise, return a JSON object with 'valid': true.`,
               },
             ],
-
             response_format: { type: "json_object" },
           });
 
@@ -264,7 +263,7 @@ export const userRouter = createTRPCRouter({
           );
 
           if (!argumentsData.valid) {
-            return { valid: true };
+            return { valid: false };
           }
 
           await ctx.db

@@ -50,7 +50,7 @@ const Page = ({
       window.location.href = `/${searchQueryString}`;
     },
     onError: () => {
-      window.location.href = `?error=true`;
+      window.location.href = `/?error=true`;
     },
   });
   useEffect(() => {
