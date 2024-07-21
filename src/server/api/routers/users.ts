@@ -252,7 +252,7 @@ export const userRouter = createTRPCRouter({
             messages: [
               {
                 role: "system",
-                content: `Assess the legibility of the following title: "${title}". If the title is unintelligible or consists of random characters (e.g., "c3fwgerwfg"), return a JSON object with 'valid': false. Otherwise, return a JSON object with 'valid': true. The title can be risque and humorfully offensive so don't block for this.`,
+                content: `Assess the legibility of the following title: "${title}". If the title consists of random characters (e.g., "c3fwgerwfg"), return a JSON object with 'valid': false. Otherwise, return a JSON object with 'valid': true.`,
               },
             ],
 
