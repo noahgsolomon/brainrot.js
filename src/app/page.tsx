@@ -42,6 +42,7 @@ export default function Home({
   searchParams,
 }: {
   searchParams: {
+    error?: string;
     loggedIn?: string;
     subscribed?: string;
     // all for create video
@@ -63,6 +64,10 @@ export default function Home({
 
   if (searchParams.subscribed === "true") {
     toast.success("🎉 welcome to the family");
+    router.push("/");
+  }
+  if (searchParams.error === "true") {
+    toast.error("Error. Please try again.");
     router.push("/");
   }
 
@@ -381,7 +386,7 @@ export default function Home({
 
             {pendingVideo ? (
               <Button
-                className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20"
+                className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20 hover:bg-red-500/30"
                 variant={"outline"}
                 onClick={() => {
                   cancelPendingVideoMutation.mutate({
