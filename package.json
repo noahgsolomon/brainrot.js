@@ -64,7 +64,7 @@
     "next": "latest",
     "next-themes": "^0.2.1",
     "next13-progressbar": "^1.0.4",
-    "openai": "^4.27.0",
+    "openai": "^4.52.7",
     "openai-edge": "^1.2.2",
     "react": "^18",
     "react-dom": "^18",
