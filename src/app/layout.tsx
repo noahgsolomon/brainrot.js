@@ -8,7 +8,6 @@ import { type Metadata } from "next";
 import ProgressBarProvider from "./progressbar";
 import { GeistSans } from "geist/font";
 import { Background } from "@/components/ui/background";
-import { Analytics } from "@vercel/analytics/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
@@ -52,7 +51,6 @@ export default function RootLayout({
             </TooltipProvider>
           </ClerkProvider>
         </TRPCReactProvider>
-        <Analytics />
       </body>
     </html>
   );
