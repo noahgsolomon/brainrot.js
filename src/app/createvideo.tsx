@@ -861,6 +861,7 @@ export default function CreateVideo({
                     <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
                       <ProButton>
                         <Button
+                          data-action="subscribe"
                           className="flex flex-row items-center gap-2 "
                           variant="brain"
                           size="sm"
