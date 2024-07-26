@@ -67,6 +67,7 @@ export default function Page() {
             <Button
               size={"xl"}
               variant={"outline"}
+              data-action="subscribe"
               className="flex w-full flex-row items-center gap-2 hover:bg-card/40 hover:text-secondary hover:dark:text-primary "
             >
               GO PRO <Crown className="size-4" />

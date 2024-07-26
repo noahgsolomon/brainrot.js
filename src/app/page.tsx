@@ -279,6 +279,7 @@ export default function Home({
 
                   <ProButton>
                     <Button
+                      data-action="subscribe"
                       className={"flex w-full flex-row items-center gap-2"}
                       variant={"red"}
                     >

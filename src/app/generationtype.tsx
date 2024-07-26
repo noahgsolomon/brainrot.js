@@ -207,6 +207,7 @@ export default function GenerationType() {
 
                   <ProButton searchQueryString={searchQueryString}>
                     <Button
+                      data-action="subscribe"
                       className={"flex w-full flex-row items-center gap-2"}
                       variant={"brain"}
                     >
