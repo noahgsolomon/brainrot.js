@@ -1,9 +1,7 @@
 "use client";
 
 import { trpc } from "@/trpc/client";
-import { api } from "@/trpc/server";
 import { Loader2 } from "lucide-react";
-import { redirect } from "next/navigation";
 import { useEffect } from "react";
 
 const Page = ({
@@ -26,7 +24,7 @@ const Page = ({
 }) => {
   const existsMutation = trpc.user.exists.useMutation({
     onSuccess: () => {
-      const searchQueryString = `?agent1Id=${encodeURIComponent(
+      const searchQueryString = `?loggedIn=true&agent1Id=${encodeURIComponent(
         searchParams.agent1Id || "",
       )}&agent2Id=${encodeURIComponent(
         searchParams.agent2Id || "",

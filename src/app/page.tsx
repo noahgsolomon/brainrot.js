@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
@@ -8,16 +7,10 @@ import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  ChevronRight,
-  Coins,
   Crown,
-  Eye,
   Folder,
   Github,
   Loader2,
-  Skull,
-  Star,
-  StarIcon,
   Wand,
   X,
 } from "lucide-react";
@@ -25,18 +18,14 @@ import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
-import { Tweet } from "react-tweet";
-import XIcon from "@/components/svg/XIcon";
 import Credits from "./credits";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
-import TweetCard from "@/components/magicui/tweet-card";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
-import AnimatedGradientText from "@/components/magicui/animated-gradient-text";
-import { cn } from "@/lib/utils";
+
 
 export default function Home({
   searchParams,
