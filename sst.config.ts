@@ -1,4 +1,4 @@
-/// <reference path="./.sstpoop/platform/config.d.ts" />
+/// <reference path="./.sst/platform/config.d.ts" />
 import { NextEnv } from "./sst.env";
 
 export default $config({
@@ -14,6 +14,8 @@ export default $config({
       environment: {
         ...NextEnv,
       },
+      buildCommand:
+        "npx --yes open-next@3.0.8 build --build-mode=experimental-compile",
       domain: {
         name: "brainrotjs.com",
         dns: sst.aws.dns({

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build --build-mode=experimental-compile",
     "db:push": "dotenv drizzle-kit push",
     "db:studio": "dotenv drizzle-kit studio",
     "dev": "sst dev sst dev sst dev next dev",
