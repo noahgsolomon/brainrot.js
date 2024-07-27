@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import type Stripe from "stripe";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   console.log("Received webhook request");
 

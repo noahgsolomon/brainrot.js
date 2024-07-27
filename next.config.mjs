@@ -6,6 +6,7 @@
 
 const nextConfig = {
   pageExtensions: ["js", "jsx", "ts", "tsx"],
+  staticPageGenerationTimeout: 100,
   images: {
     remotePatterns: [
       {
