@@ -6,9 +6,9 @@
     "build": "next build",
     "db:push": "dotenv drizzle-kit push",
     "db:studio": "dotenv drizzle-kit studio",
-    "dev": "next dev",
-    "local": "next dev --hostname 0.0.0.0",
+    "dev": "sst dev sst dev sst dev next dev",
     "lint": "next lint",
+    "local": "next dev --hostname 0.0.0.0",
     "start": "next start"
   },
   "dependencies": {
@@ -80,6 +80,7 @@
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
     "sonner": "^1.2.4",
+    "sst": "ion",
     "stripe": "^15.2.0",
     "superjson": "^2.0.0",
     "tailwind-classes-sorter": "^0.2.5",

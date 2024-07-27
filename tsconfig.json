@@ -34,5 +34,5 @@
     "mdx-components.tsx",
     "next.config.mjs"
   ],
-  "exclude": ["node_modules", "generate"]
+  "exclude": ["node_modules", "generate","sst.config.ts"]
 }
