@@ -1,6 +1,8 @@
 import { db } from "@/server/db";
 import { pendingVideos } from "@/server/db/schemas/users/schema";
 
+export const dynamic = "force-dynamic";
+
 async function insertRecordToDB(body: any) {
   await db.insert(pendingVideos).values({
     user_id: body.userId,
