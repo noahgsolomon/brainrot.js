@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useSignIn } from "@clerk/nextjs";
-import { OAuthStrategy } from "@clerk/types";
+import { type OAuthStrategy } from "@clerk/types";
 import Image from "next/image";
 
 export default function LogInOAuthButtons({

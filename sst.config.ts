@@ -1,4 +1,4 @@
-/// <reference path="./.sst/platform/config.d.ts" />
+/// <reference path="./.sstpoop/platform/config.d.ts" />
 import { NextEnv } from "./sst.env";
 
 export default $config({
