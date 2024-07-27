@@ -19,7 +19,7 @@ jobs:
           bun-version: latest
 
       - name: Install Dependencies
-        run: bun ci
+        run: bun install --frozen-lockfile
 
       - name: SST Deploy
         run: bunx sst deploy --stage production
