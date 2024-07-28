@@ -6,14 +6,7 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Crown,
-  Folder,
-  Github,
-  Loader2,
-  Wand,
-  X,
-} from "lucide-react";
+import { Crown, Folder, Github, Loader2, Wand, X } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
@@ -25,7 +18,6 @@ import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
-
 
 export default function Home({
   searchParams,
@@ -248,7 +240,7 @@ export default function Home({
             <div className=" flex flex-col items-center gap-2">
               <div>
                 <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
-                  BRAINROT.JS
+                  BRAINROT.JS (new)
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
                   <NumberTicker value={7543} /> videos generated 💀
