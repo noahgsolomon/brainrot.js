@@ -240,7 +240,7 @@ export default function Home({
             <div className=" flex flex-col items-center gap-2">
               <div>
                 <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
-                  BRAINROT.JS (new)
+                  BRAINROT.JS
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
                   <NumberTicker value={7543} /> videos generated 💀
