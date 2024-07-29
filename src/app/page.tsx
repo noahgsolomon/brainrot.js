@@ -257,7 +257,7 @@ export default function Home({
               </p>
             </div>
             {!userDB?.user?.subscribed &&
-            userDB?.user?.credits === 0 &&
+            (userDB?.user?.credits ?? 0) <= 0 &&
             !pendingVideo ? (
               <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div className="flex flex-col gap-2 font-bold">
