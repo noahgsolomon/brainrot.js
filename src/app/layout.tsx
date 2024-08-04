@@ -17,11 +17,13 @@ export const metadata: Metadata = {
   openGraph: {
     url: "https://brainrotjs.com",
     title: "brainrotjs.com",
-    description: "Make learning fun again!",
+    description:
+      "Make learning fun again! Generate funny videos of celebrities today!",
     images: ["https://images.smart.wtf/brainrot.png"],
   },
   title: "brainrot.js",
-  description: "Make learning fun again!",
+  description:
+    "Make learning fun again! Generate funny videos of celebrities today!",
   twitter: {
     card: "summary_large_image",
     site: "brainrotjs.com",
