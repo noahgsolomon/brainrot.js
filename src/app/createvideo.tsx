@@ -205,56 +205,56 @@ export default function CreateVideo({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <div
-              className={cn(
-                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                `${
-                  agent.some((a) => a.name === "DONALD_TRUMP")
-                    ? "border border-red-500"
-                    : ""
-                }`,
-              )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "DONALD_TRUMP")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isJordanPetersonPresent = currentAgents.some(
-                    (agent) => agent.name === "DONALD_TRUMP",
-                  );
-
-                  if (isJordanPetersonPresent) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "DONALD_TRUMP",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "DONALD_TRUMP", id: 1 }];
-                  }
-                });
-              }}
-            >
-              <Image
-                className={` absolute bottom-0 left-0 right-0 top-0 z-20   transition-all ${
-                  agent.some((a) => a.name === "DONALD_TRUMP")
-                    ? "opacity-40"
-                    : "opacity-0"
-                }`}
-                height={75}
-                width={75}
-                src={"https://images.smart.wtf/fireball.gif"}
-                alt="fire"
-              />
-              <Image
-                className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                src={"https://images.smart.wtf/DONALD_TRUMP.png"}
-                width={75}
-                height={75}
-                alt="trump"
-              />
-            </div>
+            {/* <div */}
+            {/*   className={cn( */}
+            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
+            {/*     `${ */}
+            {/*       agent.some((a) => a.name === "DONALD_TRUMP") */}
+            {/*         ? "border border-red-500" */}
+            {/*         : "" */}
+            {/*     }`, */}
+            {/*   )} */}
+            {/*   onClick={() => { */}
+            {/*     if ( */}
+            {/*       agent.length === 2 && */}
+            {/*       !agent.some((a) => a.name === "DONALD_TRUMP") */}
+            {/*     ) { */}
+            {/*       return; */}
+            {/*     } */}
+            {/*     setAgent((currentAgents) => { */}
+            {/*       const isJordanPetersonPresent = currentAgents.some( */}
+            {/*         (agent) => agent.name === "DONALD_TRUMP", */}
+            {/*       ); */}
+            {/**/}
+            {/*       if (isJordanPetersonPresent) { */}
+            {/*         return currentAgents.filter( */}
+            {/*           (agent) => agent.name !== "DONALD_TRUMP", */}
+            {/*         ); */}
+            {/*       } else { */}
+            {/*         return [...currentAgents, { name: "DONALD_TRUMP", id: 1 }]; */}
+            {/*       } */}
+            {/*     }); */}
+            {/*   }} */}
+            {/* > */}
+            {/*   <Image */}
+            {/*     className={` absolute bottom-0 left-0 right-0 top-0 z-20   transition-all ${ */}
+            {/*       agent.some((a) => a.name === "DONALD_TRUMP") */}
+            {/*         ? "opacity-40" */}
+            {/*         : "opacity-0" */}
+            {/*     }`} */}
+            {/*     height={75} */}
+            {/*     width={75} */}
+            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
+            {/*     alt="fire" */}
+            {/*   /> */}
+            {/*   <Image */}
+            {/*     className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]" */}
+            {/*     src={"https://images.smart.wtf/DONALD_TRUMP.png"} */}
+            {/*     width={75} */}
+            {/*     height={75} */}
+            {/*     alt="trump" */}
+            {/*   /> */}
+            {/* </div> */}
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
@@ -408,106 +408,106 @@ export default function CreateVideo({
                 alt="bender"
               />
             </div>
-            <div
-              className={cn(
-                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                `${
-                  agent.some((a) => a.name === "BARACK_OBAMA")
-                    ? "border border-patrick"
-                    : ""
-                }`,
-              )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "BARACK_OBAMA")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBarackObama = currentAgents.some(
-                    (agent) => agent.name === "BARACK_OBAMA",
-                  );
-
-                  if (isBarackObama) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "BARACK_OBAMA",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "BARACK_OBAMA", id: 4 }];
-                  }
-                });
-              }}
-            >
-              <Image
-                className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
-                  agent.some((a) => a.name === "BARACK_OBAMA")
-                    ? "opacity-40"
-                    : "opacity-0"
-                }`}
-                height={75}
-                width={75}
-                src={"https://images.smart.wtf/fireball.gif"}
-                alt="fire"
-              />
-              <Image
-                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                src={"https://images.smart.wtf/BARACK_OBAMA.png"}
-                width={75}
-                height={75}
-                alt="barack"
-              />
-            </div>
-            <div
-              className={cn(
-                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                `${
-                  agent.some((a) => a.name === "JOE_BIDEN")
-                    ? "border border-border"
-                    : ""
-                }`,
-              )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "JOE_BIDEN")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBarackObama = currentAgents.some(
-                    (agent) => agent.name === "JOE_BIDEN",
-                  );
-
-                  if (isBarackObama) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "JOE_BIDEN",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "JOE_BIDEN", id: 5 }];
-                  }
-                });
-              }}
-            >
-              <Image
-                className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
-                  agent.some((a) => a.name === "JOE_BIDEN")
-                    ? "opacity-40"
-                    : "opacity-0"
-                }`}
-                height={75}
-                width={75}
-                src={"https://images.smart.wtf/fireball.gif"}
-                alt="fire"
-              />
-              <Image
-                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                src={"https://images.smart.wtf/JOE_BIDEN.png"}
-                width={75}
-                height={75}
-                alt="barack"
-              />
-            </div>
+            {/* <div */}
+            {/*   className={cn( */}
+            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
+            {/*     `${ */}
+            {/*       agent.some((a) => a.name === "BARACK_OBAMA") */}
+            {/*         ? "border border-patrick" */}
+            {/*         : "" */}
+            {/*     }`, */}
+            {/*   )} */}
+            {/*   onClick={() => { */}
+            {/*     if ( */}
+            {/*       agent.length === 2 && */}
+            {/*       !agent.some((a) => a.name === "BARACK_OBAMA") */}
+            {/*     ) { */}
+            {/*       return; */}
+            {/*     } */}
+            {/*     setAgent((currentAgents) => { */}
+            {/*       const isBarackObama = currentAgents.some( */}
+            {/*         (agent) => agent.name === "BARACK_OBAMA", */}
+            {/*       ); */}
+            {/**/}
+            {/*       if (isBarackObama) { */}
+            {/*         return currentAgents.filter( */}
+            {/*           (agent) => agent.name !== "BARACK_OBAMA", */}
+            {/*         ); */}
+            {/*       } else { */}
+            {/*         return [...currentAgents, { name: "BARACK_OBAMA", id: 4 }]; */}
+            {/*       } */}
+            {/*     }); */}
+            {/*   }} */}
+            {/* > */}
+            {/*   <Image */}
+            {/*     className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${ */}
+            {/*       agent.some((a) => a.name === "BARACK_OBAMA") */}
+            {/*         ? "opacity-40" */}
+            {/*         : "opacity-0" */}
+            {/*     }`} */}
+            {/*     height={75} */}
+            {/*     width={75} */}
+            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
+            {/*     alt="fire" */}
+            {/*   /> */}
+            {/*   <Image */}
+            {/*     className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]" */}
+            {/*     src={"https://images.smart.wtf/BARACK_OBAMA.png"} */}
+            {/*     width={75} */}
+            {/*     height={75} */}
+            {/*     alt="barack" */}
+            {/*   /> */}
+            {/* </div> */}
+            {/* <div */}
+            {/*   className={cn( */}
+            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
+            {/*     `${ */}
+            {/*       agent.some((a) => a.name === "JOE_BIDEN") */}
+            {/*         ? "border border-border" */}
+            {/*         : "" */}
+            {/*     }`, */}
+            {/*   )} */}
+            {/*   onClick={() => { */}
+            {/*     if ( */}
+            {/*       agent.length === 2 && */}
+            {/*       !agent.some((a) => a.name === "JOE_BIDEN") */}
+            {/*     ) { */}
+            {/*       return; */}
+            {/*     } */}
+            {/*     setAgent((currentAgents) => { */}
+            {/*       const isBarackObama = currentAgents.some( */}
+            {/*         (agent) => agent.name === "JOE_BIDEN", */}
+            {/*       ); */}
+            {/**/}
+            {/*       if (isBarackObama) { */}
+            {/*         return currentAgents.filter( */}
+            {/*           (agent) => agent.name !== "JOE_BIDEN", */}
+            {/*         ); */}
+            {/*       } else { */}
+            {/*         return [...currentAgents, { name: "JOE_BIDEN", id: 5 }]; */}
+            {/*       } */}
+            {/*     }); */}
+            {/*   }} */}
+            {/* > */}
+            {/*   <Image */}
+            {/*     className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${ */}
+            {/*       agent.some((a) => a.name === "JOE_BIDEN") */}
+            {/*         ? "opacity-40" */}
+            {/*         : "opacity-0" */}
+            {/*     }`} */}
+            {/*     height={75} */}
+            {/*     width={75} */}
+            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
+            {/*     alt="fire" */}
+            {/*   /> */}
+            {/*   <Image */}
+            {/*     className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]" */}
+            {/*     src={"https://images.smart.wtf/JOE_BIDEN.png"} */}
+            {/*     width={75} */}
+            {/*     height={75} */}
+            {/*     alt="barack" */}
+            {/*   /> */}
+            {/* </div> */}
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,

@@ -6,7 +6,7 @@
     "build": "next build --build-mode=experimental-compile",
     "db:push": "dotenv drizzle-kit push",
     "db:studio": "dotenv drizzle-kit studio",
-    "dev": "sst dev sst dev sst dev next dev",
+    "dev": "next dev",
     "lint": "next lint",
     "local": "next dev --hostname 0.0.0.0",
     "start": "next start"
