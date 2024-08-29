@@ -23,7 +23,8 @@ async function insertRecordToDB(body: any) {
         ? "GTA"
         : "TRUCK",
     fps: body.fps ?? 20,
-    aiGeneratedImages: body.aiGeneratedImages,
+    aiGeneratedImages: true,
+    // body.aiGeneratedImages,
     cleanSrt: false,
     credits: body.credits,
     status: "Waiting in Queue",
