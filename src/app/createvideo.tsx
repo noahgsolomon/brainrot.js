@@ -90,7 +90,7 @@ export default function CreateVideo({
   const [fps, setFps] = useState<number | null>(null);
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
   const [duration, setDuration] = useState<number | null>(null);
-  const [assetType, setAssetType] = useState<"AI" | "GOOGLE" | null>(null);
+  const [assetType, setAssetType] = useState<"AI" | "GOOGLE" | null>("AI");
   const [credits, setCredits] = useState(10);
 
   const [generating, setGenerating] = useState(false);
@@ -961,6 +961,7 @@ export default function CreateVideo({
                         </Button>
                         |
                         <Button
+                          disabled
                           onClick={() => setAssetType("GOOGLE")}
                           size={"sm"}
                           variant={
