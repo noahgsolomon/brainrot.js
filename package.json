@@ -67,7 +67,7 @@
     "next13-progressbar": "^1.0.4",
     "openai": "^4.52.7",
     "openai-edge": "^1.2.2",
-    "posthog-js": "1.156.1",
+    "posthog-js": "1.160.3",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.47.0",
