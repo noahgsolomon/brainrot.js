@@ -283,6 +283,18 @@ export default function Home({
               </div>
             ) : null}
 
+            <p className="text-center text-base text-red-500/80">
+              Video generation is currently disabled. <br />
+              Please use our open source{" "}
+              <a
+                className="underline"
+                href="https://github.com/noahgsolomon/brainrot.js"
+              >
+                GitHub
+              </a>{" "}
+              to run locally. 🫶
+            </p>
+
             {/* {!userDB?.user?.subscribed ? (
                 <p className="flex flex-col items-center gap-2">
                   Want to skip the queue?{" "}
@@ -332,7 +344,7 @@ export default function Home({
               className="flex flex-row items-center gap-2"
               variant={"brain"}
               size={"lg"}
-              disabled={pendingVideo}
+              disabled={pendingVideo || true} // not accepting videos rn
               onClick={() => {
                 setIsOpen(true);
               }}

@@ -80,7 +80,7 @@
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
     "sonner": "^1.2.4",
-    "sst": "ion",
+    "sst": "^3.1.47",
     "stripe": "^15.2.0",
     "superjson": "^2.0.0",
     "tailwind-classes-sorter": "^0.2.5",
