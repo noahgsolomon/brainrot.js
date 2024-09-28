@@ -23,12 +23,12 @@ export async function generateTranscriptAudio(
 	duration,
 	background,
 	music,
-	videoId
+	videoId,
 ) {
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
-			[videoId]
+			[videoId],
 		);
 	}
 
@@ -40,7 +40,7 @@ export async function generateTranscriptAudio(
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
-			[videoId]
+			[videoId],
 		);
 	}
 
@@ -48,13 +48,13 @@ export async function generateTranscriptAudio(
 		transcript,
 		transcript.length,
 		ai,
-		duration
+		duration,
 	);
 
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
-			[videoId]
+			[videoId],
 		);
 	}
 
@@ -104,7 +104,7 @@ export const music: string = ${
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/${background}-' + ${Math.floor(
-		Math.random() * 10
+		Math.random() * 10,
 	)} + '.mp4';
 export const subtitlesFileName = [
   ${audios
@@ -113,7 +113,7 @@ export const subtitlesFileName = [
     name: '${entry.person}',
     file: staticFile('srt/${entry.person}-${i}.srt'),
     asset: '${entry.image}',
-  }`
+  }`,
 		)
 		.join(',\n  ')}
 ];
@@ -141,7 +141,7 @@ export async function generateAudio(voice_id, person, line, index) {
 					similarity_boost: 0.75,
 				},
 			}),
-		}
+		},
 	);
 
 	if (!response.ok) {
@@ -149,7 +149,7 @@ export async function generateAudio(voice_id, person, line, index) {
 	}
 
 	const audioStream = fs.createWriteStream(
-		`public/voice/${person}-${index}.mp3`
+		`public/voice/${person}-${index}.mp3`,
 	);
 	response.body.pipe(audioStream);
 
@@ -177,14 +177,14 @@ async function fetchValidImages(transcript, length, ai, duration) {
 		for (let i = 0; i < length; i++) {
 			const imageFetch = await fetch(
 				`https://www.googleapis.com/customsearch/v1?q=${encodeURI(
-					transcript[i].asset
+					transcript[i].asset,
 				)}&cx=${process.env.GOOGLE_CX}&searchType=image&key=${
 					process.env.GOOGLE_API_KEY
 				}&num=${4}`,
 				{
 					method: 'GET',
 					headers: { 'Content-Type': 'application/json' },
-				}
+				},
 			);
 			const imageResponse = await imageFetch.json();
 
@@ -195,7 +195,7 @@ async function fetchValidImages(transcript, length, ai, duration) {
 			) {
 				console.log(
 					'No images found or items not iterable',
-					imageResponse.items
+					imageResponse.items,
 				);
 				images.push({ link: 'https://images.smart.wtf/black.png' });
 				continue; // Skip to the next iteration
@@ -257,6 +257,7 @@ const imagePrompt = async (title) => {
 				},
 			],
 		});
+		console.log('image prompt ' + response.choices[0]?.message.content);
 
 		return response.choices[0]?.message.content;
 	} catch (error) {
@@ -265,27 +266,37 @@ const imagePrompt = async (title) => {
 };
 
 const imageGeneneration = async (initialPrompt) => {
-	const prompt = await imagePrompt(initialPrompt);
-	const detailed8BitPreface =
-		'Create an image in a detailed retro 8-bit style. The artwork should have a pixelated texture and should have vibrant coloring and scenery.';
+	try {
+		const prompt = await imagePrompt(initialPrompt);
+		const detailed8BitPreface =
+			'Create an image in a detailed retro 8-bit style. The artwork should have a pixelated texture and should have vibrant coloring and scenery.';
 
-	let fullPrompt = `${detailed8BitPreface} ${prompt} Remember, this is in retro 8-bit style`;
-	fullPrompt = fullPrompt.substring(0, 900);
+		let fullPrompt = `${detailed8BitPreface} ${prompt} Remember, this is in retro 8-bit style`;
+		fullPrompt = fullPrompt.substring(0, 900);
 
-	const responseFetch = await openai.images.generate({
-		model: 'dall-e-3',
-		prompt: fullPrompt,
-		n: 1,
-		size: '1024x1024',
-		quality: 'standard',
-		style: 'vivid',
-		response_format: 'url',
-		user: 'user-1234',
-	});
+		const responseFetch = await openai.images.generate({
+			model: 'dall-e-3',
+			prompt: fullPrompt,
+			n: 1,
+			size: '1024x1024',
+			quality: 'standard',
+			style: 'vivid',
+			response_format: 'url',
+			user: 'user-1234',
+		});
 
-	return {
-		imageUrl: responseFetch.data[0]?.url,
-		initialPrompt: initialPrompt,
-		prompt: prompt,
-	};
+		return {
+			imageUrl: responseFetch.data[0]?.url,
+			initialPrompt: initialPrompt,
+			prompt: prompt,
+		};
+	} catch (error) {
+		console.error('Error generating image:', error);
+		// You might want to return a default or placeholder image URL here
+		return {
+			imageUrl: 'https://images.smart.wtf/black.png',
+			initialPrompt: initialPrompt,
+			prompt: 'Error occurred during image generation',
+		};
+	}
 };
