@@ -312,18 +312,6 @@ export default function Home({
               </div>
             ) : null}
 
-            <p className="text-center text-base text-red-500/80">
-              Video generation is currently disabled. <br />
-              Please use our open source{" "}
-              <a
-                className="underline"
-                href="https://github.com/noahgsolomon/brainrot.js"
-              >
-                GitHub
-              </a>{" "}
-              to run locally. 🫶
-            </p>
-
             {/* {!userDB?.user?.subscribed ? (
                 <p className="flex flex-col items-center gap-2">
                   Want to skip the queue?{" "}
