@@ -6,7 +6,16 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Crown, Folder, Github, Loader2, Wand, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Crown,
+  Folder,
+  Github,
+  Loader2,
+  Star,
+  Wand,
+  X,
+} from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
@@ -18,6 +27,7 @@ import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
+import XIcon from "@/components/svg/XIcon";
 
 export default function Home({
   searchParams,
@@ -247,12 +257,31 @@ export default function Home({
                 </p>
               </div>
 
-              <p className="max-w-[30ch] text-sm italic">
-                <Link
-                  href={"https://github.com/noahgsolomon/brainrot.js"}
-                  className="flex flex-col items-center gap-1 font-bold underline "
+              {/* Add the following block */}
+              <p className="mt-2 max-w-[35ch] text-center text-sm text-red-500/70">
+                brainrotjs.com is no longer operational. visit the{" "}
+                <a
+                  href="https://github.com/noahgsolomon/brainrot.js"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-4"
                 >
-                  now open source!{" "}
+                  github
+                </a>{" "}
+                repo to run locally.
+              </p>
+
+              {/* Add the following block */}
+              <p className="mt-2 flex max-w-[35ch] items-center justify-center space-x-2 text-center text-sm">
+                <span>connect w/ me, chat </span>
+                <Link
+                  href="https://x.com/noahgsolomon"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 flex items-center font-semibold transition-colors duration-200 hover:underline"
+                >
+                  x.com/noahgsolomon 🫶
+                  <ArrowUpRight className="ml-1 h-3 w-3" />
                 </Link>
               </p>
             </div>
@@ -342,7 +371,7 @@ export default function Home({
           <div className="flex flex-col gap-2">
             <Button
               className="flex flex-row items-center gap-2"
-              variant={"brain"}
+              variant={"outline"}
               size={"lg"}
               disabled={pendingVideo || true} // not accepting videos rn
               onClick={() => {
@@ -357,11 +386,11 @@ export default function Home({
               className={buttonVariants({
                 className: "flex flex-row items-center gap-2",
                 size: "lg",
-                variant: "outline",
+                variant: "brain",
               })}
             >
-              <Github className="h-4 w-4" />
-              Run Locally
+              <Star className="h-4 w-4 " />
+              Star on GitHub
             </Link>
             {/* <Link
               href={"/watch"}
