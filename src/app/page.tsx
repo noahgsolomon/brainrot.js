@@ -256,31 +256,31 @@ export default function Home({
                   <NumberTicker value={9221} /> videos generated 💀
                 </p>
               </div>
-
               {/* Add the following block */}
               <p className="mt-2 max-w-[35ch] text-center text-sm text-red-500/70">
-                brainrotjs.com is no longer operational. visit the{" "}
+                brainrotjs.com is no longer operational. <br />
+                visit the{" "}
                 <a
                   href="https://github.com/noahgsolomon/brainrot.js"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline underline-offset-4"
+                  className="font-bold underline underline-offset-4"
                 >
                   github
                 </a>{" "}
-                repo to run locally.
+                to run locally.
               </p>
 
-              {/* Add the following block */}
-              <p className="mt-2 flex max-w-[35ch] items-center justify-center space-x-2 text-center text-sm">
-                <span>connect w/ me, chat </span>
+              <p className="mt-2 flex max-w-[35ch] items-center justify-center space-x-1 text-center text-sm">
+                <span>with love,</span>
                 <Link
                   href="https://x.com/noahgsolomon"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 flex items-center font-semibold transition-colors duration-200 hover:underline"
                 >
-                  x.com/noahgsolomon 🫶
+                  {" "}
+                  Noah 🫶
                   <ArrowUpRight className="ml-1 h-3 w-3" />
                 </Link>
               </p>
@@ -357,7 +357,7 @@ export default function Home({
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <Button
+            {/* <Button
               className="flex flex-row items-center gap-2"
               variant={"outline"}
               size={"lg"}
@@ -367,7 +367,7 @@ export default function Home({
               }}
             >
               <Wand className="h-4 w-4" /> Create Video
-            </Button>
+            </Button> */}
             <Link
               href={"https://github.com/noahgsolomon/brainrot.js"}
               target="_blank"
