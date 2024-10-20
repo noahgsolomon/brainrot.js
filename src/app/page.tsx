@@ -285,7 +285,7 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {userDB?.user &&
+            {/* {userDB?.user &&
             !userDB?.user?.subscribed &&
             (userDB?.user?.credits ?? 0) <= 0 &&
             !pendingVideo ? (
@@ -310,7 +310,7 @@ export default function Home({
                   </ProButton>
                 </div>
               </div>
-            ) : null}
+            ) : null} */}
 
             {/* {!userDB?.user?.subscribed ? (
                 <p className="flex flex-col items-center gap-2">
