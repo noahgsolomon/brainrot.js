@@ -24,6 +24,7 @@ const transcribeAudio = async (audios) => {
 			}
 
 			const data = await response.json();
+			console.log('Data:', JSON.stringify(data, null, 2));
 			return data;
 		} catch (error) {
 			console.error(

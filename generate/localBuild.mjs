@@ -24,14 +24,14 @@ async function cleanupResources() {
 }
 
 const agents = [
-	'BARACK_OBAMA',
-	'BEN_SHAPIRO',
+	// 'BARACK_OBAMA',
+	// 'BEN_SHAPIRO',
 	'JORDAN_PETERSON',
 	'JOE_ROGAN',
-	'DONALD_TRUMP',
-	'MARK_ZUCKERBERG',
-	'JOE_BIDEN',
-	'LIL_YACHTY',
+	// 'DONALD_TRUMP',
+	// 'MARK_ZUCKERBERG',
+	// 'JOE_BIDEN',
+	// 'LIL_YACHTY',
 	// 'RICK_SANCHEZ',
 ];
 
@@ -48,7 +48,7 @@ async function main() {
 
 	// CHANGE THIS VALUE FOR YOUR CHOICE OF AGENTS
 	const agentA = agents[0];
-	const agentB = agents[4];
+	const agentB = agents[1];
 
 	// CHANGE THIS VALUE FOR A CUSTOM VIDEO TOPIC
 	const videoTopic = 'Proximal Policy Optimization';
