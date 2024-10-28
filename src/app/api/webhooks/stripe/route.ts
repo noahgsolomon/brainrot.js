@@ -4,6 +4,7 @@ import { brainrotusers } from "@/server/db/schemas/users/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import type Stripe from "stripe";
+import { CREDIT_AMOUNTS } from "@/config/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +14,14 @@ export async function POST(request: Request) {
   const body = await request.text();
   const signature = headers().get("stripe-signature") ?? "";
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET ?? "",
     );
-    console.log("Webhook event constructed successfully");
+    console.log("Webhook event constructed successfully", event.type);
   } catch (err) {
     console.error("Error constructing webhook event:", err);
     return new Response(
@@ -29,110 +31,163 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
-  if (!session?.metadata?.userId) {
-    console.log("Missing userId in session metadata");
-    return new Response(null, { status: 200 });
-  }
 
-  if (event.type === "checkout.session.completed") {
-    console.log("Handling checkout.session.completed event");
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
-
-    const user = await db.query.brainrotusers.findFirst({
-      where: eq(brainrotusers.id, parseInt(session.metadata.userId)),
-    });
-
-    if (!user) {
-      return new Response(null, { status: 400 });
+  try {
+    // Early return if no userId in metadata
+    if (!session?.metadata?.userId) {
+      console.log("Missing userId in session metadata");
+      return new Response(null, { status: 200 });
     }
 
-    console.log("Updating user subscription details in the database");
-    await db
-      .update(brainrotusers)
-      .set({
-        stripeSubscriptionId: subscription.id,
-        stripeCustomerId: subscription.customer as string,
-        stripePriceId: subscription.items.data[0]?.price.id,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000,
-        ),
-        subscribed: true,
-        credits: user.credits + 250,
-      })
-      .where(eq(brainrotusers.id, user.id));
+    // Handle successful checkouts
+    if (event.type === "checkout.session.completed") {
+      console.log("Handling checkout.session.completed event");
 
-    console.log("User subscription details updated successfully");
-  }
+      // One-time payment (credit packs)
+      if (session.mode === "payment" && session.metadata?.creditPacks) {
+        const creditPacks = parseInt(session.metadata.creditPacks);
+        const creditsToAdd = creditPacks * CREDIT_AMOUNTS.PACK_SIZE;
 
-  if (event.type === "invoice.payment_succeeded") {
-    console.log("Handling invoice.payment_succeeded event");
-    // Retrieve the subscription details from Stripe.
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
+        const user = await db.query.brainrotusers.findFirst({
+          where: eq(brainrotusers.id, parseInt(session.metadata.userId)),
+        });
 
-    console.log("Updating user subscription details in the database");
-    await db
-      .update(brainrotusers)
-      .set({
-        stripePriceId: subscription.items.data[0]?.price.id,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000,
-        ),
-        subscribed: true,
-      })
-      .where(eq(brainrotusers.stripeSubscriptionId, subscription.id));
+        if (!user) {
+          console.error("User not found for credit pack purchase");
+          return new Response(null, { status: 400 });
+        }
 
-    console.log("User subscription details updated successfully");
-  }
+        await db
+          .update(brainrotusers)
+          .set({
+            credits: user.credits + creditsToAdd,
+          })
+          .where(eq(brainrotusers.id, user.id));
 
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
-    await db
-      .update(brainrotusers)
-      .set({
-        stripePriceId: null,
-        stripeCurrentPeriodEnd: null,
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscribed: false,
-      })
-      .where(
-        eq(
-          brainrotusers.id,
-          parseInt(subscription.metadata.userId ?? "0") ?? 0,
-        ),
+        console.log(`Added ${creditsToAdd} credits to user ${user.id}`);
+      }
+      // Subscription payment
+      else if (session.mode === "subscription") {
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string,
+        );
+
+        const user = await db.query.brainrotusers.findFirst({
+          where: eq(brainrotusers.id, parseInt(session.metadata.userId)),
+        });
+
+        if (!user) {
+          console.error("User not found for subscription");
+          return new Response(null, { status: 400 });
+        }
+
+        console.log("Updating user subscription details in the database");
+        await db
+          .update(brainrotusers)
+          .set({
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            stripePriceId: subscription.items.data[0]?.price.id,
+            stripeCurrentPeriodEnd: new Date(
+              subscription.current_period_end * 1000,
+            ),
+            subscribed: true,
+            credits: user.credits + 250, // Monthly credits for subscription
+          })
+          .where(eq(brainrotusers.id, user.id));
+
+        console.log("User subscription details updated successfully");
+      }
+    }
+
+    // Handle successful subscription invoice payments
+    if (event.type === "invoice.payment_succeeded") {
+      console.log("Handling invoice.payment_succeeded event");
+
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription as string,
       );
 
-    console.log("User subscription deleted successfully");
-  }
+      const user = await db.query.brainrotusers.findFirst({
+        where: eq(brainrotusers.stripeSubscriptionId, subscription.id),
+      });
 
-  if (event.type === "customer.subscription.updated") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
-    const user = await db.query.brainrotusers.findFirst({
-      where: eq(
-        brainrotusers.id,
-        parseInt(subscription.metadata.userId ?? "0"),
-      ),
-    });
-    if (user) {
+      if (user) {
+        await db
+          .update(brainrotusers)
+          .set({
+            stripePriceId: subscription.items.data[0]?.price.id,
+            stripeCurrentPeriodEnd: new Date(
+              subscription.current_period_end * 1000,
+            ),
+            subscribed: true,
+            credits: user.credits + 250, // Refresh monthly credits
+          })
+          .where(eq(brainrotusers.id, user.id));
+
+        console.log("User subscription renewed successfully");
+      }
+    }
+
+    // Handle subscription cancellations
+    if (event.type === "customer.subscription.deleted") {
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription as string,
+      );
+
       await db
         .update(brainrotusers)
         .set({
-          credits: user.credits + 250,
+          stripePriceId: null,
+          stripeCurrentPeriodEnd: null,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          subscribed: false,
         })
-        .where(eq(brainrotusers.id, user.id));
+        .where(
+          eq(
+            brainrotusers.id,
+            parseInt(subscription.metadata.userId ?? "0") ?? 0,
+          ),
+        );
+
+      console.log("User subscription deleted successfully");
     }
 
-    console.log("User subscription deleted successfully");
-  }
+    // Handle subscription updates
+    if (event.type === "customer.subscription.updated") {
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription as string,
+      );
 
-  console.log("Webhook handling completed");
-  return new Response(null, { status: 200 });
+      const user = await db.query.brainrotusers.findFirst({
+        where: eq(
+          brainrotusers.id,
+          parseInt(subscription.metadata.userId ?? "0"),
+        ),
+      });
+
+      if (user) {
+        await db
+          .update(brainrotusers)
+          .set({
+            credits: user.credits + 250,
+          })
+          .where(eq(brainrotusers.id, user.id));
+
+        console.log("User subscription updated successfully");
+      }
+    }
+
+    console.log("Webhook handling completed successfully");
+    return new Response(null, { status: 200 });
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    return new Response(
+      `Webhook Error: ${
+        error instanceof Error ? error.message : "Unknown Error"
+      }`,
+      { status: 500 },
+    );
+  }
 }
