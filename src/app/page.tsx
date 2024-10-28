@@ -257,19 +257,6 @@ export default function Home({
                 </p>
               </div>
               {/* Add the following block */}
-              <p className="mt-2 max-w-[35ch] text-center text-sm text-red-500/70">
-                brainrotjs.com is no longer operational. <br />
-                visit the{" "}
-                <a
-                  href="https://github.com/noahgsolomon/brainrot.js"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold underline underline-offset-4"
-                >
-                  github
-                </a>{" "}
-                to run locally.
-              </p>
 
               <p className="mt-2 flex max-w-[35ch] items-center justify-center space-x-1 text-center text-sm">
                 <span>with love,</span>
