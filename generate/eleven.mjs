@@ -23,12 +23,12 @@ export async function generateTranscriptAudio(
 	duration,
 	background,
 	music,
-	videoId,
+	videoId
 ) {
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 	}
 
@@ -40,7 +40,7 @@ export async function generateTranscriptAudio(
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 	}
 
@@ -48,13 +48,13 @@ export async function generateTranscriptAudio(
 		transcript,
 		transcript.length,
 		ai,
-		duration,
+		duration
 	);
 
 	if (!local) {
 		await query(
 			"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
-			[videoId],
+			[videoId]
 		);
 	}
 
@@ -104,7 +104,7 @@ export const music: string = ${
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/${background}-' + ${Math.floor(
-		Math.random() * 10,
+		Math.random() * 10
 	)} + '.mp4';
 export const subtitlesFileName = [
   ${audios
@@ -113,7 +113,7 @@ export const subtitlesFileName = [
     name: '${entry.person}',
     file: staticFile('srt/${entry.person}-${i}.srt'),
     asset: '${entry.image}',
-  }`,
+  }`
 		)
 		.join(',\n  ')}
 ];
@@ -124,32 +124,28 @@ export const subtitlesFileName = [
 	return { audios, transcript };
 }
 
-export async function generateAudio(voice_id, person, line, index) {
-	const response = await fetch(
-		`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`,
-		{
-			method: 'POST',
-			headers: {
-				'xi-api-key': process.env.ELEVEN_API_KEY,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				model_id: 'eleven_multilingual_v2',
-				text: line,
-				voice_settings: {
-					stability: 0.5,
-					similarity_boost: 0.75,
-				},
-			}),
+async function generateAudio(voice_id, person, line, index) {
+	const response = await fetch('https://api.neets.ai/v1/tts', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-API-Key': process.env.NEETS_API_KEY,
 		},
-	);
+		body: JSON.stringify({
+			text: line,
+			voice_id: voice_id,
+			params: {
+				model: 'ar-diff-50k',
+			},
+		}),
+	});
 
 	if (!response.ok) {
 		throw new Error(`Server responded with status code ${response.status}`);
 	}
 
 	const audioStream = fs.createWriteStream(
-		`public/voice/${person}-${index}.mp3`,
+		`public/voice/${person}-${index}.mp3`
 	);
 	response.body.pipe(audioStream);
 
@@ -177,14 +173,14 @@ async function fetchValidImages(transcript, length, ai, duration) {
 		for (let i = 0; i < length; i++) {
 			const imageFetch = await fetch(
 				`https://www.googleapis.com/customsearch/v1?q=${encodeURI(
-					transcript[i].asset,
+					transcript[i].asset
 				)}&cx=${process.env.GOOGLE_CX}&searchType=image&key=${
 					process.env.GOOGLE_API_KEY
 				}&num=${4}`,
 				{
 					method: 'GET',
 					headers: { 'Content-Type': 'application/json' },
-				},
+				}
 			);
 			const imageResponse = await imageFetch.json();
 
@@ -195,7 +191,7 @@ async function fetchValidImages(transcript, length, ai, duration) {
 			) {
 				console.log(
 					'No images found or items not iterable',
-					imageResponse.items,
+					imageResponse.items
 				);
 				images.push({ link: 'https://images.smart.wtf/black.png' });
 				continue; // Skip to the next iteration
