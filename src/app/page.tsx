@@ -257,20 +257,6 @@ export default function Home({
                 </p>
               </div>
               {/* Add the following block */}
-
-              <p className="mt-2 flex max-w-[35ch] items-center justify-center space-x-1 text-center text-sm">
-                <span>with love,</span>
-                <Link
-                  href="https://x.com/noahgsolomon"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 flex items-center font-semibold transition-colors duration-200 hover:underline"
-                >
-                  {" "}
-                  Noah 🫶
-                  <ArrowUpRight className="ml-1 h-3 w-3" />
-                </Link>
-              </p>
             </div>
             {userDB?.user &&
             !userDB?.user?.subscribed &&
