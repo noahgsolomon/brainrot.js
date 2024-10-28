@@ -285,7 +285,7 @@ export default function Home({
                 </Link>
               </p>
             </div>
-            {/* {userDB?.user &&
+            {userDB?.user &&
             !userDB?.user?.subscribed &&
             (userDB?.user?.credits ?? 0) <= 0 &&
             !pendingVideo ? (
@@ -310,24 +310,8 @@ export default function Home({
                   </ProButton>
                 </div>
               </div>
-            ) : null} */}
+            ) : null}
 
-            {/* {!userDB?.user?.subscribed ? (
-                <p className="flex flex-col items-center gap-2">
-                  Want to skip the queue?{" "}
-                  <Link
-                    onClick={() => setIsOpen(false)}
-                    href={"/pricing"}
-                    className={buttonVariants({
-                      className: "flex flex-row items-center gap-2 ",
-                      variant: "gold",
-                      size: "sm",
-                    })}
-                  >
-                    GO PRO <Crown className="size-4" />
-                  </Link>
-                </p>
-              ) : null} */}
             {pendingVideo && (
               <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
                 <div className="flex flex-row items-center gap-2">
@@ -357,24 +341,24 @@ export default function Home({
             )}
           </div>
           <div className="flex flex-col gap-2">
-            {/* <Button
+            <Button
               className="flex flex-row items-center gap-2"
-              variant={"outline"}
+              variant={"brain"}
               size={"lg"}
-              disabled={pendingVideo || true} // not accepting videos rn
+              disabled={pendingVideo}
               onClick={() => {
                 setIsOpen(true);
               }}
             >
               <Wand className="h-4 w-4" /> Create Video
-            </Button> */}
+            </Button>
             <Link
               href={"https://github.com/noahgsolomon/brainrot.js"}
               target="_blank"
               className={buttonVariants({
                 className: "flex flex-row items-center gap-2",
                 size: "lg",
-                variant: "brain",
+                variant: "outline",
               })}
             >
               <Star className="h-4 w-4 " />
