@@ -13,6 +13,9 @@ const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Add logging at import time
+console.log('🔄 Initializing eleven.mjs module');
+
 export async function generateTranscriptAudio(
 	local,
 	topic,
@@ -25,94 +28,98 @@ export async function generateTranscriptAudio(
 	music,
 	videoId
 ) {
-	if (!local) {
-		await query(
-			"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
-			[videoId]
-		);
-	}
-
-	let transcript = (await transcriptFunction(topic, agentA, agentB, duration))
-		.transcript;
-
-	const audios = [];
-
-	if (!local) {
-		await query(
-			"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
-			[videoId]
-		);
-	}
-
-	const images = await fetchValidImages(
-		transcript,
-		transcript.length,
+	console.log('⭐ Starting generateTranscriptAudio with params:', {
+		local,
+		topic,
+		agentA,
+		agentB,
 		ai,
-		duration
-	);
+		duration,
+	});
 
-	if (!local) {
-		await query(
-			"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
-			[videoId]
+	try {
+		if (!local) {
+			console.log('📝 Updating video status - Generating transcript');
+			await query(
+				"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
+				[videoId]
+			);
+		}
+
+		console.log('📜 Getting transcript from transcriptFunction');
+		let transcript = (await transcriptFunction(topic, agentA, agentB, duration))
+			.transcript;
+		console.log('✅ Transcript generated:', transcript.length, 'entries');
+
+		const audios = [];
+
+		if (!local) {
+			console.log('📝 Updating video status - Fetching images');
+			await query(
+				"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
+				[videoId]
+			);
+		}
+
+		console.log('🖼️ Starting fetchValidImages');
+		const images = await fetchValidImages(
+			transcript,
+			transcript.length,
+			ai,
+			duration
 		);
-	}
+		console.log('✅ Images fetched:', images.length);
 
-	for (let i = 0; i < transcript.length; i++) {
-		const person = transcript[i].person;
-		const line = transcript[i].line;
+		if (!local) {
+			await query(
+				"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
+				[videoId]
+			);
+		}
 
-		const voice_id =
-			person === 'JOE_ROGAN'
-				? process.env.JOE_ROGAN_VOICE_ID
-				: person === 'BARACK_OBAMA'
-				? process.env.BARACK_OBAMA_VOICE_ID
-				: person === 'BEN_SHAPIRO'
-				? process.env.BEN_SHAPIRO_VOICE_ID
-				: person === 'RICK_SANCHEZ'
-				? process.env.RICK_SANCHEZ_VOICE_ID
-				: person === 'DONALD_TRUMP'
-				? process.env.DONALD_TRUMP_VOICE_ID
-				: person === 'MARK_ZUCKERBERG'
-				? process.env.MARK_ZUCKERBERG_VOICE_ID
-				: person === 'JOE_BIDEN'
-				? process.env.JOE_BIDEN_VOICE_ID
-				: person === 'LIL_YACHTY'
-				? process.env.LIL_YACHTY_VOICE_ID
-				: process.env.JORDAN_PETERSON_VOICE_ID;
+		for (let i = 0; i < transcript.length; i++) {
+			const person = transcript[i].person;
+			const line = transcript[i].line;
 
-		await generateAudio(voice_id, person, line, i);
-		audios.push({
-			person: person,
-			audio: `public/voice/${person}-${i}.mp3`,
-			index: i,
-			image:
-				ai && duration === 1
-					? images[i].imageUrl
-					: images[i]?.link || 'https://images.smart.wtf/black.png',
-		});
-	}
+			const voice_id =
+				person === 'JOE_ROGAN'
+					? process.env.JOE_ROGAN_VOICE_ID
+					: person === 'BARACK_OBAMA'
+					? process.env.BARACK_OBAMA_VOICE_ID
+					: person === 'BEN_SHAPIRO'
+					? process.env.BEN_SHAPIRO_VOICE_ID
+					: person === 'RICK_SANCHEZ'
+					? process.env.RICK_SANCHEZ_VOICE_ID
+					: person === 'DONALD_TRUMP'
+					? process.env.DONALD_TRUMP_VOICE_ID
+					: person === 'MARK_ZUCKERBERG'
+					? process.env.MARK_ZUCKERBERG_VOICE_ID
+					: person === 'JOE_BIDEN'
+					? process.env.JOE_BIDEN_VOICE_ID
+					: person === 'LIL_YACHTY'
+					? process.env.LIL_YACHTY_VOICE_ID
+					: process.env.JORDAN_PETERSON_VOICE_ID;
 
-	const initialAgentName = audios[0].person;
+			await generateAudio(voice_id, person, line, i);
+			audios.push({
+				person: person,
+				audio: `public/voice/${person}-${i}.mp3`,
+				index: i,
+				image:
+					ai && duration === 1
+						? images[i].imageUrl
+						: images[i]?.link || 'https://images.smart.wtf/black.png',
+			});
+		}
 
-	// 	const contextContent = `
-	// import { staticFile } from 'remotion';
+		const initialAgentName = audios[0].person;
 
-	// export const music: string = ${
-	// 		music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
-	// 	};
-	// export const fps = ${fps};
-	// export const initialAgentName = '${initialAgentName}';
-	// export const videoFileName = '/background/${background}-' + ${Math.floor(
-	// 		Math.random() * 10
-	// 	)} + '.mp4';
-
-	const contextContent = `
+		const contextContent = `
 import { staticFile } from 'remotion';
 
 export const music: string = ${
-		music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
-	};
+			music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
+		};
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/MINECRAFT-0.mp4';
@@ -131,9 +138,13 @@ export const subtitlesFileName = [
 ];
 `;
 
-	await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
+		await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 
-	return { audios, transcript };
+		return { audios, transcript };
+	} catch (error) {
+		console.error('❌ Error in generateTranscriptAudio:', error);
+		throw error;
+	}
 }
 
 async function generateAudio(voice_id, person, line, index) {
@@ -170,17 +181,30 @@ async function generateAudio(voice_id, person, line, index) {
 }
 
 async function fetchValidImages(transcript, length, ai, duration) {
+	console.log('🔍 Starting fetchValidImages with params:', {
+		length,
+		ai,
+		duration,
+	});
+
 	if (ai && duration === 1) {
+		console.log('🤖 Using AI image generation');
 		const promises = [];
 
 		for (let i = 0; i < length; i++) {
+			console.log(
+				`📸 Queueing image generation for transcript ${i}:`,
+				transcript[i].asset
+			);
 			promises.push(imageGeneneration(transcript[i].asset));
 		}
 
+		console.log('⏳ Waiting for all image generations to complete');
 		const aiImages = await Promise.all(promises);
-
+		console.log('✅ AI images generated:', aiImages.length);
 		return aiImages;
 	} else {
+		console.log('🔎 Using Google image search');
 		const images = [];
 		for (let i = 0; i < length; i++) {
 			const imageFetch = await fetch(
@@ -255,33 +279,34 @@ async function checkImageHeaders(url) {
 }
 
 const imagePrompt = async (title) => {
+	console.log('💭 Generating image prompt for:', title);
 	try {
 		const response = await openai.chat.completions.create({
 			model: 'ft:gpt-3.5-turbo-1106:personal::8TEhcfKm',
-			messages: [
-				{
-					role: 'user',
-					content: title,
-				},
-			],
+			messages: [{ role: 'user', content: title }],
 		});
-		console.log('image prompt ' + response.choices[0]?.message.content);
-
+		console.log('✅ Prompt generated:', response.choices[0]?.message.content);
 		return response.choices[0]?.message.content;
 	} catch (error) {
-		console.error('Error fetching data:', error);
+		console.error('❌ Error generating prompt:', error);
+		throw error;
 	}
 };
 
 const imageGeneneration = async (initialPrompt) => {
+	console.log('🎨 Starting image generation for prompt:', initialPrompt);
 	try {
+		console.log('1️⃣ Getting AI prompt');
 		const prompt = await imagePrompt(initialPrompt);
+
+		console.log('2️⃣ Building full prompt');
 		const detailed8BitPreface =
 			'Create an image in a detailed retro 8-bit style. The artwork should have a pixelated texture and should have vibrant coloring and scenery.';
 
 		let fullPrompt = `${detailed8BitPreface} ${prompt} Remember, this is in retro 8-bit style`;
 		fullPrompt = fullPrompt.substring(0, 900);
 
+		console.log('3️⃣ Calling DALL-E API');
 		const responseFetch = await openai.images.generate({
 			model: 'dall-e-3',
 			prompt: fullPrompt,
@@ -293,14 +318,14 @@ const imageGeneneration = async (initialPrompt) => {
 			user: 'user-1234',
 		});
 
+		console.log('✅ Image generated successfully');
 		return {
 			imageUrl: responseFetch.data[0]?.url,
 			initialPrompt: initialPrompt,
 			prompt: prompt,
 		};
 	} catch (error) {
-		console.error('Error generating image:', error);
-		// You might want to return a default or placeholder image URL here
+		console.error('❌ Error in imageGeneration:', error);
 		return {
 			imageUrl: 'https://images.smart.wtf/black.png',
 			initialPrompt: initialPrompt,
