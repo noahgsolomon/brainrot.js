@@ -308,7 +308,7 @@ export default function CreateVideo({
                 alt="jordan"
               />
             </div>
-            <div
+            {/* <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                 `${
@@ -357,7 +357,7 @@ export default function CreateVideo({
                 height={75}
                 alt="ben shapiro"
               />
-            </div>
+            </div> */}
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
@@ -508,7 +508,7 @@ export default function CreateVideo({
             {/*     alt="barack" */}
             {/*   /> */}
             {/* </div> */}
-            <div
+            {/* <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                 `${
@@ -557,8 +557,8 @@ export default function CreateVideo({
                 height={75}
                 alt="barack"
               />
-            </div>
-            <div
+            </div> */}
+            {/* <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                 `${
@@ -610,7 +610,7 @@ export default function CreateVideo({
                 height={75}
                 alt="barack"
               />
-            </div>
+            </div> */}
           </div>
         </div>
         <div>
