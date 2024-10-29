@@ -290,9 +290,19 @@ export default function Home({
               {/* Add the following block */}
             </div>
             {userDB?.user && !pendingVideo ? (
-              <Card className="w-full max-w-xl border-none bg-transparent shadow-none">
+              <Card
+                className={` ${
+                  !userDB?.user?.subscribed
+                    ? "max-w-xl"
+                    : "flex flex-col items-center justify-center"
+                } border-none bg-transparent shadow-none`}
+              >
                 <CardContent>
-                  <div className="grid gap-6 pt-4 sm:grid-cols-2">
+                  <div
+                    className={`grid w-full gap-6 pt-4 ${
+                      !userDB?.user?.subscribed ? "sm:grid-cols-2" : ""
+                    }`}
+                  >
                     {userDB?.user?.subscribed ? null : (
                       <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
                         <h3 className="text-lg font-semibold text-secondary-foreground">
