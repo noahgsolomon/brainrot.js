@@ -24,8 +24,33 @@ const transcribeAudio = async (audios) => {
 			}
 
 			const data = await response.json();
-			console.log('Data:', JSON.stringify(data, null, 2));
-			return data;
+
+			// Process each segment to ensure it has words
+			return data.map(([transcription, audioPath]) => {
+				const processedTranscription = {
+					...transcription,
+					segments: transcription.segments.map((segment) => ({
+						...segment,
+						words:
+							segment.words ||
+							segment.text.split(' ').map((word, index) => ({
+								text: word,
+								start:
+									segment.start +
+									index *
+										((segment.end - segment.start) /
+											segment.text.split(' ').length),
+								end:
+									segment.start +
+									(index + 1) *
+										((segment.end - segment.start) /
+											segment.text.split(' ').length),
+							})),
+					})),
+				};
+
+				return [processedTranscription, audioPath];
+			});
 		} catch (error) {
 			console.error(
 				`Error transcribing audio (attempt ${retryCount + 1}):`,
