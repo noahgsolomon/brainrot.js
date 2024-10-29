@@ -10,19 +10,29 @@ RUN dnf install -y \
 RUN dnf install -y python3 python3-pip npm gcc gcc-c++ make python3-devel chromium
 RUN dnf install -y ffmpeg --allowerasing
 
-# Copy the current directory contents into the container at /app
-COPY . /app/brainrot
+# Set environment variables to force CPU usage
+ENV CUDA_VISIBLE_DEVICES=""
+ENV FORCE_CPU=1
+ENV TORCH_DEVICE="cpu"
 
-# Set the working directory to /app/brainrot
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt /app/brainrot/
 WORKDIR /app/brainrot
 
-# Install Python dependencies
+# Clean any existing torch installations and install CPU version
+RUN pip3 uninstall -y torch torchvision torchaudio
+RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install other Python dependencies
 RUN pip3 install gunicorn
 RUN pip3 install -r requirements.txt
+
+# Copy the rest of the application
+COPY . /app/brainrot
 
 # Install Node.js dependencies
 RUN npm install pm2 -g
 RUN npm install
 
 # Command to run the application
-CMD  /usr/bin/python3 /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 --access-logfile access.log --error-logfile error.log transcribe:app --daemon --timeout 120 && tail -f /dev/null
+CMD ["/bin/sh", "-c", "/usr/bin/python3 /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 --access-logfile access.log --error-logfile error.log transcribe:app --daemon --timeout 120 && tail -f /dev/null"]
