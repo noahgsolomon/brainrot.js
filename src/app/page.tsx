@@ -8,13 +8,17 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowUpRight,
+  Coins,
   Crown,
   Folder,
   Github,
   Loader2,
+  Minus,
+  Plus,
   Star,
   Wand,
   X,
+  Zap,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +32,21 @@ import NumberTicker from "@/components/magicui/number-ticker";
 import { useGenerationType } from "./usegenerationtype";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import XIcon from "@/components/svg/XIcon";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+  CardHeader,
+} from "@/components/ui/card";
 
 export default function Home({
   searchParams,
@@ -197,6 +216,18 @@ export default function Home({
     }
   }, [user.isSignedIn, videoStatus.data?.videos]);
 
+  const { mutate: createStripeSession } =
+    trpc.user.createCreditPackSession.useMutation({
+      onSuccess: ({ url }) => {
+        if (url) window.location.href = url;
+      },
+    });
+
+  const [showCredits, setShowCredits] = useState(false);
+  const [creditPacks, setCreditPacks] = useState(1);
+  const cost = creditPacks * 5;
+  const totalCredits = creditPacks * 25;
+
   useEffect(() => {
     if (isInQueue) {
       toast.info("Your video is currently in queue", { icon: "🕒" });
@@ -258,31 +289,120 @@ export default function Home({
               </div>
               {/* Add the following block */}
             </div>
-            {userDB?.user &&
-            !userDB?.user?.subscribed &&
-            (userDB?.user?.credits ?? 0) <= 0 &&
-            !pendingVideo ? (
-              <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
-                <div className="flex flex-col gap-2 font-bold">
-                  <div className="flex flex-col gap-1">
-                    {" "}
-                    go pro to generate videos!
-                    <span className="text-xs font-normal italic">
-                      (and to support me 🥹🫶)
-                    </span>
-                  </div>
+            {userDB?.user && !pendingVideo ? (
+              <Card className="w-full max-w-xl border-none bg-transparent shadow-none">
+                <CardContent>
+                  <div className="grid gap-6 pt-4 sm:grid-cols-2">
+                    {userDB?.user?.subscribed ? null : (
+                      <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+                        <h3 className="text-lg font-semibold text-secondary-foreground">
+                          Go Pro
+                        </h3>
+                        <div className="flex flex-col items-start gap-2">
+                          <p className="text-sm text-secondary-foreground/80">
+                            Generate 25 videos, 60 FPS, all agents, perfect
+                            subtitles
+                          </p>
+                        </div>
+                        <ProButton>
+                          <Button
+                            data-action="subscribe"
+                            className="mt-2 flex w-full flex-row items-center justify-center gap-2"
+                            size="lg"
+                          >
+                            GO PRO <Crown className="size-4" />
+                          </Button>
+                        </ProButton>
+                      </div>
+                    )}
 
-                  <ProButton>
-                    <Button
-                      data-action="subscribe"
-                      className={"flex w-full flex-row items-center gap-2"}
-                      variant={"red"}
-                    >
-                      GO PRO <Crown className="size-4" />
-                    </Button>
-                  </ProButton>
-                </div>
-              </div>
+                    <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+                      <h3 className="text-lg font-semibold text-secondary-foreground">
+                        Buy Credits
+                      </h3>
+                      <div className="flex flex-col items-start gap-2">
+                        <p className="text-sm text-secondary-foreground/80">
+                          Purchase credits for individual videos
+                        </p>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="lg"
+                            className="mt-2 flex w-full flex-row items-center justify-center gap-2"
+                            variant="outline"
+                          >
+                            Buy Credits <Coins className="size-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl">
+                              Purchase Credits
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Coins className="h-5 w-5 text-yellow-500" />
+                                <p className="text-lg font-bold">
+                                  {creditPacks * 25} credits
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  disabled={creditPacks <= 1}
+                                  onClick={() =>
+                                    setCreditPacks((prev) =>
+                                      Math.max(1, prev - 1),
+                                    )
+                                  }
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-8 text-center">
+                                  {creditPacks}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  disabled={creditPacks >= 10}
+                                  onClick={() =>
+                                    setCreditPacks((prev) =>
+                                      Math.min(10, prev + 1),
+                                    )
+                                  }
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Each pack: 25 credits (~2-3 videos)
+                            </p>
+                            <div>
+                              <p className="text-lg font-bold">
+                                Total: ${creditPacks * 5}
+                              </p>
+                              <Button
+                                variant="default"
+                                onClick={() =>
+                                  createStripeSession({ creditPacks })
+                                }
+                                className="mt-2 flex w-full flex-row items-center justify-center gap-2"
+                              >
+                                Purchase Credits <Zap className="h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ) : null}
 
             {pendingVideo && (
@@ -325,7 +445,7 @@ export default function Home({
             >
               <Wand className="h-4 w-4" /> Create Video
             </Button>
-            <Link
+            {/* <Link
               href={"https://github.com/noahgsolomon/brainrot.js"}
               target="_blank"
               className={buttonVariants({
@@ -336,7 +456,7 @@ export default function Home({
             >
               <Star className="h-4 w-4 " />
               Star on GitHub
-            </Link>
+            </Link> */}
             {/* <Link
               href={"/watch"}
               className={buttonVariants({
