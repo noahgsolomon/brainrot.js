@@ -104,7 +104,7 @@ export default function CreateVideo({
   useEffect(() => {
     let value = 10;
     if (assetType === "AI") {
-      value += 5;
+      value += 0;
     }
     if (duration) {
       value += 10 * (duration - 1) * (fps && fps > 20 ? fps / 30 : 1);
@@ -863,7 +863,7 @@ export default function CreateVideo({
                         <Button
                           data-action="subscribe"
                           className="flex flex-row items-center gap-2 "
-                          variant="brain"
+                          variant="red"
                           size="sm"
                         >
                           GO PRO <Crown className="size-4" />
