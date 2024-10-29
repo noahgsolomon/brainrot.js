@@ -51,13 +51,14 @@ async function main() {
 	const agentB = agents[1];
 
 	// CHANGE THIS VALUE FOR A CUSTOM VIDEO TOPIC
-	const videoTopic = 'Proximal Policy Optimization';
+	const videoTopic =
+		'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
 	const aiGeneratedImages = true;
-	const fps = 15;
+	const fps = 60;
 	const duration = 1; //minute
 	//MINECRAFT or TRUCK or GTA
 	const background = 'TRUCK';
-	const music = 'NONE';
+	const music = 'WII_SHOP_CHANNEL_TRAP';
 	const cleanSrt = true;
 
 	await transcribeFunction(
