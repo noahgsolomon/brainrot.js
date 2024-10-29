@@ -13,7 +13,7 @@ async function insertRecordToDB(body: any) {
     url: "",
     timestamp: new Date(),
     duration: body.duration ?? 1,
-    music: body.music ?? "NONE",
+    music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
     background:
       body.background !== null
         ? body.background
@@ -22,7 +22,7 @@ async function insertRecordToDB(body: any) {
         : Math.random() > 0.5
         ? "GTA"
         : "TRUCK",
-    fps: body.fps ?? 20,
+    fps: body.fps ?? 30,
     aiGeneratedImages: true,
     // body.aiGeneratedImages,
     cleanSrt: false,
