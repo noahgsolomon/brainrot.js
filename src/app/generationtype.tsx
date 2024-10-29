@@ -23,6 +23,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useCreateVideo } from "./usecreatevideo";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import ProButton from "./ProButton";
+import BuyCreditsDialog from "./buy-credits-dialog";
 
 export default function GenerationType() {
   const [typeSelected, _] = useState<"math" | "brainrot" | "">("");
@@ -198,11 +199,7 @@ export default function GenerationType() {
               <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div className="flex flex-col gap-2 font-bold">
                   <div className="flex flex-col gap-1">
-                    {" "}
-                    go pro to generate videos!
-                    <span className="text-xs font-normal italic">
-                      (and to support me 🥹🫶)
-                    </span>
+                    Go Pro or Buy Credits to Generate Videos!
                   </div>
 
                   <ProButton searchQueryString={searchQueryString}>
@@ -214,6 +211,7 @@ export default function GenerationType() {
                       GO PRO <Crown className="size-4" />
                     </Button>
                   </ProButton>
+                  <BuyCreditsDialog />
                 </div>
               </div>
             </div>
