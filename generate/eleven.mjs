@@ -95,6 +95,18 @@ export async function generateTranscriptAudio(
 
 	const initialAgentName = audios[0].person;
 
+	// 	const contextContent = `
+	// import { staticFile } from 'remotion';
+
+	// export const music: string = ${
+	// 		music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
+	// 	};
+	// export const fps = ${fps};
+	// export const initialAgentName = '${initialAgentName}';
+	// export const videoFileName = '/background/${background}-' + ${Math.floor(
+	// 		Math.random() * 10
+	// 	)} + '.mp4';
+
 	const contextContent = `
 import { staticFile } from 'remotion';
 
@@ -103,9 +115,9 @@ export const music: string = ${
 	};
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
-export const videoFileName = '/background/${background}-' + ${Math.floor(
-		Math.random() * 10
-	)} + '.mp4';
+export const videoFileName = '/background/MINECRAFT-0.mp4';
+
+
 export const subtitlesFileName = [
   ${audios
 		.map(
