@@ -18,13 +18,6 @@ export default function Page() {
       },
     });
 
-  const { mutate: createProSubscription } =
-    trpc.user.createStripeSession.useMutation({
-      onSuccess: ({ url }) => {
-        if (url) window.location.href = url;
-      },
-    });
-
   return (
     <div className="flex min-h-screen w-full items-center justify-center px-4 py-20">
       <div className="grid max-w-6xl gap-8 md:grid-cols-2">
@@ -139,16 +132,17 @@ export default function Page() {
               </div>
             </div>
           </div>
-
-          <Button
-            size="xl"
-            variant="outline"
-            onClick={() => createProSubscription()}
-            className="flex w-full flex-row items-center justify-center gap-2 hover:bg-card/40 hover:text-secondary hover:dark:text-primary"
-            data-action="subscribe"
-          >
-            GO PRO <Crown className="h-4 w-4" />
-          </Button>
+          <ProButton>
+            <Button
+              size="xl"
+              variant="outline"
+              // onClick={() => createProSubscription()}
+              className="flex w-full flex-row items-center justify-center gap-2 hover:bg-card/40 hover:text-secondary hover:dark:text-primary"
+              data-action="subscribe"
+            >
+              GO PRO <Crown className="h-4 w-4" />
+            </Button>
+          </ProButton>
         </div>
       </div>
     </div>
