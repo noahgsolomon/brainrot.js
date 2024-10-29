@@ -14,7 +14,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { absoluteUrl } from "@/lib/utils";
 import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
-import { PLANS } from "@/config/stripe";
+import { PLANS, getPriceId } from "@/config/stripe";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -277,6 +277,38 @@ export const userRouter = createTRPCRouter({
         }
       },
     ),
+
+  createCreditPackSession: protectedProcedure
+    .input(z.object({ creditPacks: z.number().min(1).max(10) }))
+    .mutation(async ({ ctx, input }) => {
+      const dbUser = await ctx.db.query.brainrotusers.findFirst({
+        where: eq(brainrotusers.id, ctx.user_id),
+      });
+
+      if (!dbUser) {
+        throw new Error("User not found");
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        success_url: absoluteUrl("/"),
+        cancel_url: absoluteUrl("/"),
+        payment_method_types: ["card"],
+        mode: "payment",
+        billing_address_collection: "auto",
+        line_items: [
+          {
+            price: getPriceId("creditPack"),
+            quantity: input.creditPacks,
+          },
+        ],
+        metadata: {
+          userId: ctx.user_id,
+          creditPacks: input.creditPacks,
+        },
+      });
+
+      return { url: session.url };
+    }),
 
   // Mutation to create a Stripe checkout session for the user
   createStripeSession: protectedProcedure
