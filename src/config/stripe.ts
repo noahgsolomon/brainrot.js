@@ -22,3 +22,27 @@ export const PLANS = [
     },
   },
 ];
+
+export const CREDIT_AMOUNTS = {
+  PACK_SIZE: 25,
+  PACK_PRICE: 5,
+} as const;
+
+export const CREDIT_PACK_PRICES = {
+  test: "price_1QF0zaJ9brh1H24beY3bFkJ2",
+  production: "price_1QF0zaJ9brh1H24beY3bFkJ2",
+} as const;
+
+export const getPriceId = (type: "creditPack" | "subscription") => {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (type === "creditPack") {
+    return isProduction
+      ? CREDIT_PACK_PRICES.production
+      : CREDIT_PACK_PRICES.test;
+  }
+
+  return isProduction
+    ? PLANS[0]?.price.priceIds.production
+    : PLANS[0]?.price.priceIds.test;
+};
