@@ -288,7 +288,7 @@ export default function PageClient({
       <div className="flex flex-wrap justify-center gap-4 py-36 ">
         <ClientTweetCard
           className=" bg-card/60 text-sm"
-          id="1787633614835843302"
+          id="1851433101798363562"
         />
         <ClientTweetCard
           className=" bg-card/60 text-sm"
