@@ -139,12 +139,12 @@ export default function Page() {
                   ? "https://images.smart.wtf/BEN_SHAPIRO.png"
                   : agent1 === "DONALD_TRUMP"
                   ? "https://images.smart.wtf/DONALD_TRUMP.png"
-                  : agent1 === "LIL_YACHTY"
-                  ? "https://images.smart.wtf/LIL_YACHTY.png"
+                  : agent1 === "KAMALA_HARRIS"
+                  ? "https://images.smart.wtf/KAMALA_HARRIS.png"
                   : agent1 === "JOE_BIDEN"
                   ? "https://images.smart.wtf/JOE_BIDEN.png"
-                  : agent1 === "MARK_ZUCKERBERG"
-                  ? "https://images.smart.wtf/MARK_ZUCKERBERG.png"
+                  : agent1 === "ANDREW_TATE"
+                  ? "https://images.smart.wtf/ANDREW_TATE.png"
                   : "https://images.smart.wtf/BEN_SHAPIRO.png";
 
               const agent2Img =
@@ -158,12 +158,12 @@ export default function Page() {
                   ? "https://images.smart.wtf/BEN_SHAPIRO.png"
                   : agent2 === "DONALD_TRUMP"
                   ? "https://images.smart.wtf/DONALD_TRUMP.png"
-                  : agent2 === "LIL_YACHTY"
-                  ? "https://images.smart.wtf/LIL_YACHTY.png"
+                  : agent2 === "KAMALA_HARRIS"
+                  ? "https://images.smart.wtf/KAMALA_HARRIS.png"
                   : agent2 === "JOE_BIDEN"
                   ? "https://images.smart.wtf/JOE_BIDEN.png"
-                  : agent2 === "MARK_ZUCKERBERG"
-                  ? "https://images.smart.wtf/MARK_ZUCKERBERG.png"
+                  : agent2 === "ANDREW_TATE"
+                  ? "https://images.smart.wtf/ANDREW_TATE.png"
                   : "https://images.smart.wtf/BEN_SHAPIRO.png";
 
               return (

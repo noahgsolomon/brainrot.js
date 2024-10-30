@@ -35,9 +35,9 @@ interface useGenerationTypeProps {
           | "JOE_ROGAN"
           | "BARACK_OBAMA"
           | "DONALD_TRUMP"
-          | "MARK_ZUCKERBERG"
-          | "LIL_YACHTY"
-          | "JOE_BIDEN";
+          | "JOE_BIDEN"
+          | "ANDREW_TATE"
+          | "KAMALA_HARRIS";
         id: number;
       }[];
       cost: number;
@@ -60,9 +60,9 @@ interface useGenerationTypeProps {
           | "JOE_ROGAN"
           | "BARACK_OBAMA"
           | "DONALD_TRUMP"
-          | "MARK_ZUCKERBERG"
-          | "LIL_YACHTY"
-          | "JOE_BIDEN";
+          | "JOE_BIDEN"
+          | "ANDREW_TATE"
+          | "KAMALA_HARRIS";
         id: number;
       }[];
       cost: number;
