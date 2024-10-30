@@ -47,7 +47,31 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 
-export default function BuyCreditsDialog() {
+export default function BuyCreditsDialog({
+  searchParams,
+  searchQueryString,
+}: {
+  searchParams?: {
+    agent1Id?: string;
+    agent2Id?: string;
+    agent1Name?: string;
+    agent2Name?: string;
+    title?: string;
+    credits?: string;
+    music?: string;
+    background?: string;
+    assetType?: string;
+    duration?: string;
+    fps?: string;
+  };
+  searchQueryString?: string;
+}) {
+  const obj = searchQueryString
+    ? { searchQueryString }
+    : searchParams
+    ? { searchParams: searchParams }
+    : undefined;
+
   const { mutate: createStripeSession } =
     trpc.user.createCreditPackSession.useMutation({
       onSuccess: ({ url }) => {
@@ -55,10 +79,7 @@ export default function BuyCreditsDialog() {
       },
     });
 
-  const [showCredits, setShowCredits] = useState(false);
   const [creditPacks, setCreditPacks] = useState(1);
-  const cost = creditPacks * 5;
-  const totalCredits = creditPacks * 25;
 
   return (
     <Dialog>
@@ -108,7 +129,7 @@ export default function BuyCreditsDialog() {
             <p className="text-lg font-bold">Total: ${creditPacks * 5}</p>
             <Button
               variant="default"
-              onClick={() => createStripeSession({ creditPacks })}
+              onClick={() => createStripeSession({ creditPacks, ...obj })}
               className="mt-2 flex w-full flex-row items-center justify-center gap-2"
             >
               Purchase Credits <Zap className="h-4" />

@@ -279,8 +279,53 @@ export const userRouter = createTRPCRouter({
     ),
 
   createCreditPackSession: protectedProcedure
-    .input(z.object({ creditPacks: z.number().min(1).max(10) }))
+    .input(
+      z.object({
+        creditPacks: z.number().min(1).max(10),
+        searchParams: z
+          .object({
+            agent1Id: z.string().optional(),
+            agent2Id: z.string().optional(),
+            agent1Name: z.string().optional(),
+            agent2Name: z.string().optional(),
+            title: z.string().optional(),
+            credits: z.string().optional(),
+            music: z.string().optional(),
+            background: z.string().optional(),
+            assetType: z.string().optional(),
+            duration: z.string().optional(),
+            fps: z.string().optional(),
+          })
+          .optional(),
+        searchQueryString: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      const searchParams = input?.searchParams ?? {};
+      const searchQueryString = input?.searchQueryString
+        ? input?.searchQueryString
+        : `?agent1Id=${encodeURIComponent(
+            searchParams.agent1Id || "",
+          )}&agent2Id=${encodeURIComponent(
+            searchParams.agent2Id || "",
+          )}&agent1Name=${encodeURIComponent(
+            searchParams.agent1Name || "",
+          )}&agent2Name=${encodeURIComponent(
+            searchParams.agent2Name || "",
+          )}&title=${encodeURIComponent(
+            searchParams.title || "",
+          )}&credits=${encodeURIComponent(
+            searchParams.credits || "",
+          )}&music=${encodeURIComponent(
+            searchParams.music || "",
+          )}&background=${encodeURIComponent(
+            searchParams.background || "",
+          )}&assetType=${encodeURIComponent(
+            searchParams.assetType || "",
+          )}&duration=${encodeURIComponent(
+            searchParams.duration || "",
+          )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+
       const dbUser = await ctx.db.query.brainrotusers.findFirst({
         where: eq(brainrotusers.id, ctx.user_id),
       });
@@ -290,8 +335,8 @@ export const userRouter = createTRPCRouter({
       }
 
       const session = await stripe.checkout.sessions.create({
-        success_url: absoluteUrl("/"),
-        cancel_url: absoluteUrl("/"),
+        success_url: absoluteUrl(`/${searchQueryString}`),
+        cancel_url: absoluteUrl(`/${searchQueryString}`),
         payment_method_types: ["card"],
         mode: "payment",
         billing_address_collection: "auto",
