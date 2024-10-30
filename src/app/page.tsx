@@ -1,55 +1,16 @@
-"use client";
-
 import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useCreateVideo } from "./usecreatevideo";
-import { useYourVideos } from "./useyourvideos";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-  ArrowUpRight,
-  Coins,
-  Crown,
-  Folder,
-  Github,
-  Loader2,
-  Minus,
-  Plus,
-  Star,
-  Wand,
-  X,
-  Zap,
-} from "lucide-react";
-import { useUser } from "@clerk/nextjs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { trpc } from "@/trpc/client";
-import Link from "next/link";
-import Credits from "./credits";
-import { useRouter } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
+import { Crown } from "lucide-react";
 import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
-import { useGenerationType } from "./usegenerationtype";
-import ClientTweetCard from "@/components/magicui/client-tweet-card";
-import XIcon from "@/components/svg/XIcon";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import BuyCreditsDialog from "./buy-credits-dialog";
+import { api } from "@/trpc/server";
+import PageClient from "./page-client";
+import { currentUser } from "@clerk/nextjs/server";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
-export default function Home({
+export default async function Home({
   searchParams,
 }: {
   searchParams: {
@@ -70,159 +31,28 @@ export default function Home({
     fps?: string;
   };
 }) {
-  const user = useUser();
-  const router = useRouter();
-
-  if (searchParams.subscribed === "true") {
-    toast.success("🎉 welcome to the family");
-    router.push("/");
+  let userDB;
+  let pendingVideo = false;
+  let clerkUser;
+  try {
+    userDB = await api.user.user.query();
+    clerkUser = await currentUser();
+    const videoStatus = await api.user.videoStatus.query();
+    pendingVideo =
+      videoStatus?.videos !== null && videoStatus?.videos !== undefined;
+  } catch (e) {
+    userDB = null;
   }
-  if (searchParams.error === "true") {
-    toast.error("Error. Please try again.");
-    router.push("/");
-  }
 
-  const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
-    useGenerationType();
-
-  useEffect(() => {
-    console.log(searchParams);
-
-    if (
-      searchParams.agent1Id &&
-      searchParams.agent2Id &&
-      searchParams.agent1Name &&
-      searchParams.agent2Name &&
-      searchParams.title &&
-      searchParams.credits &&
-      searchParams.fps
-    ) {
-      setVideoDetails({
-        brainrot: {
-          agents: [
-            {
-              id: parseInt(searchParams.agent1Id),
-              name: searchParams.agent1Name as
-                | "JORDAN_PETERSON"
-                | "BEN_SHAPIRO"
-                | "JOE_ROGAN"
-                | "BARACK_OBAMA"
-                | "DONALD_TRUMP"
-                | "MARK_ZUCKERBERG"
-                | "LIL_YACHTY"
-                | "JOE_BIDEN",
-            },
-            {
-              id: parseInt(searchParams.agent2Id),
-              name: searchParams.agent2Name as
-                | "JORDAN_PETERSON"
-                | "BEN_SHAPIRO"
-                | "JOE_ROGAN"
-                | "BARACK_OBAMA"
-                | "DONALD_TRUMP"
-                | "MARK_ZUCKERBERG"
-                | "LIL_YACHTY"
-                | "JOE_BIDEN",
-            },
-          ],
-          assetType: searchParams.assetType ?? "GOOGLE",
-          background: searchParams?.background ?? "MINECRAFT",
-          cost: parseInt(searchParams.credits),
-          duration: searchParams?.duration
-            ? parseInt(searchParams?.duration)
-            : 1,
-          fps: parseInt(searchParams.fps),
-          music: searchParams.music ?? "NONE",
-          title: searchParams.title,
-          // not used in this case
-          remainingCredits: 0,
-        },
-        math: {},
-      });
-      setIsGenerationTypeOpen(true);
-    }
-  }, [searchParams]);
-
-  const userDB = trpc.user.user.useQuery().data;
-
-  const [pendingVideo, setPendingVideo] = useState(false);
-  const [placeInQueue, setPlaceInQueue] = useState(0);
-  const [pendingVideoTitle, setPendingVideoTitle] = useState("");
-
-  const videoStatus = trpc.user.videoStatus.useQuery();
-
-  const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
-  const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("Waiting in Queue");
-
-  const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
-    onSuccess: () => {
-      setProgress(0);
-      setStatus("Waiting in Queue");
-      setIsInQueue(false);
-      setPendingVideo(false);
-      setPendingVideoTitle("");
-    },
-  });
-
-  const cancelPendingVideoMutation = trpc.user.cancelPendingVideo.useMutation({
-    onSuccess: () => {
-      toast.success("deleted video generation!");
-      setProgress(0);
-      setStatus("Waiting in Queue");
-      setIsInQueue(false);
-      setPendingVideo(false);
-      setPendingVideoTitle("");
-      window.location.reload();
-    },
-  });
-
-  useEffect(() => {
-    if (isInQueue) {
-      const intervalId = setInterval(() => {
-        videoStatus.refetch();
-      }, 5000);
-
-      return () => clearInterval(intervalId);
-    }
-  }, [videoStatus]);
-
-  useEffect(() => {
-    if (user.isSignedIn) {
-      if (
-        videoStatus.data?.videos !== null &&
-        videoStatus.data?.videos !== undefined
-      ) {
-        setProgress(videoStatus.data.videos.progress);
-        setStatus(videoStatus.data.videos.status);
-        if (videoStatus.data.videos.status === "COMPLETED") {
-          toast.success("Your video has been generated!", { icon: "🎉" });
-          setRefetchVideos(true);
-          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
-          setIsYourVideosOpen(true);
-        } else if (videoStatus.data.videos.status === "ERROR") {
-          toast.error(
-            "Your video was not able to be generated. Please try again.",
-            { icon: "💣" },
-          );
-          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
-        } else {
-          setPendingVideoTitle(videoStatus.data.videos.title);
-          setPendingVideo(true);
-          setIsInQueue(true);
-          setPlaceInQueue(videoStatus.data.queueLength);
-        }
+  const safeUserData = clerkUser
+    ? {
+        id: clerkUser.id,
+        email: clerkUser.emailAddresses[0]?.emailAddress,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        imageUrl: clerkUser.imageUrl,
       }
-    }
-  }, [user.isSignedIn, videoStatus.data?.videos]);
-
-  useEffect(() => {
-    if (isInQueue) {
-      toast.info("Your video is currently in queue", { icon: "🕒" });
-      setPendingVideo(true);
-    }
-  }, [isInQueue]);
+    : null;
 
   return (
     <>
@@ -278,7 +108,8 @@ export default function Home({
               </div>
               {/* Add the following block */}
             </div>
-            {userDB?.user && !pendingVideo ? (
+
+            {userDB && userDB?.user ? (
               <Card
                 className={` ${
                   !userDB?.user?.subscribed
@@ -330,108 +161,11 @@ export default function Home({
                 </CardContent>
               </Card>
             ) : null}
-
-            {pendingVideo && (
-              <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
-                <div className="flex flex-row items-center gap-2">
-                  <Loader2 className="size-4 animate-spin" />
-                  <div className="flex gap-2">
-                    <span className="font-bold">Place in queue:</span>{" "}
-                    {progress > 0 ? 0 : placeInQueue}
-                  </div>
-                </div>
-                <div>
-                  <span className="font-bold">Status:</span> {status}
-                </div>
-                <div>
-                  <span className="font-bold">Est. time remaining: </span>{" "}
-                  {(
-                    (progress > 0 ? 0 : placeInQueue * 4) +
-                    ((100 - progress) / 100) * 4
-                  ).toFixed(2)}{" "}
-                  mins
-                </div>
-
-                <div className="flex w-full flex-row items-center gap-2">
-                  <p className="text-xs">{progress}%</p>
-                  <Progress className="w-full" value={progress} />
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <Button
-              className="flex flex-row items-center gap-2"
-              variant={"brain"}
-              size={"lg"}
-              disabled={pendingVideo}
-              onClick={() => {
-                setIsOpen(true);
-              }}
-            >
-              <Wand className="h-4 w-4" /> Create Video
-            </Button>
-            {/* <Link
-              href={"https://github.com/noahgsolomon/brainrot.js"}
-              target="_blank"
-              className={buttonVariants({
-                className: "flex flex-row items-center gap-2",
-                size: "lg",
-                variant: "outline",
-              })}
-            >
-              <Star className="h-4 w-4 " />
-              Star on GitHub
-            </Link> */}
-            {/* <Link
-              href={"/watch"}
-              className={buttonVariants({
-                variant: "outline",
-                className: "relative flex flex-row items-center gap-2",
-              })}
-            >
-              <Eye className="size-4" /> Watch
-              <Badge
-                className="absolute -right-3 -top-[0.4rem] px-[0.2rem] py-[0.1rem] text-xs opacity-90"
-                variant={"red"}
-              >
-                NEW
-              </Badge>
-            </Link> */}
-
-            {pendingVideo ? (
-              <Button
-                className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20 hover:bg-red-500/30"
-                variant={"outline"}
-                onClick={() => {
-                  cancelPendingVideoMutation.mutate({
-                    id: videoStatus.data?.videos?.id ?? 0,
-                    credits: videoStatus.data?.videos?.credits ?? 0,
-                  });
-                }}
-              >
-                <X className="h-4 w-4 text-red-500" /> Cancel Generation
-              </Button>
-            ) : null}
-
-            {user.isSignedIn ? (
-              <>
-                <Credits />
-                <Button
-                  variant={"outline"}
-                  className="flex flex-row items-center gap-2 "
-                  onClick={() => setIsYourVideosOpen(true)}
-                >
-                  <Folder className="h-4 w-4" />
-                  Your videos
-                </Button>
-              </>
-            ) : !user.isLoaded ? (
-              <>
-                <Skeleton className="h-[2.4rem] w-[11rem] rounded-lg"></Skeleton>
-                <Skeleton className="h-[2.4rem] w-[11rem] rounded-lg"></Skeleton>
-              </>
-            ) : null}
+            <PageClient
+              searchParams={searchParams}
+              initialPendingVideo={pendingVideo}
+              clerkUser={safeUserData}
+            />
           </div>
         </div>
         {/* <p className="max-w-[300px] pt-12 text-center italic">
@@ -445,14 +179,6 @@ export default function Home({
           </Link>
           ... I will kiss u fr 😽
         </p> */}
-        <div className="flex flex-col items-center gap-4 py-12">
-          <p className="text-xl font-bold">Recent Generations</p>
-          <div className="flex max-w-[90%] flex-wrap items-center justify-center gap-4 ">
-            <ClientTweetCard className="bg-card/80" id="1787633614835843302" />
-            <ClientTweetCard className="bg-card/80" id="1787434978780819569" />
-            <ClientTweetCard className="bg-card/80" id="1780386464091591078" />
-          </div>
-        </div>
       </main>
       {/* <footer className="flex w-screen justify-center border-t border-border bg-secondary px-4 py-4">
         <div className="flex w-full items-center justify-between px-[5%] py-1 md:px-[10%]">
