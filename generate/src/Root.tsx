@@ -51,25 +51,21 @@ export const RemotionRoot: React.FC = () => {
 							color: '#A020F0',
 							image: 'BARACK_OBAMA.png',
 						},
-						RICK_SANCHEZ: {
-							color: '#b6def1',
-							image: 'RICK_SANCHEZ.png',
-						},
 						DONALD_TRUMP: {
 							color: '#b32134',
 							image: 'DONALD_TRUMP.png',
-						},
-						LIL_YACHTY: {
-							color: '#ff0000',
-							image: 'LIL_YACHTY.png',
 						},
 						JOE_BIDEN: {
 							color: '#0000ff',
 							image: 'JOE_BIDEN.png',
 						},
-						MARK_ZUCKERBERG: {
-							color: '#0668E1',
-							image: 'MARK_ZUCKERBERG.png',
+						KAMALA_HARRIS: {
+							color: '#0000ff',
+							image: 'KAMALA_HARRIS.png',
+						},
+						ANDREW_TATE: {
+							color: '#0000ff',
+							image: 'ANDREW_TATE.png',
 						},
 					},
 					subtitlesTextColor: 'rgba(255, 255, 255, 0.93)',

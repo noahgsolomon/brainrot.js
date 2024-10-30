@@ -88,16 +88,14 @@ export async function generateTranscriptAudio(
 					? process.env.BARACK_OBAMA_VOICE_ID
 					: person === 'BEN_SHAPIRO'
 					? process.env.BEN_SHAPIRO_VOICE_ID
-					: person === 'RICK_SANCHEZ'
-					? process.env.RICK_SANCHEZ_VOICE_ID
 					: person === 'DONALD_TRUMP'
 					? process.env.DONALD_TRUMP_VOICE_ID
-					: person === 'MARK_ZUCKERBERG'
-					? process.env.MARK_ZUCKERBERG_VOICE_ID
 					: person === 'JOE_BIDEN'
 					? process.env.JOE_BIDEN_VOICE_ID
-					: person === 'LIL_YACHTY'
-					? process.env.LIL_YACHTY_VOICE_ID
+					: person === 'KAMALA_HARRIS'
+					? process.env.KAMALA_HARRIS_VOICE_ID
+					: person === 'ANDREW_TATE'
+					? process.env.ANDREW_TATE_VOICE_ID
 					: process.env.JORDAN_PETERSON_VOICE_ID;
 
 			await generateAudio(voice_id, person, line, i);
