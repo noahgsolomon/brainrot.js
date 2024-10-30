@@ -211,7 +211,7 @@ export default function GenerationType() {
                       GO PRO <Crown className="size-4" />
                     </Button>
                   </ProButton>
-                  <BuyCreditsDialog />
+                  <BuyCreditsDialog searchQueryString={searchQueryString} />
                 </div>
               </div>
             </div>
