@@ -1,38 +1,72 @@
-# Use an official Fedora image as a parent image
-FROM fedora:latest
+FROM python:3.9
 
-# Enable RPM Fusion Free and Non-Free Repositories
-RUN dnf install -y \
-    https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-    https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
 
-# Install necessary packages including build tools, Python development headers, FFmpeg, and Chromium
-RUN dnf install -y python3 python3-pip npm gcc gcc-c++ make python3-devel chromium
-RUN dnf install -y ffmpeg --allowerasing
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg \
+        vim \
+        ca-certificates \
+        fonts-liberation \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libc6 \
+        libcairo2 \
+        libcups2 \
+        libdbus-1-3 \
+        libexpat1 \
+        libfontconfig1 \
+        libgbm1 \
+        libgcc1 \
+        libglib2.0-0 \
+        libgtk-3-0 \
+        libnspr4 \
+        libnss3 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libstdc++6 \
+        libx11-6 \
+        libx11-xcb1 \
+        libxcb1 \
+        libxcomposite1 \
+        libxcursor1 \
+        libxdamage1 \
+        libxext6 \
+        libxfixes3 \
+        libxi6 \
+        libxrandr2 \
+        libxrender1 \
+        libxss1 \
+        libxtst6 \
+        lsb-release \
+        wget \
+        xdg-utils
 
-# Set environment variables to force CPU usage
-ENV CUDA_VISIBLE_DEVICES=""
-ENV FORCE_CPU=1
-ENV TORCH_DEVICE="cpu"
+RUN python3 -m pip install --upgrade pip
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt /app/brainrot/
 WORKDIR /app/brainrot
 
-# Clean any existing torch installations and install CPU version
-RUN pip3 uninstall -y torch torchvision torchaudio
-RUN pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+COPY requirements.txt /app/brainrot/
+RUN cd /app/brainrot/ && pip3 install -r requirements.txt
 
-# Install other Python dependencies
+COPY setup.py /app/brainrot/setup.py
+COPY whisper_timestamped /app/brainrot/whisper_timestamped
+
+RUN cd /app/brainrot/ && pip3 install ".[dev]"
+
+RUN pip3 install \
+    torch==1.13.1+cpu \
+    torchaudio==0.13.1+cpu \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
 RUN pip3 install gunicorn
-RUN pip3 install -r requirements.txt
 
-# Copy the rest of the application
 COPY . /app/brainrot
 
-# Install Node.js dependencies
 RUN npm install pm2 -g
 RUN npm install
 
-# Command to run the application
-CMD ["/bin/sh", "-c", "/usr/bin/python3 /usr/local/bin/gunicorn -w 1 -b 0.0.0.0:5000 --access-logfile access.log --error-logfile error.log transcribe:app --daemon --timeout 120 && tail -f /dev/null"]
+ENTRYPOINT ["gunicorn"]
+CMD ["-w", "1", "-b", "0.0.0.0:5000", "--access-logfile", "access.log", "--error-logfile", "error.log", "transcribe:app", "--daemon", "--timeout", "120"]
