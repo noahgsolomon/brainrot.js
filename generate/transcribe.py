@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
-import whisper  # Changed from whisper_timestamped
+import whisper_timestamped as whisper
+
 import json
 import os
 import logging
@@ -44,7 +45,8 @@ def transcribe_audio():
                 logger.debug(f"Audio loaded, shape: {audio.shape if hasattr(audio, 'shape') else 'unknown'}")
                 
                 logger.debug("Starting transcription")
-                transcribed = model.transcribe(audio, language="en")
+                transcribed = whisper.transcribe(model, audio, language="en")
+                logger.info(f"Transcription result: {transcribed}")
                 
                 logger.info(f"Successfully transcribed: {audio_path}")
                 res.append((transcribed, audio_path))
