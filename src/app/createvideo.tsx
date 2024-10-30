@@ -67,12 +67,12 @@ export default function CreateVideo({
     {
       name:
         | "JORDAN_PETERSON"
-        | "BEN_SHAPIRO"
         | "JOE_ROGAN"
         | "BARACK_OBAMA"
         | "DONALD_TRUMP"
-        | "MARK_ZUCKERBERG"
-        | "LIL_YACHTY"
+        | "BEN_SHAPIRO"
+        | "ANDREW_TATE"
+        | "KAMALA_HARRIS"
         | "JOE_BIDEN";
       id: number;
     }[]
@@ -129,9 +129,14 @@ export default function CreateVideo({
           </DialogTitle>
         </DialogHeader>
         <div>
-          <div className="flex items-center gap-1 pb-2">
+          <div className="flex items-center gap-2 pb-2">
             <h4>1.{")"} Choose a topic.</h4>
-            <BookMarked className="h-4 w-4 text-blue" />
+            <Image
+              height={30}
+              width={30}
+              src={"https://images.smart.wtf/book.gif"}
+              alt="book"
+            />
           </div>
           {/* <div className="hidden flex-wrap gap-2 sm:flex">
             <Button
@@ -199,62 +204,17 @@ export default function CreateVideo({
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <h4>2.{")"} Choose your 2 fighters!</h4>
-            <Flame className="h-4 w-4 text-destructive" />
+            <Image
+              height={20}
+              width={20}
+              src={"https://images.smart.wtf/fireball.gif"}
+              alt="fire"
+            />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {/* <div */}
-            {/*   className={cn( */}
-            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
-            {/*     `${ */}
-            {/*       agent.some((a) => a.name === "DONALD_TRUMP") */}
-            {/*         ? "border border-red-500" */}
-            {/*         : "" */}
-            {/*     }`, */}
-            {/*   )} */}
-            {/*   onClick={() => { */}
-            {/*     if ( */}
-            {/*       agent.length === 2 && */}
-            {/*       !agent.some((a) => a.name === "DONALD_TRUMP") */}
-            {/*     ) { */}
-            {/*       return; */}
-            {/*     } */}
-            {/*     setAgent((currentAgents) => { */}
-            {/*       const isJordanPetersonPresent = currentAgents.some( */}
-            {/*         (agent) => agent.name === "DONALD_TRUMP", */}
-            {/*       ); */}
-            {/**/}
-            {/*       if (isJordanPetersonPresent) { */}
-            {/*         return currentAgents.filter( */}
-            {/*           (agent) => agent.name !== "DONALD_TRUMP", */}
-            {/*         ); */}
-            {/*       } else { */}
-            {/*         return [...currentAgents, { name: "DONALD_TRUMP", id: 1 }]; */}
-            {/*       } */}
-            {/*     }); */}
-            {/*   }} */}
-            {/* > */}
-            {/*   <Image */}
-            {/*     className={` absolute bottom-0 left-0 right-0 top-0 z-20   transition-all ${ */}
-            {/*       agent.some((a) => a.name === "DONALD_TRUMP") */}
-            {/*         ? "opacity-40" */}
-            {/*         : "opacity-0" */}
-            {/*     }`} */}
-            {/*     height={75} */}
-            {/*     width={75} */}
-            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
-            {/*     alt="fire" */}
-            {/*   /> */}
-            {/*   <Image */}
-            {/*     className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]" */}
-            {/*     src={"https://images.smart.wtf/DONALD_TRUMP.png"} */}
-            {/*     width={75} */}
-            {/*     height={75} */}
-            {/*     alt="trump" */}
-            {/*   /> */}
-            {/* </div> */}
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
@@ -308,7 +268,7 @@ export default function CreateVideo({
                 alt="jordan"
               />
             </div>
-            {/* <div
+            <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
                 `${
@@ -357,7 +317,7 @@ export default function CreateVideo({
                 height={75}
                 alt="ben shapiro"
               />
-            </div> */}
+            </div>
             <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
@@ -408,106 +368,411 @@ export default function CreateVideo({
                 alt="bender"
               />
             </div>
-            {/* <div */}
-            {/*   className={cn( */}
-            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
-            {/*     `${ */}
-            {/*       agent.some((a) => a.name === "BARACK_OBAMA") */}
-            {/*         ? "border border-patrick" */}
-            {/*         : "" */}
-            {/*     }`, */}
-            {/*   )} */}
-            {/*   onClick={() => { */}
-            {/*     if ( */}
-            {/*       agent.length === 2 && */}
-            {/*       !agent.some((a) => a.name === "BARACK_OBAMA") */}
-            {/*     ) { */}
-            {/*       return; */}
-            {/*     } */}
-            {/*     setAgent((currentAgents) => { */}
-            {/*       const isBarackObama = currentAgents.some( */}
-            {/*         (agent) => agent.name === "BARACK_OBAMA", */}
-            {/*       ); */}
-            {/**/}
-            {/*       if (isBarackObama) { */}
-            {/*         return currentAgents.filter( */}
-            {/*           (agent) => agent.name !== "BARACK_OBAMA", */}
-            {/*         ); */}
-            {/*       } else { */}
-            {/*         return [...currentAgents, { name: "BARACK_OBAMA", id: 4 }]; */}
-            {/*       } */}
-            {/*     }); */}
-            {/*   }} */}
-            {/* > */}
-            {/*   <Image */}
-            {/*     className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${ */}
-            {/*       agent.some((a) => a.name === "BARACK_OBAMA") */}
-            {/*         ? "opacity-40" */}
-            {/*         : "opacity-0" */}
-            {/*     }`} */}
-            {/*     height={75} */}
-            {/*     width={75} */}
-            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
-            {/*     alt="fire" */}
-            {/*   /> */}
-            {/*   <Image */}
-            {/*     className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]" */}
-            {/*     src={"https://images.smart.wtf/BARACK_OBAMA.png"} */}
-            {/*     width={75} */}
-            {/*     height={75} */}
-            {/*     alt="barack" */}
-            {/*   /> */}
-            {/* </div> */}
-            {/* <div */}
-            {/*   className={cn( */}
-            {/*     `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`, */}
-            {/*     `${ */}
-            {/*       agent.some((a) => a.name === "JOE_BIDEN") */}
-            {/*         ? "border border-border" */}
-            {/*         : "" */}
-            {/*     }`, */}
-            {/*   )} */}
-            {/*   onClick={() => { */}
-            {/*     if ( */}
-            {/*       agent.length === 2 && */}
-            {/*       !agent.some((a) => a.name === "JOE_BIDEN") */}
-            {/*     ) { */}
-            {/*       return; */}
-            {/*     } */}
-            {/*     setAgent((currentAgents) => { */}
-            {/*       const isBarackObama = currentAgents.some( */}
-            {/*         (agent) => agent.name === "JOE_BIDEN", */}
-            {/*       ); */}
-            {/**/}
-            {/*       if (isBarackObama) { */}
-            {/*         return currentAgents.filter( */}
-            {/*           (agent) => agent.name !== "JOE_BIDEN", */}
-            {/*         ); */}
-            {/*       } else { */}
-            {/*         return [...currentAgents, { name: "JOE_BIDEN", id: 5 }]; */}
-            {/*       } */}
-            {/*     }); */}
-            {/*   }} */}
-            {/* > */}
-            {/*   <Image */}
-            {/*     className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${ */}
-            {/*       agent.some((a) => a.name === "JOE_BIDEN") */}
-            {/*         ? "opacity-40" */}
-            {/*         : "opacity-0" */}
-            {/*     }`} */}
-            {/*     height={75} */}
-            {/*     width={75} */}
-            {/*     src={"https://images.smart.wtf/fireball.gif"} */}
-            {/*     alt="fire" */}
-            {/*   /> */}
-            {/*   <Image */}
-            {/*     className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]" */}
-            {/*     src={"https://images.smart.wtf/JOE_BIDEN.png"} */}
-            {/*     width={75} */}
-            {/*     height={75} */}
-            {/*     alt="barack" */}
-            {/*   /> */}
-            {/* </div> */}
+
+            <div
+              className={cn(
+                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                `${
+                  agent.some((a) => a.name === "BARACK_OBAMA")
+                    ? "border border-patrick"
+                    : ""
+                }`,
+              )}
+              onClick={() => {
+                if (
+                  agent.length === 2 &&
+                  !agent.some((a) => a.name === "BARACK_OBAMA")
+                ) {
+                  return;
+                }
+                setAgent((currentAgents) => {
+                  const isBarackObama = currentAgents.some(
+                    (agent) => agent.name === "BARACK_OBAMA",
+                  );
+
+                  if (isBarackObama) {
+                    return currentAgents.filter(
+                      (agent) => agent.name !== "BARACK_OBAMA",
+                    );
+                  } else {
+                    return [...currentAgents, { name: "BARACK_OBAMA", id: 4 }];
+                  }
+                });
+              }}
+            >
+              <Image
+                className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                  agent.some((a) => a.name === "BARACK_OBAMA")
+                    ? "opacity-40"
+                    : "opacity-0"
+                }`}
+                height={75}
+                width={75}
+                src={"https://images.smart.wtf/fireball.gif"}
+                alt="fire"
+              />
+              <Image
+                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                src={"https://images.smart.wtf/BARACK_OBAMA.png"}
+                width={75}
+                height={75}
+                alt="barack"
+              />
+            </div>
+            {!userDB?.subscribed ? (
+              <ProButton>
+                <div
+                  className={cn(
+                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                    `${
+                      agent.some((a) => a.name === "DONALD_TRUMP")
+                        ? "border border-red-500"
+                        : ""
+                    }`,
+                  )}
+                >
+                  <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                    <Crown className="size-4 text-secondary dark:text-primary" />
+                  </div>
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "DONALD_TRUMP")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"https://images.smart.wtf/DONALD_TRUMP.png"}
+                    width={75}
+                    height={75}
+                    alt="trump"
+                  />
+                </div>
+              </ProButton>
+            ) : (
+              <div
+                className={cn(
+                  `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                  `${
+                    agent.some((a) => a.name === "DONALD_TRUMP")
+                      ? "border border-red-500"
+                      : ""
+                  }`,
+                )}
+                onClick={() => {
+                  if (
+                    agent.length === 2 &&
+                    !agent.some((a) => a.name === "DONALD_TRUMP")
+                  ) {
+                    return;
+                  }
+                  setAgent((currentAgents) => {
+                    const isTrumpPresent = currentAgents.some(
+                      (agent) => agent.name === "DONALD_TRUMP",
+                    );
+
+                    if (isTrumpPresent) {
+                      return currentAgents.filter(
+                        (agent) => agent.name !== "DONALD_TRUMP",
+                      );
+                    } else {
+                      return [
+                        ...currentAgents,
+                        { name: "DONALD_TRUMP", id: 1 },
+                      ];
+                    }
+                  });
+                }}
+              >
+                <Image
+                  className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    agent.some((a) => a.name === "DONALD_TRUMP")
+                      ? "opacity-40"
+                      : "opacity-0"
+                  }`}
+                  height={75}
+                  width={75}
+                  src={"https://images.smart.wtf/fireball.gif"}
+                  alt="fire"
+                />
+                <Image
+                  className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                  src={"https://images.smart.wtf/DONALD_TRUMP.png"}
+                  width={75}
+                  height={75}
+                  alt="trump"
+                />
+              </div>
+            )}
+            {!userDB?.subscribed ? (
+              <ProButton>
+                <div
+                  className={cn(
+                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                    `${
+                      agent.some((a) => a.name === "JOE_BIDEN")
+                        ? "border border-border"
+                        : ""
+                    }`,
+                  )}
+                >
+                  <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                    <Crown className="size-4 text-secondary dark:text-primary" />
+                  </div>
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      agent.some((a) => a.name === "JOE_BIDEN")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                    src={"https://images.smart.wtf/JOE_BIDEN.png"}
+                    width={75}
+                    height={75}
+                    alt="biden"
+                  />
+                </div>
+              </ProButton>
+            ) : (
+              <div
+                className={cn(
+                  `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                  `${
+                    agent.some((a) => a.name === "JOE_BIDEN")
+                      ? "border border-border"
+                      : ""
+                  }`,
+                )}
+                onClick={() => {
+                  if (
+                    agent.length === 2 &&
+                    !agent.some((a) => a.name === "JOE_BIDEN")
+                  ) {
+                    return;
+                  }
+                  setAgent((currentAgents) => {
+                    const isBarackObama = currentAgents.some(
+                      (agent) => agent.name === "JOE_BIDEN",
+                    );
+
+                    if (isBarackObama) {
+                      return currentAgents.filter(
+                        (agent) => agent.name !== "JOE_BIDEN",
+                      );
+                    } else {
+                      return [...currentAgents, { name: "JOE_BIDEN", id: 5 }];
+                    }
+                  });
+                }}
+              >
+                <Image
+                  className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                    agent.some((a) => a.name === "JOE_BIDEN")
+                      ? "opacity-40"
+                      : "opacity-0"
+                  }`}
+                  height={75}
+                  width={75}
+                  src={"https://images.smart.wtf/fireball.gif"}
+                  alt="fire"
+                />
+                <Image
+                  className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                  src={"https://images.smart.wtf/JOE_BIDEN.png"}
+                  width={75}
+                  height={75}
+                  alt="biden"
+                />
+              </div>
+            )}
+            {!userDB?.subscribed ? (
+              <ProButton>
+                <div
+                  className={cn(
+                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                    `${
+                      agent.some((a) => a.name === "ANDREW_TATE")
+                        ? "border border-patrick"
+                        : ""
+                    }`,
+                  )}
+                >
+                  <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                    <Crown className="size-4 text-secondary dark:text-primary" />
+                  </div>
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      agent.some((a) => a.name === "ANDREW_TATE")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                    src={"https://images.smart.wtf/ANDREW_TATE.png"}
+                    width={75}
+                    height={75}
+                    alt="andrewtate"
+                  />
+                </div>
+              </ProButton>
+            ) : (
+              <div
+                className={cn(
+                  `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                  `${
+                    agent.some((a) => a.name === "ANDREW_TATE")
+                      ? "border border-patrick"
+                      : ""
+                  }`,
+                )}
+                onClick={() => {
+                  if (
+                    agent.length === 2 &&
+                    !agent.some((a) => a.name === "ANDREW_TATE")
+                  ) {
+                    return;
+                  }
+                  setAgent((currentAgents) => {
+                    const isAndrewTate = currentAgents.some(
+                      (agent) => agent.name === "ANDREW_TATE",
+                    );
+
+                    if (isAndrewTate) {
+                      return currentAgents.filter(
+                        (agent) => agent.name !== "ANDREW_TATE",
+                      );
+                    } else {
+                      return [...currentAgents, { name: "ANDREW_TATE", id: 7 }];
+                    }
+                  });
+                }}
+              >
+                <Image
+                  className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                    agent.some((a) => a.name === "ANDREW_TATE")
+                      ? "opacity-40"
+                      : "opacity-0"
+                  }`}
+                  height={75}
+                  width={75}
+                  src={"https://images.smart.wtf/fireball.gif"}
+                  alt="fire"
+                />
+                <Image
+                  className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                  src={"https://images.smart.wtf/ANDREW_TATE.png"}
+                  width={75}
+                  height={75}
+                  alt="andrewtate"
+                />
+              </div>
+            )}
+            {!userDB?.subscribed ? (
+              <ProButton>
+                <div
+                  className={cn(
+                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                    `${
+                      agent.some((a) => a.name === "KAMALA_HARRIS")
+                        ? "border border-patrick"
+                        : ""
+                    }`,
+                  )}
+                >
+                  <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                    <Crown className="size-4 text-secondary dark:text-primary" />
+                  </div>
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      agent.some((a) => a.name === "KAMALA_HARRIS")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                    src={"https://images.smart.wtf/KAMALA_HARRIS.png"}
+                    width={75}
+                    height={75}
+                    alt="kamala"
+                  />
+                </div>
+              </ProButton>
+            ) : (
+              <div
+                className={cn(
+                  `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                  `${
+                    agent.some((a) => a.name === "KAMALA_HARRIS")
+                      ? "border border-patrick"
+                      : ""
+                  }`,
+                )}
+                onClick={() => {
+                  if (
+                    agent.length === 2 &&
+                    !agent.some((a) => a.name === "KAMALA_HARRIS")
+                  ) {
+                    return;
+                  }
+                  setAgent((currentAgents) => {
+                    const isKamalaHarris = currentAgents.some(
+                      (agent) => agent.name === "KAMALA_HARRIS",
+                    );
+
+                    if (isKamalaHarris) {
+                      return currentAgents.filter(
+                        (agent) => agent.name !== "KAMALA_HARRIS",
+                      );
+                    } else {
+                      return [
+                        ...currentAgents,
+                        { name: "KAMALA_HARRIS", id: 6 },
+                      ];
+                    }
+                  });
+                }}
+              >
+                <Image
+                  className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                    agent.some((a) => a.name === "KAMALA_HARRIS")
+                      ? "opacity-40"
+                      : "opacity-0"
+                  }`}
+                  height={75}
+                  width={75}
+                  src={"https://images.smart.wtf/fireball.gif"}
+                  alt="fire"
+                />
+                <Image
+                  className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
+                  src={"https://images.smart.wtf/KAMALA_HARRIS.png"}
+                  width={75}
+                  height={75}
+                  alt="kamala"
+                />
+              </div>
+            )}
             {/* <div
               className={cn(
                 `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
