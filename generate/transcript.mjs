@@ -92,6 +92,11 @@ export default async function transcriptFunction(
 
 			if (transcript !== null) {
 				console.log('✅ Valid transcript generated');
+				console.log('📜 Transcript lines:');
+				transcript.transcript.forEach((entry, index) => {
+					console.log(`${index + 1}. ${entry.person}: "${entry.line}"`);
+					console.log(`   🖼️ Asset: ${entry.asset}`);
+				});
 				return transcript;
 			} else {
 				console.log('⚠️ Empty transcript received');
