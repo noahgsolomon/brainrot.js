@@ -109,7 +109,7 @@ export default async function Home({
               {/* Add the following block */}
             </div>
 
-            {userDB && userDB?.user ? (
+            {/* {userDB && userDB?.user ? (
               <Card
                 className={` ${
                   !userDB?.user?.subscribed
@@ -160,7 +160,7 @@ export default async function Home({
                   </div>
                 </CardContent>
               </Card>
-            ) : null}
+            ) : null} */}
             <PageClient
               searchParams={searchParams}
               initialPendingVideo={pendingVideo}
