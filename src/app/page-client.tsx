@@ -216,13 +216,12 @@ export default function PageClient({
           </div>
         </div>
       )}
-      <p className="text-base font-bold text-red-500/80">Down until Nov. 8</p>
       <div className="flex flex-col gap-2">
         <Button
           className="flex flex-row items-center gap-2"
           variant={"brain"}
           size={"lg"}
-          disabled={pendingVideo || true}
+          disabled={pendingVideo}
           onClick={() => {
             setIsOpen(true);
           }}
@@ -274,7 +273,7 @@ export default function PageClient({
 
         {clerkUser?.id ? (
           <>
-            {/* <Credits />
+            <Credits />
             <Button
               variant={"outline"}
               className="flex flex-row items-center gap-2 "
@@ -282,7 +281,7 @@ export default function PageClient({
             >
               <Folder className="h-4 w-4" />
               Your videos
-            </Button> */}
+            </Button>
           </>
         ) : null}
       </div>
