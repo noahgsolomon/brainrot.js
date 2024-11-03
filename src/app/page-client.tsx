@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Crown, Folder, Loader2, Wand, X } from "lucide-react";
+import { Crown, Folder, Loader2, Star, Wand, X } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
@@ -17,6 +17,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function PageClient({
   searchParams,
@@ -215,30 +216,31 @@ export default function PageClient({
           </div>
         </div>
       )}
+      <p className="text-base font-bold text-red-500/80">Down until Nov. 8</p>
       <div className="flex flex-col gap-2">
         <Button
           className="flex flex-row items-center gap-2"
           variant={"brain"}
           size={"lg"}
-          disabled={pendingVideo}
+          disabled={pendingVideo || true}
           onClick={() => {
             setIsOpen(true);
           }}
         >
           <Wand className="h-4 w-4" /> Create Video
         </Button>
-        {/* <Link
-              href={"https://github.com/noahgsolomon/brainrot.js"}
-              target="_blank"
-              className={buttonVariants({
-                className: "flex flex-row items-center gap-2",
-                size: "lg",
-                variant: "outline",
-              })}
-            >
-              <Star className="h-4 w-4 " />
-              Star on GitHub
-            </Link> */}
+        <Link
+          href={"https://github.com/noahgsolomon/brainrot.js"}
+          target="_blank"
+          className={buttonVariants({
+            className: "flex flex-row items-center gap-2",
+            size: "lg",
+            variant: "outline",
+          })}
+        >
+          <Star className="h-4 w-4 " />
+          Star on GitHub
+        </Link>
         {/* <Link
               href={"/watch"}
               className={buttonVariants({
@@ -272,7 +274,7 @@ export default function PageClient({
 
         {clerkUser?.id ? (
           <>
-            <Credits />
+            {/* <Credits />
             <Button
               variant={"outline"}
               className="flex flex-row items-center gap-2 "
@@ -280,7 +282,7 @@ export default function PageClient({
             >
               <Folder className="h-4 w-4" />
               Your videos
-            </Button>
+            </Button> */}
           </>
         ) : null}
       </div>
