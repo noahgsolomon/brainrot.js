@@ -228,7 +228,7 @@ export default function PageClient({
         >
           <Wand className="h-4 w-4" /> Create Video
         </Button>
-        <Link
+        {/* <Link
           href={"https://github.com/noahgsolomon/brainrot.js"}
           target="_blank"
           className={buttonVariants({
@@ -239,7 +239,7 @@ export default function PageClient({
         >
           <Star className="h-4 w-4 " />
           Star on GitHub
-        </Link>
+        </Link> */}
         {/* <Link
               href={"/watch"}
               className={buttonVariants({
