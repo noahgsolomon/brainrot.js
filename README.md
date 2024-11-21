@@ -21,7 +21,7 @@ NEETS_API_KEY=YOUR NEETS API KEY HERE
 3. now, once this docker image is successfully built, we need to run it as a container. Run this command:
 
 ```bash
-docker run -d --name brainrotjs brainrotjs \
+docker run -d --name brainrot brainrot \
 -w 1 \
 -b 0.0.0.0:5000 \
 --access-logfile access.log \
