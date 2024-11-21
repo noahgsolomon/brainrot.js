@@ -1,24 +1,38 @@
 ## How to run locally 👇
 
-1. go into generate (`cd generate`) and run `python3 -m venv venv`, then `source venv/bin/activate`, and then `pip install -r requirements.txt`
-2. now we can start the flask server. to do this run `python3 transcribe.py`
-3. set all environment variables in `.env.example` in `.env` with your own values.
-4. we should now install the js deps with `npm i`.
-5. inside generate/public/background, we must have the background video assets. At the bottom of this readme is the list of all the assets from a s3 bucket to download. Put all the videos in generate/public/background
-6. now, run `node localBuild.mjs` and boom, a video locally generated in no time (actually in some time, 5-7 minutes typically)!
+0. You must have docker installed on your computer (https://www.docker.com/get-started/)
+1. create `generate/.env` file with the following values:
+   `
+   JORDAN_PETERSON_VOICE_ID=jordan-peterson
+   JOE_ROGAN_VOICE_ID=joe-rogan
+   BARACK_OBAMA_VOICE_ID=barack-obama
+   KAMALA_HARRIS_VOICE_ID=kamala-harris
+   BEN_SHAPIRO_VOICE_ID=ben-shapiro
+   ANDREW_TATE_VOICE_ID=andrew-tate
+   JOE_BIDEN_VOICE_ID=joe-biden
+   DONALD_TRUMP_VOICE_ID=donald-trump
 
-note: you need to create your own eleven labs voices and copy their voice id's. If you want to use Joe Rogan, Jordan Peterson, Barack Obama, and Ben Shapiro's voice you can go into `generate/voice_training_audio` to find the mp3 files to train your eleven labs voices with.
+GROQ_API_KEY=YOUR GROQ API KEY HERE
+OPENAI_API_KEY=YOUR OPEN AI API KEY HERE
+NEETS_API_KEY=YOUR NEETS API KEY HERE
+`
 
-#### how to get google credentials:
+2. go into generate (`cd generate`) and run `docker build -t brainrot .`. This will take 10-15 minutes, as there are a lot of dependencies.
+3. now, once this docker image is successfully built, we need to run it as a container. Run this command `docker run -d --name brainrotjs brainrotjs \
+-w 1 \
+-b 0.0.0.0:5000 \
+--access-logfile access.log \
+--error-logfile error.log \
+--chdir /app/brainrot \
+transcribe:app \
+--timeout 120`
+4. now run `docker exec -it brainrot /bin/bash`, followed by `node localBuild.mjs`
+5. when the video has been generated, exit out of the container (`cntl+d` in terminal window), and then run `docker cp brainrot:/app/brainrot/out/video.mp4 ./video.mp4`. This will output where the video is located on your computer (e.g. `Successfully copied 97.8MB to /home/noahsolomon/brainrotjs/generate/video.mp4`). Voila you just generated brainrot.
+6. change the variable values at the top in localBuild.mjs to change what vidoe is generated. The video generation process can take 10-20 minutes so be patient! we are so back fam
 
-_this is probably the most complex api to get set up, so if you want to be able to generate videos with ai images instead of google fetched images, you only need open ai api credentials, and not google credentials_
+#### how to get neets ai credentials:
 
-- https://developers.google.com/custom-search/v1/introduction/
-- https://programmablesearchengine.google.com/controlpanel/all
-
-#### how to get eleven labs credentials:
-
-- https://elevenlabs.io/app/voice-library
+- https://neets.ai/keys
 
 #### how to get open ai credentials:
 
@@ -34,12 +48,9 @@ _this is probably the most complex api to get set up, so if you want to be able 
 
 #### assets to download
 
-I have removed assets for download. If you want your own GTA / Minecraft / etc. bottom half video just find some on youtube.
+I have removed assets for download except MINECRAFT-0.mp4 (in generate/public/background/). If you want your own GTA / Minecraft / etc. bottom half video just find some on youtube. and add the videos to generate/public/background/ folder.
 
 #### common problems
 
-- FFMPEG is not installed.
-- You don't have the flask python server running (or not on port 5000)
-- Dalle 3 API rate limit exceeded: this is because each dialogue transition has an image, and it is prompted to have 7 dialogue transitions. However, typical tier 1 open ai accounts can only generate 5 images per minute.
-- You don't have folders public/srt and public/voice and src/tmp
-- You have concurrency set too high for your computer (check remotion.config.ts)
+- Dalle 3 API rate limit exceeded: this is because each dialogue transition has an image, and it is prompted to have 7 dialogue transitions. However, typical tier 1 open ai accounts can only generate 5 images per minute. You might need to reduce the # of dialog transitions if this is the case (in generate/transcript.mjs)
+- You don't have enough storage (the image will be around 12.6GB)

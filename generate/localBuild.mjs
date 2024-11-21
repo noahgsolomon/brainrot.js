@@ -11,10 +11,10 @@ async function cleanupResources() {
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
 		await rm(path.join('public', 'voice'), { recursive: true, force: true });
 		await unlink(path.join('public', `audio-${PROCESS_ID}.mp3`)).catch((e) =>
-			console.error(e)
+			console.error(e),
 		);
 		await unlink(path.join('src', 'tmp', 'context.tsx')).catch((e) =>
-			console.error(e)
+			console.error(e),
 		);
 		await mkdir(path.join('public', 'srt'), { recursive: true });
 		await mkdir(path.join('public', 'voice'), { recursive: true });
@@ -54,10 +54,10 @@ async function main() {
 	const videoTopic =
 		'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
 	const aiGeneratedImages = true;
-	const fps = 60;
+	const fps = 20;
 	const duration = 1; //minute
 	//MINECRAFT or TRUCK or GTA
-	const background = 'TRUCK';
+	const background = 'MINECRAFT';
 	const music = 'WII_SHOP_CHANNEL_TRAP';
 	const cleanSrt = true;
 
@@ -71,7 +71,7 @@ async function main() {
 		duration,
 		background,
 		music,
-		cleanSrt
+		cleanSrt,
 	);
 
 	// run in the command line `npm run build`
@@ -87,6 +87,6 @@ async function main() {
 	});
 }
 
-// (async () => {
-// 	await main();
-// })();
+(async () => {
+	await main();
+})();
