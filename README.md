@@ -2,20 +2,20 @@
 
 0. You must have docker installed on your computer (https://www.docker.com/get-started/)
 1. create `generate/.env` file with the following values:
-   `
-   JORDAN_PETERSON_VOICE_ID=jordan-peterson
-   JOE_ROGAN_VOICE_ID=joe-rogan
-   BARACK_OBAMA_VOICE_ID=barack-obama
-   KAMALA_HARRIS_VOICE_ID=kamala-harris
-   BEN_SHAPIRO_VOICE_ID=ben-shapiro
-   ANDREW_TATE_VOICE_ID=andrew-tate
-   JOE_BIDEN_VOICE_ID=joe-biden
-   DONALD_TRUMP_VOICE_ID=donald-trump
 
+```bash
+JORDAN_PETERSON_VOICE_ID=jordan-peterson
+JOE_ROGAN_VOICE_ID=joe-rogan
+BARACK_OBAMA_VOICE_ID=barack-obama
+KAMALA_HARRIS_VOICE_ID=kamala-harris
+BEN_SHAPIRO_VOICE_ID=ben-shapiro
+ANDREW_TATE_VOICE_ID=andrew-tate
+JOE_BIDEN_VOICE_ID=joe-biden
+DONALD_TRUMP_VOICE_ID=donald-trump
 GROQ_API_KEY=YOUR GROQ API KEY HERE
 OPENAI_API_KEY=YOUR OPEN AI API KEY HERE
 NEETS_API_KEY=YOUR NEETS API KEY HERE
-`
+```
 
 2. go into generate (`cd generate`) and run `docker build -t brainrot .`. This will take 10-15 minutes, as there are a lot of dependencies.
 3. now, once this docker image is successfully built, we need to run it as a container. Run this command:
