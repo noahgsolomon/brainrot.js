@@ -18,14 +18,19 @@ NEETS_API_KEY=YOUR NEETS API KEY HERE
 `
 
 2. go into generate (`cd generate`) and run `docker build -t brainrot .`. This will take 10-15 minutes, as there are a lot of dependencies.
-3. now, once this docker image is successfully built, we need to run it as a container. Run this command `docker run -d --name brainrotjs brainrotjs \
+3. now, once this docker image is successfully built, we need to run it as a container. Run this command:
+
+```bash
+docker run -d --name brainrotjs brainrotjs \
 -w 1 \
 -b 0.0.0.0:5000 \
 --access-logfile access.log \
 --error-logfile error.log \
 --chdir /app/brainrot \
 transcribe:app \
---timeout 120`
+--timeout 120
+```
+
 4. now run `docker exec -it brainrot /bin/bash`, followed by `node localBuild.mjs`
 5. when the video has been generated, exit out of the container (`cntl+d` in terminal window), and then run `docker cp brainrot:/app/brainrot/out/video.mp4 ./video.mp4`. This will output where the video is located on your computer (e.g. `Successfully copied 97.8MB to /home/noahsolomon/brainrotjs/generate/video.mp4`). Voila you just generated brainrot.
 6. change the variable values at the top in localBuild.mjs to change what vidoe is generated. The video generation process can take 10-20 minutes so be patient! we are so back fam
@@ -41,10 +46,6 @@ transcribe:app \
 #### how to get groq api credentials:
 
 - https://console.groq.com/keys
-
-<h1>Video explaining how to run 👇 locally</h1>
-
-[![Thumbnail](https://github.com/noahgsolomon/brainrot.js/assets/111200060/edab5792-6c04-4355-8e89-dc61ad16cbdf)](https://www.youtube.com/watch?v=-Ff0xG1eNjw)
 
 #### assets to download
 
