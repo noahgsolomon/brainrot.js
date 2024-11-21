@@ -17,6 +17,8 @@ OPENAI_API_KEY=YOUR OPEN AI API KEY HERE
 NEETS_API_KEY=YOUR NEETS API KEY HERE
 ```
 
+1.5 Note, you should get the actual values for your GROQ, OPENAI, and NEETS api keys before proceeding (scroll down for links on where to get each)
+
 2. go into generate (`cd generate`) and run `docker build -t brainrot .`. This will take 10-15 minutes, as there are a lot of dependencies.
 3. now, once this docker image is successfully built, we need to run it as a container. Run this command:
 
