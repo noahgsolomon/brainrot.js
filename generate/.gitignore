@@ -3,5 +3,7 @@
 /package-lock.json
 /public/out
 /venv/
-/public/srt/
-/public/voice
+/public/srt/*
+!/public/srt/_
+/public/voice/*
+!/public/voice/_
