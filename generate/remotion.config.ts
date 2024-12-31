@@ -10,7 +10,7 @@ import { enableTailwind } from '@remotion/tailwind';
 
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);
-Config.setConcurrency(8);
+Config.setConcurrency(4);
 // Config.setChromiumMultiProcessOnLinux(true);
 
 // This template processes the whole audio file on each thread which is heavy.
