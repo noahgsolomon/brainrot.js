@@ -7,3 +7,5 @@
 !/public/srt/_
 /public/voice/*
 !/public/voice/_
+/public/audio.mp3
+/out/video.mp4
