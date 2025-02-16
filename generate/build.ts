@@ -44,6 +44,7 @@ async function mainFn(
 	cleanSrt: boolean,
 	credits: number
 ) {
+	await cleanupResources();
 	console.log('🚀 Starting mainFn with:', {
 		topic,
 		agentA,
