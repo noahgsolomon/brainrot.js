@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-# Install basic dependencies
+# Install basic dependencies first
 RUN apt-get update && \
     apt-get install -y \
     curl \
@@ -92,4 +92,6 @@ RUN rm -f /app/brainrot/bun.lockb
 RUN bun install 
 RUN bun install -g pm2
 
-CMD ["/bin/bash"]
+RUN chmod +x /app/brainrot/scripts/generate.sh
+
+CMD ["/app/brainrot/scripts/generate.sh"]
