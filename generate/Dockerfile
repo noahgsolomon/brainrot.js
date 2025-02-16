@@ -1,7 +1,21 @@
-FROM python:3.9
+FROM python:3.9-slim
 
+# Install basic dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    gnupg2 \
+    unzip \
+    build-essential \
+    && apt-get clean
+
+# Install Node.js and npm for ARM
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
+
+# Install bun and add to PATH
+RUN curl -fsSL https://bun.sh/install | bash && \
+    ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -48,25 +62,34 @@ RUN python3 -m pip install --upgrade pip
 
 WORKDIR /app/brainrot
 
-COPY requirements.txt /app/brainrot/
+# Copy package files first to leverage Docker cache
+COPY ./package*.json /app/brainrot/
+
+# Python setup
+COPY transcribe/requirements.txt /app/brainrot/
 RUN cd /app/brainrot/ && pip3 install -r requirements.txt
 
-COPY setup.py /app/brainrot/setup.py
-COPY whisper_timestamped /app/brainrot/whisper_timestamped
+COPY transcribe/setup.py /app/brainrot/setup.py
+COPY transcribe/transcribe.py /app/brainrot/transcribe.py
+COPY transcribe/whisper_timestamped /app/brainrot/whisper_timestamped
 
 RUN cd /app/brainrot/ && pip3 install ".[dev]"
 
 RUN pip3 install \
-    torch==1.13.1+cpu \
-    torchaudio==0.13.1+cpu \
-    -f https://download.pytorch.org/whl/torch_stable.html
+    torch==1.13.1 \
+    torchaudio==0.13.1 \
+    --extra-index-url https://download.pytorch.org/whl/cpu
 
 RUN pip3 install gunicorn
 
+# Copy the rest of the application
 COPY . /app/brainrot
 
-RUN npm install pm2 -g
-RUN npm install
+RUN rm -rf /app/brainrot/node_modules
+RUN rm -f /app/brainrot/package-lock.json
+RUN rm -f /app/brainrot/bun.lockb
 
-ENTRYPOINT ["gunicorn"]
-CMD ["-w", "1", "-b", "0.0.0.0:5000", "--access-logfile", "access.log", "--error-logfile", "error.log", "transcribe:app", "--daemon", "--timeout", "120"]
+RUN bun install 
+RUN bun install -g pm2
+
+CMD ["/bin/bash"]
