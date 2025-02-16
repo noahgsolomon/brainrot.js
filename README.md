@@ -19,23 +19,10 @@ NEETS_API_KEY=YOUR NEETS API KEY HERE
 
 1.5 Note, you should get the actual values for your GROQ, OPENAI, and NEETS api keys before proceeding (scroll down for links on where to get each)
 
-2. go into generate (`cd generate`) and run `docker build -t brainrot .`. This will take 10-15 minutes, as there are a lot of dependencies.
-3. now, once this docker image is successfully built, we need to run it as a container. Run this command:
-
-```bash
-docker run -d --name brainrot brainrot \
--w 1 \
--b 0.0.0.0:5000 \
---access-logfile access.log \
---error-logfile error.log \
---chdir /app/brainrot \
-transcribe:app \
---timeout 120
-```
-
-4. now run `docker exec -it brainrot /bin/bash`, followed by `node localBuild.mjs`
-5. when the video has been generated, exit out of the container (`cntl+d` in terminal window), and then run `docker cp brainrot:/app/brainrot/out/video.mp4 ./video.mp4`. This will output where the video is located on your computer (e.g. `Successfully copied 97.8MB to /home/noahsolomon/brainrotjs/generate/video.mp4`). Voila you just generated brainrot.
-6. change the variable values at the top in localBuild.mjs to change what vidoe is generated. The video generation process can take 10-20 minutes so be patient! we are so back fam
+2. go into generate (`cd generate`) and run `chmod +x scripts/start.sh`, and `chmod +x scripts/build.sh`. This will make the scripts executable.
+3. now run `./scripts/build.sh` to build the docker image. This will take 5-15 minutes, as there are a lot of dependencies. The image is around 5.5GB.
+4. you can now run `./scripts/start.sh` to start the container. There are two modes you can run. regular mode and studio mode. Regular mode executes the localBuild.ts script, and outputs a video in the out directory. Studio mode executes the localBuild.ts script, but doesn't render the video. Instead, it generates the necessary audio and context files for the video, and runs `bun run start` outside of the container. This allows you to edit the actual video code (in `src/Composition.tsx`).in real-time and have it update on the spot. To run in studio mode, run `MODE=studio ./scripts/start.sh`. To run in regular mode, run `./scripts/start.sh`. In order to change what video is generated, you can change the variable values at the top in localBuild.ts. The video generation process can take 10-20 minutes so be patient!
+5. Voila you just generated brainrot.
 
 #### how to get neets ai credentials:
 
