@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t brainrot .
+docker build "$@" -t brainrot .
