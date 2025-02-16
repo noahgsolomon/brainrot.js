@@ -9,8 +9,6 @@ import {
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
 
-const PROCESS_ID = 0;
-
 export const RemotionRoot: React.FC = () => {
 	return (
 		<>
@@ -25,7 +23,7 @@ export const RemotionRoot: React.FC = () => {
 					// Audio settings
 					audioOffsetInSeconds: 0,
 					// Title settings
-					audioFileName: staticFile(`audio-${PROCESS_ID}.mp3`),
+					audioFileName: staticFile(`audio.mp3`),
 					titleText: 'Back propagation',
 					titleColor: 'rgba(186, 186, 186, 0.93)',
 
@@ -83,7 +81,7 @@ export const RemotionRoot: React.FC = () => {
 				// Determine the length of the video based on the duration of the audio file
 				calculateMetadata={async ({ props }) => {
 					const duration =
-						(await getAudioDuration(staticFile(`audio-${PROCESS_ID}.mp3`))) + 3;
+						(await getAudioDuration(staticFile(`audio.mp3`))) + 3;
 					return {
 						durationInFrames: Math.ceil(duration * fps),
 						props,
