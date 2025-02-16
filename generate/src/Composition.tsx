@@ -16,13 +16,20 @@ import { PaginatedSubtitles } from './Subtitles';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 
-type SubtitleEntry = {
+export type WordTiming = {
+	word: string;
+	start: number;
+	end: number;
+};
+
+export type SubtitleEntry = {
 	index: string;
 	startTime: number;
 	endTime: number;
 	text: string;
 	srt: string;
 	srtFileIndex: number;
+	wordTimings: WordTiming[];
 };
 
 const AgentDetailsSchema = z.record(
@@ -49,11 +56,10 @@ const parseSRT = (
 	srtContent: string,
 	srtFileIndex: number
 ): SubtitleEntry[] => {
-	// Split content into subtitle blocks
 	const blocks = srtContent.split('\n\n');
+	const MIN_DURATION = 0.5;
 
-	// Extract timestamps and text from each block
-	return blocks
+	const preliminaryEntries = blocks
 		.map((block) => {
 			const lines = block.split('\n');
 			const indexLine = lines[0];
@@ -67,19 +73,83 @@ const parseSRT = (
 				.split(' --> ')
 				.map(srtTimeToSeconds);
 
-			// Combine all text lines into one text block
 			const textLines = lines.slice(2).join(' ');
+
+			// Calculate word timings
+			const words = textLines.split(' ');
+			const timePerWord = (endTime - startTime) / words.length;
+			const wordTimings = words.map((word, idx) => ({
+				word,
+				start: startTime + idx * timePerWord,
+				end: startTime + (idx + 1) * timePerWord,
+			}));
 
 			return {
 				index: indexLine,
 				startTime,
 				endTime,
 				text: textLines,
-				srt: block, // Include only this block of text
-				srtFileIndex, // Add the index of the SRT file
+				srt: block,
+				srtFileIndex,
+				wordTimings,
 			};
 		})
 		.filter((entry): entry is SubtitleEntry => entry !== null);
+
+	const combinedEntries: SubtitleEntry[] = [];
+	let currentEntry: SubtitleEntry | null = null;
+	let accumulatedText: string[] = [];
+	let accumulatedWordTimings: WordTiming[] = [];
+
+	for (const entry of preliminaryEntries) {
+		if (!currentEntry) {
+			currentEntry = entry;
+			accumulatedText = [entry.text];
+			accumulatedWordTimings = [...entry.wordTimings];
+			continue;
+		}
+
+		const currentDuration = currentEntry.endTime - currentEntry.startTime;
+
+		if (currentDuration < MIN_DURATION) {
+			accumulatedText.push(entry.text);
+			accumulatedWordTimings.push(...entry.wordTimings);
+			currentEntry = {
+				...currentEntry,
+				endTime: entry.endTime,
+				text: accumulatedText.join(' '),
+				wordTimings: accumulatedWordTimings,
+				srt: `${currentEntry.index}\n${secondsToSrtTime(
+					currentEntry.startTime
+				)} --> ${secondsToSrtTime(entry.endTime)}\n${accumulatedText.join(
+					' '
+				)}`,
+			};
+		} else {
+			combinedEntries.push(currentEntry);
+			currentEntry = entry;
+			accumulatedText = [entry.text];
+			accumulatedWordTimings = [...entry.wordTimings];
+		}
+	}
+
+	if (currentEntry) {
+		combinedEntries.push(currentEntry);
+	}
+
+	return combinedEntries;
+};
+
+const secondsToSrtTime = (seconds: number): string => {
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const secs = Math.floor(seconds % 60);
+	const millis = Math.floor((seconds % 1) * 1000);
+
+	return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(
+		2,
+		'0'
+	)}:${String(secs).padStart(2, '0')},${String(millis).padStart(3, '0')}`;
 };
 
 const SubtitleFileSchema = z.object({
@@ -201,7 +271,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 	const [handle] = useState<number | null>(null);
 	const [prevImageIdx, setPrevImageIdx] = useState<number>(0);
 	const ref = useRef<HTMLDivElement>(null);
-	const [currentSrtContent, setCurrentSrtContent] = useState<string>('');
 
 	// Determine the current subtitle and agent based on the frame
 	useEffect(() => {
@@ -263,12 +332,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 			}
 		};
 	}, [handle]);
-
-	useEffect(() => {
-		if (currentSubtitle) {
-			setCurrentSrtContent(currentSubtitle.srt);
-		}
-	}, [currentSubtitle]);
 
 	const audioOffsetInFrames = Math.round(audioOffsetInSeconds * fps);
 
@@ -348,12 +411,13 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 								className="font-remotionFont z-10 absolute text-center text-8xl drop-shadow-2xl text-white mx-24 top-8 left-0 right-0"
 							>
 								<PaginatedSubtitles
-									subtitles={currentSrtContent.toUpperCase()}
+									fps={fps}
 									startFrame={audioOffsetInFrames}
 									endFrame={audioOffsetInFrames + durationInFrames}
 									linesPerPage={subtitlesLinePerPage}
 									subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
 									subtitlesLineHeight={subtitlesLineHeight}
+									subtitlesData={subtitlesData}
 								/>
 							</div>
 						</div>

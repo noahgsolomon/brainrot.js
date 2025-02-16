@@ -1,52 +1,24 @@
-import parseSRT, { SubtitleItem } from 'parse-srt';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useCurrentFrame, useVideoConfig } from 'remotion';
+import { useCurrentFrame } from 'remotion';
 import { Word } from './Word';
-
-const useWindowedFrameSubs = (
-	src: string,
-	options: { windowStart: number; windowEnd: number }
-) => {
-	const { windowStart, windowEnd } = options;
-	const config = useVideoConfig();
-	const { fps } = config;
-
-	const parsed = useMemo(() => parseSRT(src), [src]);
-
-	return useMemo(() => {
-		return parsed
-			.map((item) => {
-				const start = Math.floor(item.start * fps);
-				const end = Math.floor(item.end * fps);
-				return { item, start, end };
-			})
-			.filter(({ start }) => {
-				return start >= windowStart && start <= windowEnd;
-			})
-			.map<SubtitleItem>(({ item, start, end }) => {
-				return {
-					...item,
-					start,
-					end,
-				};
-			}, []);
-	}, [fps, parsed, windowEnd, windowStart]);
-};
+import { SubtitleEntry } from './Composition';
 
 export const PaginatedSubtitles: React.FC<{
-	subtitles: string;
+	subtitlesData: SubtitleEntry[];
 	startFrame: number;
 	endFrame: number;
 	linesPerPage: number;
 	subtitlesZoomMeasurerSize: number;
 	subtitlesLineHeight: number;
+	fps: number;
 }> = ({
+	subtitlesData,
 	startFrame,
 	endFrame,
-	subtitles,
 	linesPerPage,
 	subtitlesZoomMeasurerSize,
 	subtitlesLineHeight,
+	fps,
 }) => {
 	const frame = useCurrentFrame();
 	const windowRef = useRef<HTMLDivElement>(null);
@@ -54,10 +26,18 @@ export const PaginatedSubtitles: React.FC<{
 	// const [handle] = useState(() => delayRender());
 	// const [fontHandle] = useState(() => delayRender());
 	// const [fontLoaded, setFontLoaded] = useState(false);
-	const windowedFrameSubs = useWindowedFrameSubs(subtitles, {
-		windowStart: startFrame,
-		windowEnd: endFrame,
-	});
+	console.log('subtitles', subtitlesData);
+	let windowedFrameSubs = useMemo(() => {
+		return subtitlesData
+			.map((item) => ({
+				id: Number(item.index),
+				start: Math.floor(item.startTime * fps),
+				end: Math.floor(item.endTime * fps),
+				text: item.text,
+				wordTimings: item.wordTimings,
+			}))
+			.filter(({ start }) => start >= startFrame && start <= endFrame);
+	}, [subtitlesData, fps, startFrame, endFrame]);
 
 	const [lineOffset, setLineOffset] = useState(0);
 
@@ -105,26 +85,34 @@ export const PaginatedSubtitles: React.FC<{
 	});
 
 	return (
-		<div>
+		<div className="w-[80%] mx-auto flex justify-center">
 			<div
 				ref={windowRef}
 				style={{
+					wordWrap: 'break-word',
 					transform: `translateY(-${lineOffset * subtitlesLineHeight}px)`,
+					textAlign: 'center',
 				}}
 			>
 				{currentFrameSentences.map((item) => (
-					<span key={item.id} id={String(item.id)}>
-						<Word frame={frame} item={item} />{' '}
+					<span
+						key={item.id}
+						id={String(item.id)}
+						style={{
+							display: 'inline',
+						}}
+					>
+						<Word frame={frame} item={item} fps={fps} />{' '}
 					</span>
 				))}
+				<div
+					ref={zoomMeasurer}
+					style={{
+						height: subtitlesZoomMeasurerSize,
+						width: subtitlesZoomMeasurerSize,
+					}}
+				/>
 			</div>
-			<div
-				ref={zoomMeasurer}
-				style={{
-					height: subtitlesZoomMeasurerSize,
-					width: subtitlesZoomMeasurerSize,
-				}}
-			/>
 		</div>
 	);
 };
