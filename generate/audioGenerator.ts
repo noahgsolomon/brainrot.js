@@ -31,7 +31,7 @@ export async function generateTranscriptAudio({
 	fps: number;
 	music: string;
 	videoId: string;
-	mode?: 'brainrot' | 'jre' | 'monologue';
+	mode?: 'brainrot' | 'podcast' | 'monologue';
 	useBackground?: boolean;
 }) {
 	console.log('⭐ Starting generateTranscriptAudio with params:', {

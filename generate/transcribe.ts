@@ -109,7 +109,7 @@ export default async function transcribe({
 	fps: number;
 	music: string;
 	videoId: string;
-	mode?: 'brainrot' | 'jre' | 'monologue';
+	mode?: 'brainrot' | 'podcast' | 'monologue';
 	useBackground?: boolean;
 }) {
 	const { audios, transcript } = await generateTranscriptAudio({

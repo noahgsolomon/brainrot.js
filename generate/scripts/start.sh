@@ -3,11 +3,11 @@
 docker rm -f brainrot-container 2>/dev/null || true
 
 # Validate VIDEO_MODE
-valid_modes=("brainrot" "jre" "monologue")
+valid_modes=("brainrot" "podcast" "monologue")
 if [ -n "$VIDEO_MODE" ] && [[ ! " ${valid_modes[@]} " =~ " ${VIDEO_MODE} " ]]; then
     echo "Error: Invalid VIDEO_MODE '${VIDEO_MODE}'"
     echo "Valid modes are: ${valid_modes[*]}"
-    echo "Example usage: VIDEO_MODE=jre ./scripts/start.sh"
+    echo "Example usage: VIDEO_MODE=podcast ./scripts/start.sh"
     exit 1
 fi
 
