@@ -120,7 +120,8 @@ export const music: string = ${
 		};
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
-export const videoFileName = '/background/MINECRAFT-0.mp4';
+export const useBackground = ${mode === 'brainrot'};
+${mode === 'brainrot' ? "export const videoFileName = '/background/MINECRAFT-0.mp4';" : ''}
 export const videoMode = '${mode}';
 
 export const subtitlesFileName = [

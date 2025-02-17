@@ -163,7 +163,8 @@ const SubtitleFileSchema = z.object({
 export const AudioGramSchema = z.object({
 	initialAgentName: z.string(),
 	agentDetails: AgentDetailsSchema,
-	videoFileName: z.string(),
+	videoFileName: z.string().optional(),
+	useBackground: z.boolean(),
 	durationInSeconds: z.number().positive(),
 	audioOffsetInSeconds: z.number().min(0),
 	subtitlesFileName: z.array(SubtitleFileSchema),
@@ -260,6 +261,7 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 	mirrorWave,
 	audioOffsetInSeconds,
 	videoFileName,
+	useBackground,
 }) => {
 	const [currentAgentName, setCurrentAgentName] = useState<string>('');
 	const { durationInFrames, fps } = useVideoConfig();
@@ -387,11 +389,16 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 							</div>
 						</div>
 						<div className="relative w-full h-[50%]">
-							<OffthreadVideo
-								muted
-								className=" h-full w-full object-cover"
-								src={staticFile(videoFileName)}
-							/>
+							{useBackground && videoFileName && (
+								<OffthreadVideo
+									muted
+									className="h-full w-full object-cover"
+									src={staticFile(videoFileName)}
+								/>
+							)}
+							{!useBackground && (
+								<div className="h-full w-full bg-black" />
+							)}
 							<div
 								className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-7xl"
 								style={{

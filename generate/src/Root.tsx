@@ -5,6 +5,7 @@ import {
 	initialAgentName,
 	subtitlesFileName,
 	videoFileName,
+	useBackground,
 	fps,
 	videoMode,
 } from './tmp/context';
@@ -20,9 +21,11 @@ export const RemotionRoot: React.FC = () => {
 			titleText: 'Back propagation',
 			titleColor: 'rgba(186, 186, 186, 0.93)',
 			initialAgentName,
+			// Video settings
+			useBackground,
+			videoFileName,
 			// Subtitles settings
 			subtitlesFileName,
-			videoFileName,
 			agentDetails: {
 				JOE_ROGAN: {
 					color: '#bc462b',
