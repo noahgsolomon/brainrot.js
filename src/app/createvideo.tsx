@@ -60,6 +60,7 @@ export default function CreateVideo({
     setInvalidTopic,
     setVideoInput,
     videoInput,
+    setIsInQueue,
   } = useCreateVideo();
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails, videoDetails } =
     useGenerationType();
@@ -129,15 +130,13 @@ export default function CreateVideo({
 
         setGenerating(false);
         setIsInQueue(true);
-        setIsCreateVideoOpen(false);
+        setIsOpen(false);
         toast.success("Video is in queue!");
-        setIsOpen(false);
       } else {
-        setIsOpen(false);
-        setIsCreateVideoOpen(true);
+        setGenerating(false);
         setInvalidTopic(true);
         setVideoInput("");
-        setGenerating(false);
+        toast.error("Invalid topic. Please try again.");
       }
     },
     onError: (e) => {
