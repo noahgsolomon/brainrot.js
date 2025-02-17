@@ -9,3 +9,5 @@
 !/public/voice/_
 /public/audio.mp3
 /out/video.mp4
+/backups/*
+/scripts/backup-db.sh
