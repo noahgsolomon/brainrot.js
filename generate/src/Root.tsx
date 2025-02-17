@@ -77,14 +77,10 @@ export const RemotionRoot: React.FC = () => {
 			case 'jre':
 				return {
 					...baseProps,
-					subtitlesLinePerPage: 4,
-					waveLinesToDisplay: 20,
 				};
 			case 'monologue':
 				return {
 					...baseProps,
-					subtitlesLinePerPage: 3,
-					waveLinesToDisplay: 15,
 				};
 			case 'brainrot':
 			default:
