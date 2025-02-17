@@ -127,11 +127,11 @@ export default function CreateVideo({
           },
         });
 
-        setIsOpen(false);
-        setIsCreateVideoOpen(false);
         setGenerating(false);
-        toast.success("Video is in queue!");
         setIsInQueue(true);
+        setIsCreateVideoOpen(false);
+        toast.success("Video is in queue!");
+        setIsOpen(false);
       } else {
         setIsOpen(false);
         setIsCreateVideoOpen(true);
@@ -1081,7 +1081,6 @@ export default function CreateVideo({
             }
             className="flex items-center gap-2"
             onClick={() => {
-              setIsGenerationTypeOpen(true);
               setVideoDetails({
                 mode: videoDetails.mode,
                 title:
@@ -1096,6 +1095,14 @@ export default function CreateVideo({
                 background: background ?? null,
                 music: music ?? null,
                 assetType: assetType ?? null,
+              });
+              setGenerating(true);
+              createVideoMutation.mutate({
+                title: videoInput,
+                agent1: agent[0]?.id ?? 0,
+                agent2: agent[1]?.id ?? 1,
+                cost: credits,
+                remainingCredits: userDB?.credits ?? 0,
               });
             }}
           >

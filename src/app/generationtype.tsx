@@ -77,7 +77,7 @@ export default function GenerationType() {
       } else {
         setIsOpen(false);
         setIsCreateVideoOpen(true);
-        setInvalidTopic(true);
+        setInvalidTopic(false);
         setVideoInput("");
         setGenerating(false);
       }
@@ -243,14 +243,10 @@ export default function GenerationType() {
               (userDB?.credits ?? 0) <= 0
             }
             onClick={() => {
-              setGenerating(true);
-              createVideoMutation.mutate({
-                title: videoDetails.title,
-                agent1: videoDetails.agents[0]?.id ?? 0,
-                agent2: videoDetails.agents[1]?.id ?? 1,
-                cost: videoDetails.cost,
-                remainingCredits: videoDetails.remainingCredits,
-              });
+              setIsOpen(false);
+              setIsCreateVideoOpen(true);
+              setInvalidTopic(false);
+              setVideoInput("");
             }}
             className={cn(
               `flex h-[250px] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue bg-lightBlue shadow-sm transition-all hover:scale-[101%] hover:opacity-80 active:scale-[99%]`,
