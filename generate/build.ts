@@ -7,6 +7,8 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { RowDataPacket } from 'mysql2';
 
+type VideoMode = 'brainrot' | 'podcast' | 'monologue';
+
 const execP = promisify(exec);
 
 dotenv.config();
@@ -42,7 +44,8 @@ async function mainFn(
 	background: string,
 	music: string,
 	cleanSrt: boolean,
-	credits: number
+	credits: number,
+	videoMode: VideoMode
 ) {
 	await cleanupResources();
 	console.log('🚀 Starting mainFn with:', {
@@ -51,6 +54,7 @@ async function mainFn(
 		agentB,
 		videoId,
 		userId,
+		videoMode,
 	});
 	try {
 		console.log('📝 Updating process_id in pending-videos...');
@@ -69,6 +73,8 @@ async function mainFn(
 			fps,
 			music,
 			videoId,
+			mode: videoMode,
+			useBackground: videoMode === 'brainrot',
 		});
 		console.log('✅ Transcription completed successfully');
 
@@ -183,7 +189,8 @@ async function pollPendingVideos() {
 					video.background,
 					video.music,
 					video.clean_srt,
-					video.credits
+					video.credits,
+					video.video_mode as VideoMode
 				);
 			} catch (error) {
 				console.error(`exec error: ${error}`);
