@@ -74,7 +74,7 @@ export const RemotionRoot: React.FC = () => {
 
 		// Mode-specific modifications
 		switch (videoMode) {
-			case 'jre':
+			case 'podcast':
 				return {
 					...baseProps,
 				};

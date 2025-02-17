@@ -9,14 +9,14 @@ if [ -z "$MODE" ]; then
 fi
 
 # Validate VIDEO_MODE
-valid_modes=("brainrot" "jre" "monologue")
+valid_modes=("brainrot" "podcast" "monologue")
 if [ -z "$VIDEO_MODE" ]; then
     VIDEO_MODE="brainrot"
     echo "No VIDEO_MODE specified, defaulting to: brainrot"
 elif [[ ! " ${valid_modes[@]} " =~ " ${VIDEO_MODE} " ]]; then
     echo "Error: Invalid VIDEO_MODE '${VIDEO_MODE}'"
     echo "Valid modes are: ${valid_modes[*]}"
-    echo "Example usage: VIDEO_MODE=jre ./scripts/start.sh"
+    echo "Example usage: VIDEO_MODE=podcast ./scripts/start.sh"
     exit 1
 fi
 

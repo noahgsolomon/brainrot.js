@@ -3,7 +3,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import { rm, mkdir, unlink } from 'fs/promises';
 
-type VideoMode = 'brainrot' | 'jre' | 'monologue';
+type VideoMode = 'brainrot' | 'podcast' | 'monologue';
 
 async function cleanupResources() {
 	try {
@@ -53,7 +53,7 @@ async function main() {
 	let useBackground = true;
 
 	switch (mode) {
-		case 'jre':
+		case 'podcast':
 			videoTopic = 'Joe Rogan interviews Jordan Peterson about consciousness and DMT';
 			useBackground = false;
 			break;
