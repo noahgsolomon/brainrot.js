@@ -203,7 +203,7 @@ const imagePrompt = async (title: string) => {
 	console.log('💭 Generating image prompt for:', title);
 	try {
 		const response = await openai.chat.completions.create({
-			model: 'gpt-4o-mini',
+			model: process.env.OPENAI_IMAGE_DESCRIPTION_MODEL ?? 'gpt-4o-mini',
 			messages: [{ role: 'user', content: title }],
 		});
 		console.log('✅ Prompt generated:', response.choices[0]?.message.content);
