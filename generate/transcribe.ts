@@ -99,6 +99,8 @@ export default async function transcribe({
 	fps,
 	music,
 	videoId,
+	mode = 'brainrot',
+	useBackground = true,
 }: {
 	local: boolean;
 	topic: string;
@@ -107,6 +109,8 @@ export default async function transcribe({
 	fps: number;
 	music: string;
 	videoId: string;
+	mode?: 'brainrot' | 'jre' | 'monologue';
+	useBackground?: boolean;
 }) {
 	const { audios, transcript } = await generateTranscriptAudio({
 		local,
@@ -116,6 +120,8 @@ export default async function transcribe({
 		fps,
 		music,
 		videoId,
+		mode,
+		useBackground,
 	});
 	let startingTime = 0;
 

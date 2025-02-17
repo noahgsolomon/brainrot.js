@@ -65,3 +65,8 @@ bun.lockb
 	
 # open-next
 .open-next
+
+# cursor stuff
+.cursor/*
+.cursorignore
+/plans/*
