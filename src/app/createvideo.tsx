@@ -40,6 +40,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import ProButton from "./ProButton";
 import { useGenerationType } from "./usegenerationtype";
+import { v4 as uuidv4 } from "uuid";
 
 export default function CreateVideo({
   visible = false,
@@ -60,7 +61,7 @@ export default function CreateVideo({
     setVideoInput,
     videoInput,
   } = useCreateVideo();
-  const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
+  const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails, videoDetails } =
     useGenerationType();
 
   const [agent, setAgent] = useState<
@@ -101,6 +102,86 @@ export default function CreateVideo({
   ]);
   const router = useRouter();
 
+  const createVideoMutation = trpc.user.createVideo.useMutation({
+    onSuccess: async (data) => {
+      if (data?.valid) {
+        const uuidVal = uuidv4();
+        await fetch("/api/create", {
+          method: "POST",
+          body: JSON.stringify({
+            userId: dbUser.data?.user?.id,
+            topic: videoDetails.title,
+            agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
+            agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
+            videoId: uuidVal,
+            duration: 1,
+            music: videoDetails.music,
+            background: videoDetails.background,
+            fps: videoDetails.fps,
+            aiGeneratedImages: videoDetails.assetType === "AI" ? true : false,
+            cleanSrt: true,
+            credits: videoDetails.cost,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        setIsOpen(false);
+        setIsCreateVideoOpen(false);
+        setGenerating(false);
+        toast.success("Video is in queue!");
+        setIsInQueue(true);
+      } else {
+        setIsOpen(false);
+        setIsCreateVideoOpen(true);
+        setInvalidTopic(true);
+        setVideoInput("");
+        setGenerating(false);
+      }
+    },
+    onError: (e) => {
+      console.log(e);
+      setGenerating(false);
+    },
+  });
+
+  const [searchQueryString, setSearchQueryString] = useState("");
+
+  useEffect(() => {
+    const allParamsExist =
+      videoDetails.title &&
+      videoDetails.cost &&
+      videoDetails.assetType &&
+      videoDetails.duration &&
+      videoDetails.fps &&
+      videoDetails.assetType;
+
+    setSearchQueryString(
+      `?agent1Id=${encodeURIComponent(
+        videoDetails.agents[0]?.id!,
+      )}&agent2Id=${encodeURIComponent(
+        videoDetails.agents[1]?.id!,
+      )}&agent1Name=${encodeURIComponent(
+        videoDetails.agents[0]?.name!,
+      )}&agent2Name=${encodeURIComponent(
+        videoDetails.agents[1]?.name!,
+      )}&title=${encodeURIComponent(
+        videoDetails.title,
+      )}&credits=${encodeURIComponent(
+        videoDetails.cost,
+      )}&music=${encodeURIComponent(
+        videoDetails.music ?? "NONE",
+      )}&background=${encodeURIComponent(
+        videoDetails.background ?? "MINECRAFT",
+      )}&assetType=${encodeURIComponent(
+        videoDetails.assetType ?? "GOOGLE",
+      )}&duration=${encodeURIComponent(
+        videoDetails.duration,
+      )}&fps=${encodeURIComponent(videoDetails.fps)}`,
+    );
+  }, [videoDetails]);
+
   useEffect(() => {
     let value = 10;
     if (assetType === "AI") {
@@ -117,16 +198,35 @@ export default function CreateVideo({
 
   const dbUser = trpc.user.user.useQuery();
 
+  const handleAgentSelection = (newAgent: typeof agent[0]) => {
+    if (videoDetails.mode === "monologue") {
+      setAgent([newAgent]);
+    } else {
+      setAgent((currentAgents) => {
+        const isAgentPresent = currentAgents.some(
+          (agent) => agent.name === newAgent.name,
+        );
+
+        if (isAgentPresent) {
+          return currentAgents.filter(
+            (agent) => agent.name !== newAgent.name,
+          );
+        } else if (currentAgents.length < 2) {
+          return [...currentAgents, newAgent];
+        }
+        return currentAgents;
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className=" max-h-[75%] max-w-[90%] rounded-lg xs:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="relative ">
-            <XIcon
-              className="absolute right-2 top-2 h-4 w-4 cursor-pointer transition-all hover:opacity-80"
-              onClick={() => setIsOpen(false)}
-            />
+            <h3>Configure your {videoDetails.mode} video</h3>
           </DialogTitle>
+          <DialogDescription>Choose your settings</DialogDescription>
         </DialogHeader>
         <div>
           <div className="flex items-center gap-2 pb-2">
@@ -138,47 +238,6 @@ export default function CreateVideo({
               alt="book"
             />
           </div>
-          {/* <div className="hidden flex-wrap gap-2 sm:flex">
-            <Button
-              className={`transition-all ${
-                recommendedSelect === 0 ? "border border-primary" : ""
-              }`}
-              onClick={() => {
-                setRecommendedSelect(0);
-                setInvalidTopic(false);
-              }}
-              size={"sm"}
-              variant={"secondary"}
-            >
-              Covariance Matrix
-            </Button>
-            <Button
-              className={`transition-all ${
-                recommendedSelect === 1 ? "border border-primary" : ""
-              }`}
-              onClick={() => {
-                setRecommendedSelect(1);
-                setInvalidTopic(false);
-              }}
-              size={"sm"}
-              variant={"secondary"}
-            >
-              Alien Invasion
-            </Button>
-            <Button
-              className={`transition-all ${
-                recommendedSelect === 2 ? "border border-primary" : ""
-              }`}
-              onClick={() => {
-                setRecommendedSelect(2);
-                setInvalidTopic(false);
-              }}
-              size={"sm"}
-              variant={"secondary"}
-            >
-              Fall of Roman Empire
-            </Button>
-          </div> */}
           <div className="flex flex-col justify-center gap-1 py-4">
             <Textarea
               spellCheck
@@ -205,7 +264,7 @@ export default function CreateVideo({
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <h4>2.{")"} Choose your 2 fighters!</h4>
+            <h4>2.{")"} Choose your {videoDetails.mode === "monologue" ? "speaker" : "fighters"}!</h4>
             <Image
               height={20}
               width={20}
@@ -224,30 +283,7 @@ export default function CreateVideo({
                     : ""
                 }`,
               )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "JORDAN_PETERSON")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isJordanPetersonPresent = currentAgents.some(
-                    (agent) => agent.name === "JORDAN_PETERSON",
-                  );
-
-                  if (isJordanPetersonPresent) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "JORDAN_PETERSON",
-                    );
-                  } else {
-                    return [
-                      ...currentAgents,
-                      { name: "JORDAN_PETERSON", id: 1 },
-                    ];
-                  }
-                });
-              }}
+              onClick={() => handleAgentSelection({ name: "JORDAN_PETERSON", id: 1 })}
             >
               <Image
                 className={` absolute bottom-0 left-0 right-0 top-0 z-20   transition-all ${
@@ -277,27 +313,7 @@ export default function CreateVideo({
                     : ""
                 }`,
               )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "BEN_SHAPIRO")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBenShapiro = currentAgents.some(
-                    (agent) => agent.name === "BEN_SHAPIRO",
-                  );
-
-                  if (isBenShapiro) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "BEN_SHAPIRO",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "BEN_SHAPIRO", id: 2 }];
-                  }
-                });
-              }}
+              onClick={() => handleAgentSelection({ name: "BEN_SHAPIRO", id: 2 })}
             >
               <Image
                 className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
@@ -327,27 +343,7 @@ export default function CreateVideo({
                     : ""
                 }`,
               )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "JOE_ROGAN")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isJoeRogan = currentAgents.some(
-                    (agent) => agent.name === "JOE_ROGAN",
-                  );
-
-                  if (isJoeRogan) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "JOE_ROGAN",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "JOE_ROGAN", id: 3 }];
-                  }
-                });
-              }}
+              onClick={() => handleAgentSelection({ name: "JOE_ROGAN", id: 3 })}
             >
               <Image
                 className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
@@ -378,27 +374,7 @@ export default function CreateVideo({
                     : ""
                 }`,
               )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "BARACK_OBAMA")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBarackObama = currentAgents.some(
-                    (agent) => agent.name === "BARACK_OBAMA",
-                  );
-
-                  if (isBarackObama) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "BARACK_OBAMA",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "BARACK_OBAMA", id: 4 }];
-                  }
-                });
-              }}
+              onClick={() => handleAgentSelection({ name: "BARACK_OBAMA", id: 4 })}
             >
               <Image
                 className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
@@ -464,30 +440,7 @@ export default function CreateVideo({
                       : ""
                   }`,
                 )}
-                onClick={() => {
-                  if (
-                    agent.length === 2 &&
-                    !agent.some((a) => a.name === "DONALD_TRUMP")
-                  ) {
-                    return;
-                  }
-                  setAgent((currentAgents) => {
-                    const isTrumpPresent = currentAgents.some(
-                      (agent) => agent.name === "DONALD_TRUMP",
-                    );
-
-                    if (isTrumpPresent) {
-                      return currentAgents.filter(
-                        (agent) => agent.name !== "DONALD_TRUMP",
-                      );
-                    } else {
-                      return [
-                        ...currentAgents,
-                        { name: "DONALD_TRUMP", id: 1 },
-                      ];
-                    }
-                  });
-                }}
+                onClick={() => handleAgentSelection({ name: "DONALD_TRUMP", id: 1 })}
               >
                 <Image
                   className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
@@ -554,27 +507,7 @@ export default function CreateVideo({
                       : ""
                   }`,
                 )}
-                onClick={() => {
-                  if (
-                    agent.length === 2 &&
-                    !agent.some((a) => a.name === "JOE_BIDEN")
-                  ) {
-                    return;
-                  }
-                  setAgent((currentAgents) => {
-                    const isBarackObama = currentAgents.some(
-                      (agent) => agent.name === "JOE_BIDEN",
-                    );
-
-                    if (isBarackObama) {
-                      return currentAgents.filter(
-                        (agent) => agent.name !== "JOE_BIDEN",
-                      );
-                    } else {
-                      return [...currentAgents, { name: "JOE_BIDEN", id: 5 }];
-                    }
-                  });
-                }}
+                onClick={() => handleAgentSelection({ name: "JOE_BIDEN", id: 5 })}
               >
                 <Image
                   className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
@@ -641,27 +574,7 @@ export default function CreateVideo({
                       : ""
                   }`,
                 )}
-                onClick={() => {
-                  if (
-                    agent.length === 2 &&
-                    !agent.some((a) => a.name === "ANDREW_TATE")
-                  ) {
-                    return;
-                  }
-                  setAgent((currentAgents) => {
-                    const isAndrewTate = currentAgents.some(
-                      (agent) => agent.name === "ANDREW_TATE",
-                    );
-
-                    if (isAndrewTate) {
-                      return currentAgents.filter(
-                        (agent) => agent.name !== "ANDREW_TATE",
-                      );
-                    } else {
-                      return [...currentAgents, { name: "ANDREW_TATE", id: 7 }];
-                    }
-                  });
-                }}
+                onClick={() => handleAgentSelection({ name: "ANDREW_TATE", id: 7 })}
               >
                 <Image
                   className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
@@ -728,30 +641,7 @@ export default function CreateVideo({
                       : ""
                   }`,
                 )}
-                onClick={() => {
-                  if (
-                    agent.length === 2 &&
-                    !agent.some((a) => a.name === "KAMALA_HARRIS")
-                  ) {
-                    return;
-                  }
-                  setAgent((currentAgents) => {
-                    const isKamalaHarris = currentAgents.some(
-                      (agent) => agent.name === "KAMALA_HARRIS",
-                    );
-
-                    if (isKamalaHarris) {
-                      return currentAgents.filter(
-                        (agent) => agent.name !== "KAMALA_HARRIS",
-                      );
-                    } else {
-                      return [
-                        ...currentAgents,
-                        { name: "KAMALA_HARRIS", id: 6 },
-                      ];
-                    }
-                  });
-                }}
+                onClick={() => handleAgentSelection({ name: "KAMALA_HARRIS", id: 6 })}
               >
                 <Image
                   className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
@@ -773,524 +663,405 @@ export default function CreateVideo({
                 />
               </div>
             )}
-            {/* <div
-              className={cn(
-                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                `${
-                  agent.some((a) => a.name === "LIL_YACHTY")
-                    ? "border border-border"
-                    : ""
-                }`,
-              )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "LIL_YACHTY")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBarackObama = currentAgents.some(
-                    (agent) => agent.name === "LIL_YACHTY",
-                  );
-
-                  if (isBarackObama) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "LIL_YACHTY",
-                    );
-                  } else {
-                    return [...currentAgents, { name: "LIL_YACHTY", id: 6 }];
-                  }
-                });
-              }}
-            >
-              <Image
-                className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
-                  agent.some((a) => a.name === "LIL_YACHTY")
-                    ? "opacity-40"
-                    : "opacity-0"
-                }`}
-                height={75}
-                width={75}
-                src={"https://images.smart.wtf/fireball.gif"}
-                alt="fire"
-              />
-              <Image
-                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                src={"https://images.smart.wtf/LIL_YACHTY.png"}
-                width={75}
-                height={75}
-                alt="barack"
-              />
-            </div> */}
-            {/* <div
-              className={cn(
-                `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                `${
-                  agent.some((a) => a.name === "MARK_ZUCKERBERG")
-                    ? "border border-border"
-                    : ""
-                }`,
-              )}
-              onClick={() => {
-                if (
-                  agent.length === 2 &&
-                  !agent.some((a) => a.name === "MARK_ZUCKERBERG")
-                ) {
-                  return;
-                }
-                setAgent((currentAgents) => {
-                  const isBarackObama = currentAgents.some(
-                    (agent) => agent.name === "MARK_ZUCKERBERG",
-                  );
-
-                  if (isBarackObama) {
-                    return currentAgents.filter(
-                      (agent) => agent.name !== "MARK_ZUCKERBERG",
-                    );
-                  } else {
-                    return [
-                      ...currentAgents,
-                      { name: "MARK_ZUCKERBERG", id: 7 },
-                    ];
-                  }
-                });
-              }}
-            >
-              <Image
-                className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
-                  agent.some((a) => a.name === "MARK_ZUCKERBERG")
-                    ? "opacity-40"
-                    : "opacity-0"
-                }`}
-                height={75}
-                width={75}
-                src={"https://images.smart.wtf/fireball.gif"}
-                alt="fire"
-              />
-              <Image
-                className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                src={"https://images.smart.wtf/MARK_ZUCKERBERG.png"}
-                width={75}
-                height={75}
-                alt="barack"
-              />
-            </div> */}
           </div>
         </div>
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant={"outline"}>Additional Options</Button>
-            </DialogTrigger>
-            <DialogContent>
-              {/* <div className="absolute inset-0 z-40 flex h-full w-full items-center justify-center rounded-lg bg-primary/50">
-                <p className="text-center text-4xl font-bold text-secondary">
-                  COMING SOON
-                </p>
-              </div> */}
-              <div className="relative flex flex-col gap-2">
-                <div className="flex items-center gap-1">
-                  <h6>Background video</h6>
-                  <Film className="size-4 text-success" />
-                </div>
-                <DialogClose>
-                  <XIcon className="absolute right-2 top-2 h-4 w-4 cursor-pointer transition-all hover:opacity-80" />
-                </DialogClose>
-                <div className="flex flex-wrap gap-2">
-                  <div
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                    )}
-                    onClick={() => {
-                      if (background === "TRUCK") {
-                        setBackground(null);
-                      } else {
-                        setBackground("TRUCK");
-                      }
-                    }}
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                        background === "TRUCK" ? "opacity-40" : "opacity-0"
-                      }`}
-                      height={90}
-                      width={90}
-                      src={"https://images.smart.wtf/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                      src={"https://images.smart.wtf/TRUCK.png"}
-                      width={90}
-                      height={90}
-                      alt="TRUCK"
-                    />
-                  </div>
-                  <div
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                    )}
-                    onClick={() => {
-                      if (background === "MINECRAFT") {
-                        setBackground(null);
-                      } else {
-                        setBackground("MINECRAFT");
-                      }
-                    }}
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                        background === "MINECRAFT" ? "opacity-40" : "opacity-0"
-                      }`}
-                      height={90}
-                      width={90}
-                      src={"https://images.smart.wtf/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                      src={"https://images.smart.wtf/minecraft.webp"}
-                      width={90}
-                      height={90}
-                      alt="minecraft"
-                    />
-                  </div>
-                  <div
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                    )}
-                    onClick={() => {
-                      if (background === "GTA") {
-                        setBackground(null);
-                      } else {
-                        setBackground("GTA");
-                      }
-                    }}
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                        background === "GTA" ? "opacity-40" : "opacity-0"
-                      }`}
-                      height={90}
-                      width={90}
-                      src={"https://images.smart.wtf/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                      src={"https://images.smart.wtf/gta.png"}
-                      width={90}
-                      height={90}
-                      alt="bender"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-row items-center gap-4 ">
+        {videoDetails.mode === "brainrot" && (
+          <div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant={"outline"}>Additional Options</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <div className="relative flex flex-col gap-2">
                   <div className="flex items-center gap-1">
-                    <h6>Background music</h6>
-                    <Music className="size-4 text-english" />
-                  </div>{" "}
-                  |{" "}
-                  <Button
-                    onClick={() => setMusic("NONE")}
-                    size={"sm"}
-                    variant={music === "NONE" ? "default" : "outline"}
-                  >
-                    off
-                  </Button>
-                </div>
+                    <h6>Background video</h6>
+                    <Film className="size-4 text-success" />
+                  </div>
+                  <DialogClose>
+                    <XIcon className="absolute right-2 top-2 h-4 w-4 cursor-pointer transition-all hover:opacity-80" />
+                  </DialogClose>
+                  <div className="flex flex-wrap gap-2">
+                    <div
+                      className={cn(
+                        `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                      )}
+                      onClick={() => {
+                        if (background === "TRUCK") {
+                          setBackground(null);
+                        } else {
+                          setBackground("TRUCK");
+                        }
+                      }}
+                    >
+                      <Image
+                        className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                          background === "TRUCK" ? "opacity-40" : "opacity-0"
+                        }`}
+                        height={90}
+                        width={90}
+                        src={"https://images.smart.wtf/fireball.gif"}
+                        alt="fire"
+                      />
+                      <Image
+                        className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                        src={"https://images.smart.wtf/TRUCK.png"}
+                        width={90}
+                        height={90}
+                        alt="TRUCK"
+                      />
+                    </div>
+                    <div
+                      className={cn(
+                        `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                      )}
+                      onClick={() => {
+                        if (background === "MINECRAFT") {
+                          setBackground(null);
+                        } else {
+                          setBackground("MINECRAFT");
+                        }
+                      }}
+                    >
+                      <Image
+                        className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                          background === "MINECRAFT" ? "opacity-40" : "opacity-0"
+                        }`}
+                        height={90}
+                        width={90}
+                        src={"https://images.smart.wtf/fireball.gif"}
+                        alt="fire"
+                      />
+                      <Image
+                        className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                        src={"https://images.smart.wtf/minecraft.webp"}
+                        width={90}
+                        height={90}
+                        alt="minecraft"
+                      />
+                    </div>
+                    <div
+                      className={cn(
+                        `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                      )}
+                      onClick={() => {
+                        if (background === "GTA") {
+                          setBackground(null);
+                        } else {
+                          setBackground("GTA");
+                        }
+                      }}
+                    >
+                      <Image
+                        className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                          background === "GTA" ? "opacity-40" : "opacity-0"
+                        }`}
+                        height={90}
+                        width={90}
+                        src={"https://images.smart.wtf/fireball.gif"}
+                        alt="fire"
+                      />
+                      <Image
+                        className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                        src={"https://images.smart.wtf/gta.png"}
+                        width={90}
+                        height={90}
+                        alt="bender"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-row items-center gap-4 ">
+                    <div className="flex items-center gap-1">
+                      <h6>Background music</h6>
+                      <Music className="size-4 text-english" />
+                    </div>{" "}
+                    |{" "}
+                    <Button
+                      onClick={() => setMusic("NONE")}
+                      size={"sm"}
+                      variant={music === "NONE" ? "default" : "outline"}
+                    >
+                      off
+                    </Button>
+                  </div>
 
-                <div
-                  className={`flex flex-wrap gap-2 ${
-                    music === "NONE" ? "opacity-50" : ""
-                  }`}
-                >
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (music === "WII_SHOP_CHANNEL_TRAP") {
-                            setMusic(null);
-                          } else {
-                            setMusic("WII_SHOP_CHANNEL_TRAP");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            music === "WII_SHOP_CHANNEL_TRAP"
-                              ? "opacity-40"
-                              : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/wiisports.png"}
-                          width={90}
-                          height={90}
-                          alt="wii sports"
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="z-50">
-                      Wii Shop Channel Trap
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (music === "MONKEYS_SPINNING_MONKEYS") {
-                            setMusic(null);
-                          } else {
-                            setMusic("MONKEYS_SPINNING_MONKEYS");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            music === "MONKEYS_SPINNING_MONKEYS"
-                              ? "opacity-40"
-                              : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/monkey.png"}
-                          width={90}
-                          height={90}
-                          alt="minecraft"
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="z-50">
-                      Monkeys Spinning Monkeys
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (music === "FLUFFING_A_DUCK") {
-                            setMusic(null);
-                          } else {
-                            setMusic("FLUFFING_A_DUCK");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            music === "FLUFFING_A_DUCK"
-                              ? "opacity-40"
-                              : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/fluffing.png"}
-                          width={90}
-                          height={80}
-                          alt="fluffing a duck"
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="z-50">
-                      Fluffing a Duck
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="relative">
-                  {!userDB?.subscribed ? (
-                    <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
-                      <ProButton>
-                        <Button
-                          data-action="subscribe"
-                          className="flex flex-row items-center gap-2 "
-                          variant="red"
-                          size="sm"
-                        >
-                          GO PRO <Crown className="size-4" />
-                        </Button>
-                      </ProButton>
-                    </div>
-                  ) : null}
-                  <div className=" flex flex-col gap-2 p-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h6>FPS: </h6>
-                      <div className="flex flex-wrap items-center gap-1 xs:gap-2">
-                        <Button
-                          variant={fps === 20 ? "default" : "outline"}
-                          onClick={() => setFps(20)}
-                          size={"sm"}
-                        >
-                          20
-                        </Button>{" "}
-                        |
-                        <Button
-                          onClick={() => setFps(30)}
-                          size={"sm"}
-                          variant={fps === 30 ? "default" : "outline"}
-                        >
-                          30
-                        </Button>{" "}
-                        |
-                        <Button
-                          onClick={() => setFps(50)}
-                          size={"sm"}
-                          variant={fps === 50 ? "default" : "outline"}
-                        >
-                          50
-                        </Button>{" "}
-                        |
-                        <Button
-                          onClick={() => setFps(60)}
-                          size={"sm"}
-                          variant={fps === 60 ? "default" : "outline"}
-                        >
-                          60
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h6>Duration: </h6>
-                      <div className="flex flex-row items-center gap-1 xs:gap-2">
-                        <Button
-                          variant={duration === 1 ? "default" : "outline"}
-                          onClick={() => setDuration(1)}
-                          size={"sm"}
-                        >
-                          1 min
-                        </Button>{" "}
-                        |
-                        <Button
-                          disabled
+                  <div
+                    className={`flex flex-wrap gap-2 ${
+                      music === "NONE" ? "opacity-50" : ""
+                    }`}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div
+                          className={cn(
+                            `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                          )}
                           onClick={() => {
-                            if (assetType === "AI") {
-                              setAssetType("GOOGLE");
+                            if (music === "WII_SHOP_CHANNEL_TRAP") {
+                              setMusic(null);
+                            } else {
+                              setMusic("WII_SHOP_CHANNEL_TRAP");
                             }
-                            setDuration(2);
                           }}
-                          size={"sm"}
-                          variant={duration === 2 ? "default" : "outline"}
                         >
-                          2 min
-                        </Button>{" "}
-                        |
-                        <Button
-                          disabled
+                          <Image
+                            className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                              music === "WII_SHOP_CHANNEL_TRAP"
+                                ? "opacity-40"
+                                : "opacity-0"
+                            }`}
+                            height={90}
+                            width={90}
+                            src={"https://images.smart.wtf/fireball.gif"}
+                            alt="fire"
+                          />
+                          <Image
+                            className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                            src={"https://images.smart.wtf/wiisports.png"}
+                            width={90}
+                            height={90}
+                            alt="wii sports"
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="z-50">
+                        Wii Shop Channel Trap
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div
+                          className={cn(
+                            `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                          )}
                           onClick={() => {
-                            if (assetType === "AI") {
-                              setAssetType("GOOGLE");
+                            if (music === "MONKEYS_SPINNING_MONKEYS") {
+                              setMusic(null);
+                            } else {
+                              setMusic("MONKEYS_SPINNING_MONKEYS");
                             }
-                            setDuration(3);
                           }}
-                          size={"sm"}
-                          variant={duration === 3 ? "default" : "outline"}
                         >
-                          3 min
-                        </Button>
+                          <Image
+                            className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                              music === "MONKEYS_SPINNING_MONKEYS"
+                                ? "opacity-40"
+                                : "opacity-0"
+                            }`}
+                            height={90}
+                            width={90}
+                            src={"https://images.smart.wtf/fireball.gif"}
+                            alt="fire"
+                          />
+                          <Image
+                            className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                            src={"https://images.smart.wtf/monkey.png"}
+                            width={90}
+                            height={90}
+                            alt="minecraft"
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="z-50">
+                        Monkeys Spinning Monkeys
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div
+                          className={cn(
+                            `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
+                          )}
+                          onClick={() => {
+                            if (music === "FLUFFING_A_DUCK") {
+                              setMusic(null);
+                            } else {
+                              setMusic("FLUFFING_A_DUCK");
+                            }
+                          }}
+                        >
+                          <Image
+                            className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                              music === "FLUFFING_A_DUCK"
+                                ? "opacity-40"
+                                : "opacity-0"
+                            }`}
+                            height={90}
+                            width={90}
+                            src={"https://images.smart.wtf/fireball.gif"}
+                            alt="fire"
+                          />
+                          <Image
+                            className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
+                            src={"https://images.smart.wtf/fluffing.png"}
+                            width={90}
+                            height={80}
+                            alt="fluffing a duck"
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="z-50">
+                        Fluffing a Duck
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="relative">
+                    {!userDB?.subscribed ? (
+                      <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
+                        <ProButton>
+                          <Button
+                            data-action="subscribe"
+                            className="flex flex-row items-center gap-2 "
+                            variant="red"
+                            size="sm"
+                          >
+                            GO PRO <Crown className="size-4" />
+                          </Button>
+                        </ProButton>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h6>Assets: </h6>
-                      <div className="flex flex-row items-center gap-1 xs:gap-2">
-                        <Button
-                          variant={assetType === "AI" ? "default" : "outline"}
-                          onClick={() => setAssetType("AI")}
-                          size={"sm"}
-                          disabled={(duration ?? 0) > 1}
-                        >
-                          AI Generated
-                        </Button>
-                        |
-                        <Button
-                          disabled
-                          onClick={() => setAssetType("GOOGLE")}
-                          size={"sm"}
-                          variant={
-                            assetType === "GOOGLE" ? "default" : "outline"
-                          }
-                        >
-                          Google Search
-                        </Button>
+                    ) : null}
+                    <div className=" flex flex-col gap-2 p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h6>FPS: </h6>
+                        <div className="flex flex-wrap items-center gap-1 xs:gap-2">
+                          <Button
+                            variant={fps === 20 ? "default" : "outline"}
+                            onClick={() => setFps(20)}
+                            size={"sm"}
+                          >
+                            20
+                          </Button>{" "}
+                          |
+                          <Button
+                            onClick={() => setFps(30)}
+                            size={"sm"}
+                            variant={fps === 30 ? "default" : "outline"}
+                          >
+                            30
+                          </Button>{" "}
+                          |
+                          <Button
+                            onClick={() => setFps(50)}
+                            size={"sm"}
+                            variant={fps === 50 ? "default" : "outline"}
+                          >
+                            50
+                          </Button>{" "}
+                          |
+                          <Button
+                            onClick={() => setFps(60)}
+                            size={"sm"}
+                            variant={fps === 60 ? "default" : "outline"}
+                          >
+                            60
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h6>Duration: </h6>
+                        <div className="flex flex-row items-center gap-1 xs:gap-2">
+                          <Button
+                            variant={duration === 1 ? "default" : "outline"}
+                            onClick={() => setDuration(1)}
+                            size={"sm"}
+                          >
+                            1 min
+                          </Button>{" "}
+                          |
+                          <Button
+                            disabled
+                            onClick={() => {
+                              if (assetType === "AI") {
+                                setAssetType("GOOGLE");
+                              }
+                              setDuration(2);
+                            }}
+                            size={"sm"}
+                            variant={duration === 2 ? "default" : "outline"}
+                          >
+                            2 min
+                          </Button>{" "}
+                          |
+                          <Button
+                            disabled
+                            onClick={() => {
+                              if (assetType === "AI") {
+                                setAssetType("GOOGLE");
+                              }
+                              setDuration(3);
+                            }}
+                            size={"sm"}
+                            variant={duration === 3 ? "default" : "outline"}
+                          >
+                            3 min
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h6>Assets: </h6>
+                        <div className="flex flex-row items-center gap-1 xs:gap-2">
+                          <Button
+                            variant={assetType === "AI" ? "default" : "outline"}
+                            onClick={() => setAssetType("AI")}
+                            size={"sm"}
+                            disabled={(duration ?? 0) > 1}
+                          >
+                            AI Generated
+                          </Button>
+                          |
+                          <Button
+                            disabled
+                            onClick={() => setAssetType("GOOGLE")}
+                            size={"sm"}
+                            variant={
+                              assetType === "GOOGLE" ? "default" : "outline"
+                            }
+                          >
+                            Google Search
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {userDB?.subscribed ? (
-                <p className="flex flex-row items-center gap-1 text-sm text-blue">
-                  <Info className="size-3 text-blue" />
-                  We only support 1 min videos rn
-                </p>
-              ) : null}
+                {userDB?.subscribed ? (
+                  <p className="flex flex-row items-center gap-1 text-sm text-blue">
+                    <Info className="size-3 text-blue" />
+                    We only support 1 min videos rn
+                  </p>
+                ) : null}
 
-              <div className="flex flex-row items-center justify-between">
-                <DialogClose
-                  disabled={
-                    !background && !music && !fps && !duration && !assetType
-                  }
-                >
-                  <Button
+                <div className="flex flex-row items-center justify-between">
+                  <DialogClose
                     disabled={
                       !background && !music && !fps && !duration && !assetType
                     }
-                    className="flex items-center gap-2"
-                    onClick={() => toast.info("saved options!", { icon: "💾" })}
                   >
-                    Save <Save className="size-4" />
-                  </Button>
-                </DialogClose>
-                <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
-                  <p className="text-xs font-bold">
-                    Cost in Credits:{" "}
-                    <span className="text-blue">{credits}</span>/
-                    <span className="text-red-500">{userDB?.credits ?? 0}</span>
-                  </p>
-                  <Progress value={credits / 0.6} />
+                    <Button
+                      disabled={
+                        !background && !music && !fps && !duration && !assetType
+                      }
+                      className="flex items-center gap-2"
+                      onClick={() => toast.info("saved options!", { icon: "💾" })}
+                    >
+                      Save <Save className="size-4" />
+                    </Button>
+                  </DialogClose>
+                  <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
+                    <p className="text-xs font-bold">
+                      Cost in Credits:{" "}
+                      <span className="text-blue">{credits}</span>/
+                      <span className="text-red-500">{userDB?.credits ?? 0}</span>
+                    </p>
+                    <Progress value={credits / 0.6} />
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
         {user.userId ? (
           <>
-            {/* {(userDB?.credits ?? 0) < credits && (
-              <p className="flex flex-row items-center gap-1 text-sm text-red-500/80">
-                <ProButton>
-                  <Button
-                    className="p-0 text-left text-red-500/80"
-                    variant={"link"}
-                  >
-                    You have insufficient credits for this generation. to get
-                    more, subscribe
-                  </Button>
-                </ProButton>
-              </p>
-            )} */}
             {videoStatus.data?.videos !== null && (
               <p className="text-sm text-destructive/60">
                 Error. Please refresh the page.
@@ -1302,7 +1073,8 @@ export default function CreateVideo({
         <DialogFooter className="flex flex-row items-center justify-between">
           <Button
             disabled={
-              agent.length !== 2 ||
+              (videoDetails.mode !== "monologue" && agent.length !== 2) ||
+              (videoDetails.mode === "monologue" && agent.length !== 1) ||
               (videoInput === "" && recommendedSelect === -1) ||
               generating ||
               (!!user.userId && videoStatus.data?.videos !== null)
@@ -1311,21 +1083,19 @@ export default function CreateVideo({
             onClick={() => {
               setIsGenerationTypeOpen(true);
               setVideoDetails({
-                brainrot: {
-                  title:
-                    (videoInput === ""
-                      ? recommendedTopics[recommendedSelect]
-                      : videoInput) ?? "the future of the world",
-                  agents: agent,
-                  cost: credits,
-                  remainingCredits: userDB?.credits ?? 0,
-                  duration: duration ?? 1,
-                  fps: fps ?? 30,
-                  background: background ?? null,
-                  music: music ?? null,
-                  assetType: assetType ?? null,
-                },
-                math: {},
+                mode: videoDetails.mode,
+                title:
+                  (videoInput === ""
+                    ? recommendedTopics[recommendedSelect]
+                    : videoInput) ?? "the future of the world",
+                agents: agent,
+                cost: credits,
+                remainingCredits: userDB?.credits ?? 0,
+                duration: duration ?? 1,
+                fps: fps ?? 30,
+                background: background ?? null,
+                music: music ?? null,
+                assetType: assetType ?? null,
               });
             }}
           >
