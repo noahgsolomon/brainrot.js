@@ -26,54 +26,50 @@ interface useGenerationTypeProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   videoDetails: {
-    brainrot: {
-      title: string;
-      agents: {
-        name:
-          | "JORDAN_PETERSON"
-          | "BEN_SHAPIRO"
-          | "JOE_ROGAN"
-          | "BARACK_OBAMA"
-          | "DONALD_TRUMP"
-          | "JOE_BIDEN"
-          | "ANDREW_TATE"
-          | "KAMALA_HARRIS";
-        id: number;
-      }[];
-      cost: number;
-      remainingCredits: number;
-      duration: number;
-      fps: number;
-      background: string | null;
-      music: string | null;
-      assetType: string | null;
-    };
-    math: {};
+    mode: "brainrot" | "podcast" | "monologue";
+    title: string;
+    agents: {
+      name:
+        | "JORDAN_PETERSON"
+        | "BEN_SHAPIRO"
+        | "JOE_ROGAN"
+        | "BARACK_OBAMA"
+        | "DONALD_TRUMP"
+        | "JOE_BIDEN"
+        | "ANDREW_TATE"
+        | "KAMALA_HARRIS";
+      id: number;
+    }[];
+    cost: number;
+    remainingCredits: number;
+    duration: number;
+    fps: number;
+    background: string | null;
+    music: string | null;
+    assetType: string | null;
   };
   setVideoDetails: (videoDetails: {
-    brainrot: {
-      title: string;
-      agents: {
-        name:
-          | "JORDAN_PETERSON"
-          | "BEN_SHAPIRO"
-          | "JOE_ROGAN"
-          | "BARACK_OBAMA"
-          | "DONALD_TRUMP"
-          | "JOE_BIDEN"
-          | "ANDREW_TATE"
-          | "KAMALA_HARRIS";
-        id: number;
-      }[];
-      cost: number;
-      remainingCredits: number;
-      duration: number;
-      fps: number;
-      background: string | null;
-      music: string | null;
-      assetType: string | null;
-    };
-    math: {};
+    mode: "brainrot" | "podcast" | "monologue";
+    title: string;
+    agents: {
+      name:
+        | "JORDAN_PETERSON"
+        | "BEN_SHAPIRO"
+        | "JOE_ROGAN"
+        | "BARACK_OBAMA"
+        | "DONALD_TRUMP"
+        | "JOE_BIDEN"
+        | "ANDREW_TATE"
+        | "KAMALA_HARRIS";
+      id: number;
+    }[];
+    cost: number;
+    remainingCredits: number;
+    duration: number;
+    fps: number;
+    background: string | null;
+    music: string | null;
+    assetType: string | null;
   }) => void;
 }
 
@@ -81,18 +77,16 @@ export const useGenerationType = create<useGenerationTypeProps>((set) => ({
   isOpen: false,
   setIsOpen: (isOpen) => set({ isOpen }),
   videoDetails: {
-    brainrot: {
-      title: "",
-      agents: [],
-      cost: 0,
-      remainingCredits: 0,
-      duration: 0,
-      fps: 0,
-      background: null,
-      music: null,
-      assetType: null,
-    },
-    math: {},
+    mode: "brainrot",
+    title: "",
+    agents: [],
+    cost: 0,
+    remainingCredits: 0,
+    duration: 0,
+    fps: 0,
+    background: null,
+    music: null,
+    assetType: null,
   },
   setVideoDetails: (videoDetails) => set({ videoDetails }),
 }));
