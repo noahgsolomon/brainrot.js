@@ -52,7 +52,6 @@ export default function PageClient({
     useGenerationType();
 
   useEffect(() => {
-    console.log(searchParams);
 
     if (
       searchParams.agent1Id &&
