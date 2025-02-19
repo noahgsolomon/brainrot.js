@@ -8,6 +8,20 @@ if [ -z "$MODE" ]; then
     MODE="development"
 fi
 
+# Validate VIDEO_MODE
+valid_modes=("brainrot" "podcast" "monologue")
+if [ -z "$VIDEO_MODE" ]; then
+    VIDEO_MODE="brainrot"
+    echo "No VIDEO_MODE specified, defaulting to: brainrot"
+elif [[ ! " ${valid_modes[@]} " =~ " ${VIDEO_MODE} " ]]; then
+    echo "Error: Invalid VIDEO_MODE '${VIDEO_MODE}'"
+    echo "Valid modes are: ${valid_modes[*]}"
+    echo "Example usage: VIDEO_MODE=podcast ./scripts/start.sh"
+    exit 1
+fi
+
+echo "Using video mode: $VIDEO_MODE"
+
 if [ "$MODE" = "production" ]; then
     echo "Running production build script..."
     /root/.bun/bin/pm2 start --interpreter /root/.bun/bin/bun build.ts --name build-process --log /app/brainrot/pm2.log
@@ -15,5 +29,5 @@ if [ "$MODE" = "production" ]; then
     tail -f /app/brainrot/pm2.log /app/brainrot/access.log /app/brainrot/error.log
 else
     echo "Running local build script..."
-    bun run /app/brainrot/localBuild.ts
+    VIDEO_MODE=$VIDEO_MODE /root/.bun/bin/bun run /app/brainrot/localBuild.ts
 fi

@@ -182,7 +182,6 @@ export const TweetMedia = ({ tweet }: { tweet: EnrichedTweet }) => (
   <div className="flex flex-1 items-center justify-center">
     {tweet.video &&
       (() => {
-        console.log(tweet.video);
         return (
           <video
             poster={tweet.video.poster}

@@ -21,6 +21,8 @@ export async function generateTranscriptAudio({
 	fps,
 	music,
 	videoId,
+	mode = 'brainrot',
+	useBackground = true,
 }: {
 	local: boolean;
 	topic: string;
@@ -29,11 +31,15 @@ export async function generateTranscriptAudio({
 	fps: number;
 	music: string;
 	videoId: string;
+	mode?: 'brainrot' | 'podcast' | 'monologue';
+	useBackground?: boolean;
 }) {
 	console.log('⭐ Starting generateTranscriptAudio with params:', {
 		local,
 		topic,
 		agentA,
+		mode,
+		useBackground,
 	});
 
 	try {
@@ -114,8 +120,9 @@ export const music: string = ${
 		};
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
-export const videoFileName = '/background/MINECRAFT-0.mp4';
-
+export const useBackground = ${mode === 'brainrot'};
+${mode === 'brainrot' ? "export const videoFileName = '/background/MINECRAFT-0.mp4';" : ''}
+export const videoMode = '${mode}';
 
 export const subtitlesFileName = [
   ${audios

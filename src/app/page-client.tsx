@@ -52,7 +52,6 @@ export default function PageClient({
     useGenerationType();
 
   useEffect(() => {
-    console.log(searchParams);
 
     if (
       searchParams.agent1Id &&
@@ -64,46 +63,43 @@ export default function PageClient({
       searchParams.fps
     ) {
       setVideoDetails({
-        brainrot: {
-          agents: [
-            {
-              id: parseInt(searchParams.agent1Id),
-              name: searchParams.agent1Name as
-                | "JORDAN_PETERSON"
-                | "ANDREW_TATE"
-                | "BEN_SHAPIRO"
-                | "JOE_ROGAN"
-                | "BARACK_OBAMA"
-                | "DONALD_TRUMP"
-                | "KAMALA_HARRIS"
-                | "JOE_BIDEN",
-            },
-            {
-              id: parseInt(searchParams.agent2Id),
-              name: searchParams.agent2Name as
-                | "JORDAN_PETERSON"
-                | "BEN_SHAPIRO"
-                | "JOE_ROGAN"
-                | "BARACK_OBAMA"
-                | "DONALD_TRUMP"
-                | "KAMALA_HARRIS"
-                | "JOE_BIDEN"
-                | "ANDREW_TATE",
-            },
-          ],
-          assetType: searchParams.assetType ?? "GOOGLE",
-          background: searchParams?.background ?? "MINECRAFT",
-          cost: parseInt(searchParams.credits),
-          duration: searchParams?.duration
-            ? parseInt(searchParams?.duration)
-            : 1,
-          fps: parseInt(searchParams.fps),
-          music: searchParams.music ?? "NONE",
-          title: searchParams.title,
-          // not used in this case
-          remainingCredits: 0,
-        },
-        math: {},
+        mode: "brainrot",
+        title: searchParams.title,
+        agents: [
+          {
+            id: parseInt(searchParams.agent1Id),
+            name: searchParams.agent1Name as
+              | "JORDAN_PETERSON"
+              | "ANDREW_TATE"
+              | "BEN_SHAPIRO"
+              | "JOE_ROGAN"
+              | "BARACK_OBAMA"
+              | "DONALD_TRUMP"
+              | "KAMALA_HARRIS"
+              | "JOE_BIDEN",
+          },
+          {
+            id: parseInt(searchParams.agent2Id),
+            name: searchParams.agent2Name as
+              | "JORDAN_PETERSON"
+              | "BEN_SHAPIRO"
+              | "JOE_ROGAN"
+              | "BARACK_OBAMA"
+              | "DONALD_TRUMP"
+              | "KAMALA_HARRIS"
+              | "JOE_BIDEN"
+              | "ANDREW_TATE",
+          },
+        ],
+        assetType: searchParams.assetType ?? "GOOGLE",
+        background: searchParams?.background ?? "MINECRAFT",
+        cost: parseInt(searchParams.credits),
+        duration: searchParams?.duration
+          ? parseInt(searchParams?.duration)
+          : 1,
+        fps: parseInt(searchParams.fps),
+        music: searchParams.music ?? "NONE",
+        remainingCredits: 0,
       });
       setIsGenerationTypeOpen(true);
     }
@@ -223,7 +219,7 @@ export default function PageClient({
           size={"lg"}
           disabled={pendingVideo}
           onClick={() => {
-            setIsOpen(true);
+            setIsGenerationTypeOpen(true);
           }}
         >
           <Wand className="h-4 w-4" /> Create Video
