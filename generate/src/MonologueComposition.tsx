@@ -212,11 +212,9 @@ const AudioViz: React.FC<{
 		fps,
 		frame,
 		audioData,
-		numberOfSamples, // Use more samples to get a nicer visualisation
+		numberOfSamples,
 	});
 
-	// Pick the low values because they look nicer than high values
-	// feel free to play around :)
 	const frequencyDataSubset = frequencyData.slice(
 		freqRangeStartIndex,
 		freqRangeStartIndex +
@@ -247,7 +245,7 @@ const AudioViz: React.FC<{
 	);
 };
 
-export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
+export const MonologueComposition: React.FC<AudiogramCompositionSchemaType> = ({
 	subtitlesFileName,
 	agentDetails,
 	audioFileName,
@@ -274,7 +272,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 	const [prevImageIdx, setPrevImageIdx] = useState<number>(0);
 	const ref = useRef<HTMLDivElement>(null);
 
-	// Determine the current subtitle and agent based on the frame
 	useEffect(() => {
 		if (subtitlesData.length > 0) {
 			const currentTime = frame / fps;
@@ -286,20 +283,17 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 			if (currentSubtitle) {
 				setPrevImageIdx(currentSubtitle.srtFileIndex);
 				setCurrentSubtitle(currentSubtitle);
-				// Use the srtFileIndex to find the corresponding agent name
 				const agentInfo = subtitlesFileName[currentSubtitle.srtFileIndex];
 				setCurrentAgentName(agentInfo.name);
 			}
 		}
 	}, [frame, fps, subtitlesData, subtitlesFileName]);
 
-	// Fetch and parse all SRT files
 	useEffect(() => {
 		const fetchSubtitlesData = async () => {
 			try {
 				const data = await Promise.all(
 					subtitlesFileName.map(async ({ file }, index) => {
-						// Pass the index to parseSRT
 						const response = await fetch(file);
 						const text = await response.text();
 						return parseSRT(text, index);
@@ -314,7 +308,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 		fetchSubtitlesData();
 	}, [subtitlesFileName]);
 
-	// Determine the current subtitle based on the frame
 	useEffect(() => {
 		if (subtitlesData.length > 0) {
 			const currentTime = frame / fps;
@@ -326,7 +319,6 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 		}
 	}, [frame, fps, subtitlesData]);
 
-	// Ensure that the delayRender handle is cleared when the component unmounts
 	useEffect(() => {
 		return () => {
 			if (handle !== null) {
@@ -341,12 +333,10 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 		<div ref={ref}>
 			<AbsoluteFill>
 				<Sequence from={-audioOffsetInFrames}>
-					{/*@ts-ignore */}
 					<Audio src={audioFileName} />
 					{music !== 'NONE' && <Audio volume={0.25} src={staticFile(music)} />}
 					<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
 						<div className="w-full h-[50%] relative">
-							{/*@ts-ignore */}
 							<Img
 								src={
 									subtitlesFileName[
@@ -356,15 +346,12 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 									].asset
 								}
 								onError={(e) => {
-									/*@ts-ignore */
-									e.target.onerror = null; // Prevent looping if the fallback also fails
-									/*@ts-ignore */
+									e.target.onerror = null;
 									e.target.src = '/black.png';
 								}}
 								className="w-full h-full"
 							/>
 							<div className="absolute bottom-2 left-2 flex flex-row gap-24 items-end h-full p-8 z-30">
-								{/*@ts-ignore */}
 								<Img
 									width={200}
 									height={200}
@@ -441,4 +428,4 @@ export const AudiogramComposition: React.FC<AudiogramCompositionSchemaType> = ({
 			</AbsoluteFill>
 		</div>
 	);
-};
+}; 
