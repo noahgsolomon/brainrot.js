@@ -1,5 +1,8 @@
 import { Composition, staticFile } from 'remotion';
-import { AudioGramSchema, AudiogramComposition } from './Composition';
+import { AudioGramSchema } from './BrainrotComposition';
+import { BrainrotComposition } from './BrainrotComposition';
+import { PodcastComposition } from './PodcastComposition';
+import { MonologueComposition } from './MonologueComposition';
 import './style.css';
 import {
 	initialAgentName,
@@ -88,11 +91,23 @@ export const RemotionRoot: React.FC = () => {
 		}
 	};
 
+	const getCompositionComponent = () => {
+		switch (videoMode) {
+			case 'podcast':
+				return PodcastComposition;
+			case 'monologue':
+				return MonologueComposition;
+			case 'brainrot':
+			default:
+				return BrainrotComposition;
+		}
+	};
+
 	return (
 		<>
 			<Composition
 				id="Video"
-				component={AudiogramComposition}
+				component={getCompositionComponent()}
 				fps={fps}
 				width={1080}
 				height={1920}
