@@ -22,9 +22,11 @@ jobs:
     environment: production
 
     steps:
+    # COMMENTED FOR TESTING: Re-enable these steps for normal operation
+    # These steps handle building and pushing the new image
     # Step 1: Get the code
-    - name: Checkout
-      uses: actions/checkout@v3  # Standard GitHub checkout action
+    # - name: Checkout
+    #   uses: actions/checkout@v3  # Standard GitHub checkout action
 
     # Step 2: Set up AWS credentials for the entire workflow
     - name: Configure AWS credentials
@@ -36,58 +38,64 @@ jobs:
         aws-region: us-east-1  # Hardcoded since all our resources are in us-east-1
 
     # Step 3: Log into Amazon ECR so we can push images
-    - name: Login to Amazon ECR
-      id: login-ecr  # ID used to reference outputs in later steps
-      uses: aws-actions/amazon-ecr-login@v1
+    # - name: Login to Amazon ECR
+    #   id: login-ecr  # ID used to reference outputs in later steps
+    #   uses: aws-actions/amazon-ecr-login@v1
 
     # Step 4: Create .env file from secrets
-    - name: Create .env file
-      run: |
-        cd generate
-        cat << EOF > .env
-        JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
-        JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
-        BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
-        KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
-        BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
-        ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
-        JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
-        DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
+    # - name: Create .env file
+    #   run: |
+    #     cd generate
+    #     cat << EOF > .env
+    #     JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
+    #     JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
+    #     BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
+    #     KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
+    #     BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
+    #     ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
+    #     JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
+    #     DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
         
-        GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-        NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
+    #     GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+    #     OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+    #     NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
         
-        DB_HOST=${{ secrets.DB_HOST }}
-        DB_USER=${{ secrets.DB_USER }}
-        DB_PORT=${{ secrets.DB_PORT }}
-        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        DB_URL=${{ secrets.DB_URL }}
-        DB_NAME=${{ secrets.DB_NAME }}
+    #     DB_HOST=${{ secrets.DB_HOST }}
+    #     DB_USER=${{ secrets.DB_USER }}
+    #     DB_PORT=${{ secrets.DB_PORT }}
+    #     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+    #     DB_URL=${{ secrets.DB_URL }}
+    #     DB_NAME=${{ secrets.DB_NAME }}
         
-        AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        EOF
+    #     AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     EOF
 
     # Step 5: Build and push the Docker image
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image  # ID used to reference outputs in later steps
-      env:
-        # Get ECR registry URL from login step
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        # Our ECR repository name
-        ECR_REPOSITORY: brainrot
-        # Use git commit SHA as unique image tag
-        IMAGE_TAG: ${{ github.sha }}
+    # - name: Build, tag, and push image to Amazon ECR
+    #   id: build-image  # ID used to reference outputs in later steps
+    #   env:
+    #     # Get ECR registry URL from login step
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     # Our ECR repository name
+    #     ECR_REPOSITORY: brainrot
+    #     # Use git commit SHA as unique image tag
+    #     IMAGE_TAG: ${{ github.sha }}
+    #   run: |
+    #     # Change to generate directory where Dockerfile lives
+    #     cd generate
+    #     # Build image with unique tag
+    #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+    #     # Push to ECR
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    #     # Save image URI for later steps
+    #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    # TESTING ONLY: Using hardcoded image URI
+    - name: Set image URI for testing
       run: |
-        # Change to generate directory where Dockerfile lives
-        cd generate
-        # Build image with unique tag
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        # Push to ECR
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        # Save image URI for later steps
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "image=604711046876.dkr.ecr.us-east-1.amazonaws.com/brainrot:666c9d45f67d81a3e4b148efb81074ba9ec50090" >> $GITHUB_OUTPUT
+      id: build-image
 
     # Step 6: Get and clean the task definition
     - name: Download and clean task definition
@@ -114,4 +122,9 @@ jobs:
         task-definition: ${{ steps.task-def.outputs.task-definition }}  # Updated task definition
         service: brainrot-servicee  # Service to update
         cluster: brainrot-cluster   # Cluster where service runs
-        wait-for-service-stability: true  # Wait until deployment is complete 
+        wait-for-service-stability: true  # Wait until deployment is complete
+
+# TO RESTORE NORMAL OPERATION:
+# 1. Uncomment all steps above (Checkout, ECR login, .env creation, and build/push)
+# 2. Remove the "Set image URI for testing" step
+# 3. The image URI will then come from the build step instead of being hardcoded 
