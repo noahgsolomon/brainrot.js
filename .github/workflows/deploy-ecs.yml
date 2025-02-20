@@ -89,18 +89,21 @@ jobs:
         # Save image URI for later steps
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    # Step 6: Get the current task definition to update
-    - name: Download task definition
+    # Step 6: Get and clean the task definition
+    - name: Download and clean task definition
       run: |
-        # Download current task definition and save to file
-        aws ecs describe-task-definition --task-definition brainrot-task --query taskDefinition > task-definition.json
+        # Download current task definition
+        aws ecs describe-task-definition --task-definition brainrot-task --query 'taskDefinition' > task-definition-full.json
+        
+        # Use jq to remove the fields that cause registration issues
+        jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' task-definition-full.json > task-definition.json
 
     # Step 7: Update the task definition with new image
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: task-definition.json  # Use downloaded task definition
+        task-definition: task-definition.json  # Use cleaned task definition
         container-name: brainrot-container     # Container name to update
         image: ${{ steps.build-image.outputs.image }}  # New image URI from build step
 
