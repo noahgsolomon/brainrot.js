@@ -1,0 +1,114 @@
+# Name of the GitHub Actions workflow - shown in the Actions tab
+name: Deploy to Amazon ECS
+
+# Defines when this workflow will run
+on:
+  push:
+    # Only run on pushes to main branch
+    branches:
+      - main
+    # Only trigger when files in generate/ directory change
+    # This prevents unnecessary deployments when other parts of the repo change
+    paths:
+      - 'generate/**'
+
+jobs:
+  # Define a single job named "deploy"
+  deploy:
+    name: Deploy
+    # Use latest Ubuntu runner provided by GitHub
+    runs-on: ubuntu-latest
+    # Use "production" environment (helps with secrets management)
+    environment: production
+
+    steps:
+    # Step 1: Get the code
+    - name: Checkout
+      uses: actions/checkout@v3  # Standard GitHub checkout action
+
+    # Step 2: Set up AWS credentials for the entire workflow
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        # Use GitHub secrets for AWS credentials (must be set in repo settings)
+        aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Hardcoded since all our resources are in us-east-1
+
+    # Step 3: Log into Amazon ECR so we can push images
+    - name: Login to Amazon ECR
+      id: login-ecr  # ID used to reference outputs in later steps
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # Step 4: Create .env file from secrets
+    - name: Create .env file
+      run: |
+        cd generate
+        cat << EOF > .env
+        JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
+        JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
+        BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
+        KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
+        BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
+        ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
+        JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
+        DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
+        
+        GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+        NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
+        
+        DB_HOST=${{ secrets.DB_HOST }}
+        DB_USER=${{ secrets.DB_USER }}
+        DB_PORT=${{ secrets.DB_PORT }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        DB_URL=${{ secrets.DB_URL }}
+        DB_NAME=${{ secrets.DB_NAME }}
+        
+        AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        EOF
+
+    # Step 5: Build and push the Docker image
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image  # ID used to reference outputs in later steps
+      env:
+        # Get ECR registry URL from login step
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        # Our ECR repository name
+        ECR_REPOSITORY: brainrot
+        # Use git commit SHA as unique image tag
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Change to generate directory where Dockerfile lives
+        cd generate
+        # Build image with unique tag
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        # Push to ECR
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        # Save image URI for later steps
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    # Step 6: Get the current task definition to update
+    - name: Download task definition
+      run: |
+        # Download current task definition and save to file
+        aws ecs describe-task-definition --task-definition brainrot-task --query taskDefinition > task-definition.json
+
+    # Step 7: Update the task definition with new image
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json  # Use downloaded task definition
+        container-name: brainrot-container     # Container name to update
+        image: ${{ steps.build-image.outputs.image }}  # New image URI from build step
+
+    # Step 8: Deploy the updated task definition to ECS
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}  # Updated task definition
+        service: brainrot-servicee  # Service to update
+        cluster: brainrot-cluster   # Cluster where service runs
+        wait-for-service-stability: true  # Wait until deployment is complete 

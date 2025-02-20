@@ -1,0 +1,28 @@
+graph LR
+    subgraph GitHub [GitHub]
+        style GitHub fill:#800080,color:#fff
+        A[Push to main branch] --> B(Trigger GitHub Actions Workflow);
+        B --> C{Checkout Code};
+        C --> D{Configure AWS Credentials};
+        D --> E{Build & Push Docker Image};
+        E --> F{Update ECS Task Definition & Service};
+
+    end
+
+    subgraph AWS [AWS]
+        style AWS fill:#FFA500,color:#000
+        G[ECR]
+        H[ECS Cluster]
+        I[ECS Service]
+        J[ECS Task Definition]
+    end
+    
+    E --> G;
+    F --> H;
+    F --> I;
+    F --> J;
+
+    classDef github fill:#800080,color:#fff
+    classDef aws fill:#FFA500,color:#000
+    class A,B,C,D,E,F github
+    class G,H,I,J aws
