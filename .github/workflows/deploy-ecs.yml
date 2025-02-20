@@ -94,7 +94,7 @@ jobs:
     # TESTING ONLY: Using hardcoded image URI
     - name: Set image URI for testing
       run: |
-        echo "image=604711046876.dkr.ecr.us-east-1.amazonaws.com/brainrot:666c9d45f67d81a3e4b148efb81074ba9ec50090" >> $GITHUB_OUTPUT
+        echo "image=604711046876.dkr.ecr.us-east-1.amazonaws.com/brainrot:latest" >> $GITHUB_OUTPUT
       id: build-image
 
     # Step 6: Get and clean the task definition
@@ -123,6 +123,7 @@ jobs:
         service: brainrot-servicee  # Service to update
         cluster: brainrot-cluster   # Cluster where service runs
         wait-for-service-stability: true  # Wait until deployment is complete
+        force-new-deployment: true  # Force a new deployment even if the task definition hasn't changed
 
 # TO RESTORE NORMAL OPERATION:
 # 1. Uncomment all steps above (Checkout, ECR login, .env creation, and build/push)
