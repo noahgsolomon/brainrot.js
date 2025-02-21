@@ -68,6 +68,7 @@ export const userRouter = createTRPCRouter({
             clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
             generateRandomString(10),
           credits: 0,
+          apiKey: generateRandomString(255),
         });
       }
     }
@@ -271,7 +272,11 @@ export const userRouter = createTRPCRouter({
             .set({ credits: remainingCredits - cost })
             .where(eq(brainrotusers.id, ctx.user_id));
 
-          return { valid: true };
+          const user = await ctx.db.query.brainrotusers.findFirst({
+            where: eq(brainrotusers.id, ctx.user_id),
+          });
+
+          return { valid: true, apiKey: user?.apiKey };
         } catch (error) {
           console.error("Error fetching data:", error);
         }
