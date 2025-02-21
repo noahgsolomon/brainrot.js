@@ -32,9 +32,9 @@ export default function Credits() {
       <DialogTrigger asChild>
         <Button
           variant={"outline"}
-          className="flex flex-row items-center gap-2"
+          className="flex flex-row items-center gap-2 text-lg"
         >
-          <Coins className="h-4 w-4" />
+          <Coins className="h-5 w-5" />
           Credits
         </Button>
       </DialogTrigger>
@@ -105,7 +105,7 @@ export default function Credits() {
               href={"/pricing"}
               className={buttonVariants({
                 className: "flex w-full flex-row items-center gap-2 ",
-                variant: "brain",
+                variant: "pink",
                 size: "xl",
               })}
             >
