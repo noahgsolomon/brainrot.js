@@ -44,6 +44,7 @@
     "@trpc/react-query": "^10.40.0",
     "@trpc/server": "^10.40.0",
     "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/uuid": "^10.0.0",
     "@vercel/analytics": "^1.1.1",
     "ai": "^2.2.18",
     "antd": "^5.14.0",
