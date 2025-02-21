@@ -85,4 +85,19 @@ jobs:
         push: true
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} 
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+    # Step 7: Deploy to EC2 via SSH
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.0
+      env:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        envs: AWS_ACCOUNT_ID
+        script: |
+          cd /home/ec2-user/brainrot.js/generate
+          chmod +x start_prod.sh
+          ./start_prod.sh 
