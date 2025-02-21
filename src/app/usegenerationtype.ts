@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { PodcastGuest } from "./createvideo";
+import { PodcastHost } from "./createvideo";
 
 /**
  * setVideoDetails({
@@ -37,7 +39,9 @@ interface useGenerationTypeProps {
         | "DONALD_TRUMP"
         | "JOE_BIDEN"
         | "ANDREW_TATE"
-        | "KAMALA_HARRIS";
+        | "KAMALA_HARRIS"
+        | PodcastHost
+        | PodcastGuest;
       id: number;
     }[];
     cost: number;
@@ -60,7 +64,9 @@ interface useGenerationTypeProps {
         | "DONALD_TRUMP"
         | "JOE_BIDEN"
         | "ANDREW_TATE"
-        | "KAMALA_HARRIS";
+        | "KAMALA_HARRIS"
+        | PodcastHost
+        | PodcastGuest;
       id: number;
     }[];
     cost: number;
