@@ -24,8 +24,9 @@ const Providers = ({ children }: ProvidersProps) => {
       <Toaster
         richColors
         position="top-center"
-        visibleToasts={1}
+        visibleToasts={4}
         duration={2000}
+        className="font-gaegu z-[999]"
       />
     </ThemeProvider>
   );

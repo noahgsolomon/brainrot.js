@@ -6,9 +6,9 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { headers } from "next/headers";
 import { type Metadata } from "next";
 import ProgressBarProvider from "./progressbar";
-import { GeistSans } from "geist/font";
 import { Background } from "@/components/ui/background";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { gaegu } from "../lib/fonts";
 
 export const metadata: Metadata = {
   appleWebApp: true,
@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.className} antialiased`}>
+      <body className={`${gaegu.variable} antialiased`}>
         <TRPCReactProvider headers={headers()}>
           <ClerkProvider>
             <TooltipProvider delayDuration={50}>
