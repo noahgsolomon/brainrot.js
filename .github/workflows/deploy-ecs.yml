@@ -107,11 +107,46 @@ jobs:
         container-name: brainrot-container     # Container name to update
         image: ${{ steps.build-image.outputs.image }}  # New image URI from build step
 
-    # Step 8: Deploy the updated task definition to ECS
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}  # Updated task definition
-        service: brainrot-service  # Service to update (fixed typo)
-        cluster: brainrot-cluster   # Cluster where service runs
-        wait-for-service-stability: true  # Wait until deployment is complete 
+    # Step 8: Register new task definition
+    - name: Register new task definition
+      id: register-task-def
+      run: |
+        TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://${{ steps.task-def.outputs.task-definition }} --query 'taskDefinition.taskDefinitionArn' --output text)
+        echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
+
+    # Step 9: Stop existing tasks
+    - name: Stop existing tasks
+      run: |
+        TASKS=$(aws ecs list-tasks --cluster brainrot-cluster --region us-east-1 --query 'taskArns[]' --output text)
+        if [ ! -z "$TASKS" ]; then
+          for TASK in $TASKS; do
+            aws ecs stop-task --cluster brainrot-cluster --task $TASK --reason "Deploying new version" --region us-east-1
+          done
+        fi
+        # Wait for tasks to stop
+        sleep 30
+
+    # Step 10: Start new task
+    - name: Start new task
+      run: |
+        aws ecs run-task \
+          --cluster brainrot-cluster \
+          --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
+          --launch-type EC2 \
+          --network-configuration "awsvpcConfiguration={subnets=[subnet-008bc1b2a2557d4d1],assignPublicIp=ENABLED}" \
+          --region us-east-1
+
+    # Step 11: Wait for task to start
+    - name: Wait for task to start
+      run: |
+        sleep 30
+        TASK_ARN=$(aws ecs list-tasks --cluster brainrot-cluster --region us-east-1 --query 'taskArns[0]' --output text)
+        if [ "$TASK_ARN" = "None" ]; then
+          echo "No task found running after deployment"
+          exit 1
+        fi
+        STATUS=$(aws ecs describe-tasks --cluster brainrot-cluster --tasks $TASK_ARN --region us-east-1 --query 'tasks[0].lastStatus' --output text)
+        if [ "$STATUS" != "RUNNING" ]; then
+          echo "Task is not running. Current status: $STATUS"
+          exit 1
+        fi 
