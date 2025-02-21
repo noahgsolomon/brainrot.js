@@ -94,10 +94,11 @@ jobs:
         AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       with:
         host: ${{ secrets.EC2_HOST }}
+        port: 22
         username: ec2-user
         key: ${{ secrets.EC2_SSH_KEY }}
         envs: AWS_ACCOUNT_ID
         script: |
-          cd /home/ec2-user/brainrot.js/generate
+          cd /home/ec2-user/brainrot.js/generate/scripts
           chmod +x start_prod.sh
           ./start_prod.sh 
