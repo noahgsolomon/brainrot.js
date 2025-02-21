@@ -30,6 +30,8 @@ export const brainrotusers = mysqlTable(
     stripeCurrentPeriodEnd: datetime("stripe_current_period_end", {
       mode: "date",
     }),
+    twitter_handle: varchar("twitter_handle", { length: 255 }),
+    twitter_id: varchar("twitter_id", { length: 255 }),
   },
   (t) => ({
     clerkIdx: uniqueIndex("clerk_idx").on(t.clerk_id),
