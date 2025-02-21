@@ -23,8 +23,6 @@ import XIcon from "@/components/svg/XIcon";
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
   const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
     useYourVideos();
-  const { setIsOpen: setIsCreateVideoOpen } = useCreateVideo();
-  const [playing, setPlaying] = useState(-1);
 
   const userVideosQuery = trpc.user.userVideos.useQuery();
 
@@ -186,22 +184,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
               })}
             </div>
           ) : (
-            <>
-              You have no videos
-              <div>
-                Click{" "}
-                <span
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsCreateVideoOpen(true);
-                  }}
-                  className="cursor-pointer font-bold underline transition-all hover:opacity-80"
-                >
-                  here
-                </span>{" "}
-                to create a video.
-              </div>
-            </>
+            <>You have no videos</>
           )}
         </DialogContent>
       </Dialog>
