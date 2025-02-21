@@ -23,69 +23,69 @@ jobs:
     environment: production
 
     steps:
-    # Step 1: Get the code
-    - name: Checkout
-      uses: actions/checkout@v3
+    # # Step 1: Get the code
+    # - name: Checkout
+    #   uses: actions/checkout@v3
 
-    # Step 2: Set up Docker Buildx
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    # # Step 2: Set up Docker Buildx
+    # - name: Set up Docker Buildx
+    #   uses: docker/setup-buildx-action@v2
 
-    # Step 3: Set up AWS credentials for the entire workflow
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+    # # Step 3: Set up AWS credentials for the entire workflow
+    # - name: Configure AWS credentials
+    #   uses: aws-actions/configure-aws-credentials@v1
+    #   with:
+    #     aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: us-east-1
 
-    # Step 4: Log into Amazon ECR
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+    # # Step 4: Log into Amazon ECR
+    # - name: Login to Amazon ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v1
 
-    # Step 5: Create .env file from secrets
-    - name: Create .env file
-      run: |
-        cd generate
-        cat << EOF > .env
-        JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
-        JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
-        BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
-        KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
-        BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
-        ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
-        JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
-        DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
+    # # Step 5: Create .env file from secrets
+    # - name: Create .env file
+    #   run: |
+    #     cd generate
+    #     cat << EOF > .env
+    #     JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
+    #     JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
+    #     BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
+    #     KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
+    #     BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
+    #     ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
+    #     JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
+    #     DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
         
-        GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-        NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
+    #     GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+    #     OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+    #     NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
         
-        DB_HOST=${{ secrets.DB_HOST }}
-        DB_USER=${{ secrets.DB_USER }}
-        DB_PORT=${{ secrets.DB_PORT }}
-        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        DB_URL=${{ secrets.DB_URL }}
-        DB_NAME=${{ secrets.DB_NAME }}
+    #     DB_HOST=${{ secrets.DB_HOST }}
+    #     DB_USER=${{ secrets.DB_USER }}
+    #     DB_PORT=${{ secrets.DB_PORT }}
+    #     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+    #     DB_URL=${{ secrets.DB_URL }}
+    #     DB_NAME=${{ secrets.DB_NAME }}
         
-        AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        EOF
+    #     AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     EOF
 
-    # Step 6: Build and push the Docker image
-    - name: Build and push Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: brainrot
-      uses: docker/build-push-action@v4
-      with:
-        context: ./generate
-        platforms: linux/arm64
-        push: true
-        tags: |
-          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+    # # Step 6: Build and push the Docker image
+    # - name: Build and push Docker image
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     ECR_REPOSITORY: brainrot
+    #   uses: docker/build-push-action@v4
+    #   with:
+    #     context: ./generate
+    #     platforms: linux/arm64
+    #     push: true
+    #     tags: |
+    #       ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+    #       ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
     # Step 7: Deploy to EC2 via SSH
     - name: Deploy to EC2
@@ -99,6 +99,29 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         envs: AWS_ACCOUNT_ID
         script: |
-          cd /home/ec2-user/brainrot.js/generate/scripts
-          chmod +x start_prod.sh
-          ./start_prod.sh 
+          # Ensure the directory exists
+          mkdir -p /home/ec2-user/brainrot.js/generate/scripts
+          
+          # Create the start_prod.sh script with environment variables
+          cat > /home/ec2-user/brainrot.js/generate/scripts/start_prod.sh << 'EOL'
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+
+          # Stop and remove all containers
+          docker stop $(docker ps -q)  # stops all running containers
+          docker rm $(docker ps -aq)   # removes all containers
+
+          # Remove old images
+          docker rmi $(docker images -q ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/brainrot) || true
+
+          # Pull and run new image
+          docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/brainrot:latest
+
+          docker run -d \
+            --name brainrot-container \
+            -e MODE=production \
+            ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/brainrot
+          EOL
+          
+          # Make the script executable and run it
+          chmod +x /home/ec2-user/brainrot.js/generate/scripts/start_prod.sh
+          /home/ec2-user/brainrot.js/generate/scripts/start_prod.sh 
