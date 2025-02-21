@@ -93,7 +93,7 @@ jobs:
       env:
         AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       with:
-        host: "${{ secrets.EC2_HOST }}:22"
+        host: "$(echo ${{ secrets.EC2_HOST }} | sed 's|^tcp://||' | xargs):22"
         username: ec2-user
         key: ${{ secrets.EC2_SSH_KEY }}
         envs: AWS_ACCOUNT_ID
