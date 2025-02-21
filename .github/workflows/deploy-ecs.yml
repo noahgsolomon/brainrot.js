@@ -25,23 +25,26 @@ jobs:
     steps:
     # Step 1: Get the code
     - name: Checkout
-      uses: actions/checkout@v3  # Standard GitHub checkout action
+      uses: actions/checkout@v3
 
-    # Step 2: Set up AWS credentials for the entire workflow
+    # Step 2: Set up Docker Buildx
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # Step 3: Set up AWS credentials for the entire workflow
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        # Use GitHub secrets for AWS credentials (must be set in repo settings)
         aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # Hardcoded since all our resources are in us-east-1
+        aws-region: us-east-1
 
-    # Step 3: Log into Amazon ECR so we can push images
+    # Step 4: Log into Amazon ECR
     - name: Login to Amazon ECR
-      id: login-ecr  # ID used to reference outputs in later steps
+      id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    # Step 4: Create .env file from secrets
+    # Step 5: Create .env file from secrets
     - name: Create .env file
       run: |
         cd generate
@@ -70,12 +73,16 @@ jobs:
         AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
         EOF
 
-    # Step 5: Build and push the Docker image
+    # Step 6: Build and push the Docker image
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: brainrot
-      run: |
-        cd generate
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
+      uses: docker/build-push-action@v4
+      with:
+        context: ./generate
+        platforms: linux/arm64
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} 
