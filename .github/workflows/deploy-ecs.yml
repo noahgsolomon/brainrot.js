@@ -11,6 +11,7 @@ on:
     # This prevents unnecessary deployments when other parts of the repo change
     paths:
       - 'generate/**'
+      - '.github/workflows/deploy-ecs.yml'
 
 jobs:
   # Define a single job named "build"
