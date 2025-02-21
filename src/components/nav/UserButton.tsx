@@ -11,7 +11,7 @@ import {
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
-import { Landmark } from "lucide-react";
+import { Landmark, Twitter } from "lucide-react";
 
 const UserButton = () => {
   const user = useUser();
@@ -47,6 +47,19 @@ const UserButton = () => {
             Achievements
           </DropdownMenuItem>
         </Link> */}
+        {!userDB.data?.user?.twitter_handle && (
+          <DropdownMenuItem
+            className="mx-1 my-1 cursor-pointer gap-2 text-sm"
+            onClick={() => {
+              window.location.href = `/api/auth/twitter?returnUrl=${encodeURIComponent(
+                window.location.pathname,
+              )}`;
+            }}
+          >
+            <Twitter className="h-4 w-4" />
+            Connect Twitter
+          </DropdownMenuItem>
+        )}
         <div className="border-t border-border">
           <DropdownMenuItem
             className="mx-1 my-1 cursor-pointer gap-4 text-sm"
