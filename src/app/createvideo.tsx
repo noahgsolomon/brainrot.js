@@ -1371,7 +1371,7 @@ export default function CreateVideo({
                 }
                 className="flex items-center gap-2"
                 onClick={() => {
-                  if (!userDB?.subscribed || (userDB?.credits ?? 0) < credits) {
+                  if ((userDB?.credits ?? 0) < credits) {
                     setIsInsufficientCreditsOpen(true);
                     return;
                   }
@@ -1428,23 +1428,25 @@ export default function CreateVideo({
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-lg font-semibold">Go Pro</h3>
-                    <p className="text-base text-muted-foreground">
-                      Generate unlimited videos with all premium features
-                    </p>
+                {!userDB?.subscribed && (
+                  <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-lg font-semibold">Go Pro</h3>
+                      <p className="text-base text-muted-foreground">
+                        Generate unlimited videos with all premium features
+                      </p>
+                    </div>
+                    <ProButton searchQueryString={searchQueryString}>
+                      <Button
+                        data-action="subscribe"
+                        className="w-full gap-2 text-secondary dark:text-primary"
+                        variant="pink"
+                      >
+                        GO PRO <Crown className="size-4" />
+                      </Button>
+                    </ProButton>
                   </div>
-                  <ProButton searchQueryString={searchQueryString}>
-                    <Button
-                      data-action="subscribe"
-                      className="w-full gap-2 text-secondary dark:text-primary"
-                      variant="pink"
-                    >
-                      GO PRO <Crown className="size-4" />
-                    </Button>
-                  </ProButton>
-                </div>
+                )}
 
                 <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
                   <div className="flex flex-col gap-2">
