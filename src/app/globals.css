@@ -96,6 +96,7 @@ button {
     --rare-foreground: 58 45% 95%;
     --gold: 50 100% 70% / 0.8;
     --gold-foreground: 50 65% 55% / 0.8;
+    --font-gaegu: "Gaegu", system-ui, sans-serif;
   }
 
   .dark {
@@ -184,7 +185,7 @@ button {
   }
 
   body {
-    @apply overflow-x-hidden bg-background text-foreground;
+    @apply font-gaegu overflow-x-hidden bg-background text-foreground;
   }
 }
 
@@ -256,11 +257,13 @@ button {
 }
 
 .gradientShift {
-  background: linear-gradient(270deg,
-      hsl(var(--link)),
-      hsl(var(--link-hover)),
-      hsl(var(--link)),
-      hsl(var(--primary)));
+  background: linear-gradient(
+    270deg,
+    hsl(var(--link)),
+    hsl(var(--link-hover)),
+    hsl(var(--link)),
+    hsl(var(--primary))
+  );
   background-size: 600% 600%;
   animation: gradientShift 8s ease infinite;
   -webkit-background-clip: text;
@@ -374,8 +377,7 @@ h6 {
 /* The front and back sides of the card */
 .front,
 .back {
-  @apply
-  /* Hide the back side of the card
+  @apply /* Hide the back side of the card
   when facing away */
   flex flex-col gap-2 rounded-lg border border-border bg-card p-4;
 }
@@ -521,7 +523,6 @@ mtext {
 }
 
 @keyframes RainbowAnimation {
-
   0%,
   100% {
     background-position: 0% 50%;
@@ -583,10 +584,12 @@ mtext {
 }
 
 .gold {
-  background: linear-gradient(45deg,
-      hsl(var(--gold)),
-      hsl(var(--gold-foreground)),
-      hsl(var(--gold)));
+  background: linear-gradient(
+    45deg,
+    hsl(var(--gold)),
+    hsl(var(--gold-foreground)),
+    hsl(var(--gold))
+  );
   background-size: 200% 200%;
   animation: shimmer 3s ease-in-out infinite;
 }
@@ -598,10 +601,16 @@ mtext {
 }
 
 .brain {
-  background: linear-gradient(45deg,
-      hsl(var(--brain)),
-      #6698e3,
-      hsl(var(--brain)));
+  background: linear-gradient(
+    45deg,
+    hsl(var(--brain)),
+    #6698e3,
+    hsl(var(--brain))
+  );
   background-size: 200% 200%;
   animation: shimmer 3s ease-in-out infinite;
+}
+
+.font-gaegu {
+  font-family: var(--font-gaegu);
 }
