@@ -50,6 +50,10 @@ import {
 export default function BuyCreditsDialog({
   searchParams,
   searchQueryString,
+  onClick,
+  open,
+  setOpen,
+  outerTrigger,
 }: {
   searchParams?: {
     agent1Id?: string;
@@ -65,6 +69,10 @@ export default function BuyCreditsDialog({
     fps?: string;
   };
   searchQueryString?: string;
+  onClick?: () => void;
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+  outerTrigger?: boolean;
 }) {
   const obj = searchQueryString
     ? { searchQueryString }
@@ -82,16 +90,19 @@ export default function BuyCreditsDialog({
   const [creditPacks, setCreditPacks] = useState(1);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          size="lg"
-          className="mt-2 flex w-full flex-row items-center justify-center gap-2"
-          variant="outline"
-        >
-          Buy Credits <Coins className="size-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      {!outerTrigger ? (
+        <DialogTrigger asChild>
+          <Button
+            size="lg"
+            className="mt-2 flex w-full flex-row items-center justify-center gap-2"
+            variant="outline"
+            onClick={onClick}
+          >
+            Buy Credits <Coins className="size-4" />
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl">Purchase Credits</DialogTitle>
@@ -128,9 +139,9 @@ export default function BuyCreditsDialog({
           <div>
             <p className="text-lg font-bold">Total: ${creditPacks * 5}</p>
             <Button
-              variant="default"
+              variant="pink"
               onClick={() => createStripeSession({ creditPacks, ...obj })}
-              className="mt-2 flex w-full flex-row items-center justify-center gap-2"
+              className="mt-2 flex w-full flex-row items-center justify-center gap-2 text-secondary dark:text-primary"
             >
               Purchase Credits <Zap className="h-4" />
             </Button>
