@@ -9,6 +9,7 @@ import { api } from "@/trpc/server";
 import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import Link from "next/link";
 
 export default async function Home({
   searchParams,
@@ -89,21 +90,23 @@ export default async function Home({
               </AnimatedGradientText>
             </Link> */}
 
-            <Image
-              src={"https://images.smart.wtf/brainrot.png"}
-              width={200}
-              height={200}
-              alt="brainrot"
-              className="h-[200px] w-[200px] cursor-pointer rounded-full border-[10px] border-card shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary coarse:h-[150px] coarse:w-[150px] coarse:border-[5px]"
-            />
+            <Link href={"https://x.com/brainrotjs"}>
+              <Image
+                src={"/brainrot_new2.png"}
+                width={200}
+                height={200}
+                alt="brainrot"
+                className="h-[200px] w-[200px] cursor-pointer rounded-full border-card bg-background shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary coarse:h-[150px] coarse:w-[150px] coarse:border-[5px]"
+              />
+            </Link>
 
             <div className=" flex flex-col items-center gap-2">
               <div>
                 <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
-                  BRAINROT.JS
+                  BRAINROT
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
-                  <NumberTicker value={9221} /> videos generated 💀
+                  <NumberTicker value={29521} /> videos generated 💀
                 </p>
               </div>
               {/* Add the following block */}
