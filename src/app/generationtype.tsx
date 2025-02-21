@@ -26,67 +26,22 @@ import ProButton from "./ProButton";
 import BuyCreditsDialog from "./buy-credits-dialog";
 
 export default function GenerationType() {
-  const [typeSelected, _] = useState<"math" | "brainrot" | "podcast" | "monologue" | "">("");
+  const [typeSelected, _] = useState<
+    "math" | "brainrot" | "podcast" | "monologue" | ""
+  >("");
   const router = useRouter();
 
-  const { videoDetails, setIsOpen, isOpen } = useGenerationType();
+  const { videoDetails, setVideoDetails, setIsOpen, isOpen } =
+    useGenerationType();
   const {
-    setIsInQueue,
     setInvalidTopic,
     setVideoInput,
     setIsOpen: setIsCreateVideoOpen,
   } = useCreateVideo();
 
-  const [generating, setGenerating] = useState(false);
-
   const userDB = trpc.user.user.useQuery().data?.user;
-  const dbUser = trpc.user.user.useQuery();
 
   const user = useAuth();
-
-  const createVideoMutation = trpc.user.createVideo.useMutation({
-    onSuccess: async (data) => {
-      if (data?.valid) {
-        const uuidVal = uuidv4();
-        await fetch("/api/create", {
-          method: "POST",
-          body: JSON.stringify({
-            userId: dbUser.data?.user?.id,
-            topic: videoDetails.title,
-            agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
-            agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
-            videoId: uuidVal,
-            duration: 1,
-            music: videoDetails.music,
-            background: videoDetails.background,
-            fps: videoDetails.fps,
-            aiGeneratedImages: videoDetails.assetType === "AI" ? true : false,
-            cleanSrt: true,
-            credits: videoDetails.cost,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        setIsOpen(false);
-        setIsCreateVideoOpen(false);
-        setGenerating(false);
-        toast.success("Video is in queue!");
-        setIsInQueue(true);
-      } else {
-        setIsOpen(false);
-        setIsCreateVideoOpen(true);
-        setInvalidTopic(false);
-        setVideoInput("");
-        setGenerating(false);
-      }
-    },
-    onError: (e) => {
-      console.log(e);
-      setGenerating(false);
-    },
-  });
 
   const [searchQueryString, setSearchQueryString] = useState("");
 
@@ -127,7 +82,7 @@ export default function GenerationType() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-h-[75%] max-w-[90%] rounded-lg xs:max-w-[800px]">
-        <div className="pb-2">
+        {/* <div className="pb-2">
           <div className="relative flex flex-row items-center justify-center gap-8 rounded-lg border bg-accent p-2">
             <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 transform flex-row gap-1">
               <div className="flex flex-row gap-4">
@@ -155,14 +110,14 @@ export default function GenerationType() {
             </div>
             <p className="text-center text-xl font-bold">{videoDetails.title}</p>
           </div>
-        </div>
+        </div> */}
         <DialogHeader>
           <DialogTitle className="relative ">
             <h3>How would you like to learn?</h3>
           </DialogTitle>
           <DialogDescription>Choose a video style</DialogDescription>
         </DialogHeader>
-        <div className="relative grid grid-cols-3 gap-4 p-2 md:p-4">
+        <div className="relative flex flex-col gap-4 p-2 md:flex-row md:p-4">
           {!user.userId ? (
             <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 text-secondary dark:text-primary">
               <div className="flex flex-col items-center gap-2">
@@ -171,7 +126,8 @@ export default function GenerationType() {
                 </p>
                 <div className="flex flex-row items-center gap-2">
                   <Button
-                    variant={"darkMode"}
+                    variant={"outline"}
+                    className="text-lg"
                     onClick={() => {
                       setIsOpen(false);
                       setIsCreateVideoOpen(false);
@@ -181,7 +137,8 @@ export default function GenerationType() {
                     Login
                   </Button>
                   <Button
-                    variant={"brain"}
+                    variant={"pink"}
+                    className="text-lg"
                     onClick={() => {
                       setIsOpen(false);
                       setIsCreateVideoOpen(false);
@@ -194,7 +151,7 @@ export default function GenerationType() {
               </div>
             </div>
           ) : null}
-          {user.userId && !userDB?.subscribed && (userDB?.credits ?? 0) <= 0 ? (
+          {/* {user.userId && !userDB?.subscribed && (userDB?.credits ?? 0) <= 0 ? (
             <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 ">
               <div className="flex max-w-[300px] flex-col gap-0 rounded-lg border border-border bg-card/80 p-4 text-center text-sm shadow-sm">
                 <div className="flex flex-col gap-2 font-bold">
@@ -205,8 +162,10 @@ export default function GenerationType() {
                   <ProButton searchQueryString={searchQueryString}>
                     <Button
                       data-action="subscribe"
-                      className={"flex w-full flex-row items-center gap-2"}
-                      variant={"brain"}
+                      className={
+                        "flex w-full flex-row items-center gap-2 text-secondary dark:text-primary"
+                      }
+                      variant={"pink"}
                     >
                       GO PRO <Crown className="size-4" />
                     </Button>
@@ -215,11 +174,11 @@ export default function GenerationType() {
                 </div>
               </div>
             </div>
-          ) : null}
+          ) : null} */}
 
           <div
             className={cn(
-              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-purple-500 bg-purple-200 shadow-sm dark:border-purple-900/80 dark:bg-purple-400/80`,
+              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-purple-500 bg-purple-200 shadow-sm dark:border-purple-900/80 dark:bg-purple-400/80 md:flex-1`,
             )}
           >
             <Badge variant={"math"} className="absolute -right-2 -top-2 z-10">
@@ -238,18 +197,20 @@ export default function GenerationType() {
               typeSelected === "brainrot" ||
               typeSelected === "podcast" ||
               typeSelected === "monologue" ||
-              generating ||
-              !user.userId ||
-              (userDB?.credits ?? 0) <= 0
+              !user.userId
             }
             onClick={() => {
               setIsOpen(false);
               setIsCreateVideoOpen(true);
               setInvalidTopic(false);
               setVideoInput("");
+              setVideoDetails({
+                ...videoDetails,
+                mode: "brainrot",
+              });
             }}
             className={cn(
-              `flex h-[250px] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue bg-lightBlue shadow-sm transition-all hover:scale-[101%] hover:opacity-80 active:scale-[99%]`,
+              `flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue bg-lightBlue shadow-sm transition-all hover:scale-[101%] hover:opacity-80 active:scale-[99%] md:flex-1`,
             )}
           >
             <p className="text-xl font-bold text-secondary/80 dark:text-primary/80">
@@ -260,7 +221,7 @@ export default function GenerationType() {
 
           <div
             className={cn(
-              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-green-500 bg-green-200 shadow-sm dark:border-green-900/80 dark:bg-green-400/80`,
+              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-green-500 bg-green-200 shadow-sm dark:border-green-900/80 dark:bg-green-400/80 md:flex-1`,
             )}
           >
             <Badge variant={"math"} className="absolute -right-2 -top-2 z-10">
