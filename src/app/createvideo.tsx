@@ -161,7 +161,6 @@ export default function CreateVideo({
         await fetch("/api/create", {
           method: "POST",
           body: JSON.stringify({
-            userId: dbUser.data?.user?.id,
             topic: videoDetails.title,
             agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
             agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
@@ -173,9 +172,11 @@ export default function CreateVideo({
             aiGeneratedImages: videoDetails.assetType === "AI" ? true : false,
             cleanSrt: true,
             credits: videoDetails.cost,
+            apiKey: data.apiKey,
           }),
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${data.apiKey}`,
           },
         });
 

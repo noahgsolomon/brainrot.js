@@ -13,6 +13,7 @@ export const brainrotusers = mysqlTable(
   "brainrot-users",
   {
     id: int("id").primaryKey().autoincrement(),
+    apiKey: varchar("api_key", { length: 255 }),
     name: varchar("name", { length: 200 }).notNull(),
     password: varchar("password", { length: 100 }),
     email: varchar("email", { length: 100 }).notNull().unique(),
@@ -86,48 +87,13 @@ export const pendingVideos = mysqlTable(
     status: varchar("status", { length: 500 }).notNull(),
     // 0 - 100 progress
     progress: int("progress").notNull().default(0),
+    videoMode: varchar("video_mode", { length: 20 })
+      .notNull()
+      .default("brainrot"),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
     videoIdx: uniqueIndex("video_idx").on(t.videoId),
     userIdxVideoIdx: uniqueIndex("user_idx_video_idx").on(t.user_id, t.videoId),
-  }),
-);
-
-export const deepaiVideos = mysqlTable(
-  "deepai_videos",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    agent1: varchar("agent1", { length: 100 }).notNull(),
-    agent2: varchar("agent2", { length: 100 }).notNull(),
-    title: varchar("title", { length: 1000 }).notNull().default(""),
-    url: varchar("url", { length: 1000 }).notNull(),
-    videoId: varchar("video_id", { length: 100 }).unique().notNull(),
-  },
-  (t) => ({
-    videoIdx: uniqueIndex("video_idx").on(t.videoId),
-  }),
-);
-
-export const pendingDeepaiVideos = mysqlTable(
-  "pending_deepai_videos",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    agent1: varchar("agent1", { length: 100 }).notNull(),
-    agent2: varchar("agent2", { length: 100 }).notNull(),
-    title: varchar("title", { length: 1000 }).notNull().default(""),
-    videoId: varchar("video_id", { length: 100 }).unique().notNull(),
-    url: varchar("url", { length: 1000 }).default(""),
-    timestamp: datetime("timestamp", { mode: "date" }),
-    fps: int("fps").notNull(),
-    aiGeneratedImages: boolean("ai_generated_images").notNull(),
-    background: varchar("background", { length: 100 }).notNull(),
-    music: varchar("music", { length: 100 }).notNull(),
-    processId: int("process_id").notNull().default(-1),
-    status: varchar("status", { length: 500 }).notNull(),
-    progress: int("progress").notNull().default(0),
-  },
-  (t) => ({
-    videoIdx: uniqueIndex("video_idx").on(t.videoId),
   }),
 );
