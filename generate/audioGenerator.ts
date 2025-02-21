@@ -62,18 +62,6 @@ export async function generateTranscriptAudio({
 		const audios = [];
 
 		if (!local) {
-			console.log('📝 Updating video status - Fetching images');
-			await query(
-				"UPDATE `pending-videos` SET status = 'Fetching images', progress = 5 WHERE video_id = ?",
-				[videoId]
-			);
-		}
-
-		console.log('🖼️ Starting fetchValidImages');
-		const images = await fetchValidImages(transcript, transcript.length);
-		console.log('✅ Images fetched:', images.length);
-
-		if (!local) {
 			await query(
 				"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
 				[videoId]
@@ -106,7 +94,6 @@ export async function generateTranscriptAudio({
 				person: person,
 				audio: `public/voice/${person}-${i}.mp3`,
 				index: i,
-				image: images[i].imageUrl,
 			});
 		}
 
@@ -121,7 +108,11 @@ export const music: string = ${
 export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const useBackground = ${mode === 'brainrot'};
-${mode === 'brainrot' ? "export const videoFileName = '/background/MINECRAFT-0.mp4';" : ''}
+${
+	mode === 'brainrot'
+		? "export const videoFileName = '/background/MINECRAFT-0.mp4';"
+		: ''
+}
 export const videoMode = '${mode}';
 
 export const subtitlesFileName = [
@@ -130,7 +121,6 @@ export const subtitlesFileName = [
 			(entry, i) => `{
     name: '${entry.person}',
     file: staticFile('srt/${entry.person}-${i}.srt'),
-    asset: '${entry.image}',
   }`
 		)
 		.join(',\n  ')}
