@@ -115,7 +115,7 @@ export const RemotionRoot: React.FC = () => {
 				defaultProps={getCompositionProps()}
 				calculateMetadata={async ({ props }) => {
 					const duration =
-						(await getAudioDuration(staticFile(`audio.mp3`))) + 3;
+						(await getAudioDuration(staticFile(`audio.mp3`))) + 0.5;
 					return {
 						durationInFrames: Math.ceil(duration * fps),
 						props,
