@@ -18,6 +18,35 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+
+const buttonVariantsAnimated = {
+  initial: { opacity: 0, y: 20 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+    },
+  },
+  hover: {
+    scale: 1.03,
+    transition: {
+      duration: 0.2,
+    },
+  },
+  tap: { scale: 0.97 },
+};
+
+const containerVariants = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 export default function PageClient({
   searchParams,
@@ -52,7 +81,6 @@ export default function PageClient({
     useGenerationType();
 
   useEffect(() => {
-
     if (
       searchParams.agent1Id &&
       searchParams.agent2Id &&
@@ -94,9 +122,7 @@ export default function PageClient({
         assetType: searchParams.assetType ?? "GOOGLE",
         background: searchParams?.background ?? "MINECRAFT",
         cost: parseInt(searchParams.credits),
-        duration: searchParams?.duration
-          ? parseInt(searchParams?.duration)
-          : 1,
+        duration: searchParams?.duration ? parseInt(searchParams?.duration) : 1,
         fps: parseInt(searchParams.fps),
         music: searchParams.music ?? "NONE",
         remainingCredits: 0,
@@ -177,6 +203,8 @@ export default function PageClient({
     }
   }, [videoStatus.data?.videos]);
 
+  const userVideosQuery = trpc.user.userVideos.useQuery();
+
   useEffect(() => {
     if (isInQueue) {
       toast.info("Your video is currently in queue", { icon: "🕒" });
@@ -185,103 +213,132 @@ export default function PageClient({
   }, [isInQueue]);
   return (
     <>
-      {pendingVideo && (
-        <div className=" flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
-          <div className="flex flex-row items-center gap-2">
-            <Loader2 className="size-4 animate-spin" />
-            <div className="flex gap-2">
-              <span className="font-bold">Place in queue:</span>{" "}
-              {progress > 0 ? 0 : placeInQueue}
-            </div>
-          </div>
-          <div>
-            <span className="font-bold">Status:</span> {status}
-          </div>
-          <div>
-            <span className="font-bold">Est. time remaining: </span>{" "}
-            {(
-              (progress > 0 ? 0 : placeInQueue * 4) +
-              ((100 - progress) / 100) * 4
-            ).toFixed(2)}{" "}
-            mins
-          </div>
-
-          <div className="flex w-full flex-row items-center gap-2">
-            <p className="text-xs">{progress}%</p>
-            <Progress className="w-full" value={progress} />
-          </div>
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        <Button
-          className="flex flex-row items-center gap-2"
-          variant={"brain"}
-          size={"lg"}
-          disabled={pendingVideo}
-          onClick={() => {
-            setIsGenerationTypeOpen(true);
-          }}
-        >
-          <Wand className="h-4 w-4" /> Create Video
-        </Button>
-        <Link
-          href={"https://github.com/noahgsolomon/brainrot.js"}
-          target="_blank"
-          className={buttonVariants({
-            className: "flex flex-row items-center gap-2",
-            size: "lg",
-            variant: "outline",
-          })}
-        >
-          <Star className="h-4 w-4 " />
-          Star on GitHub
-        </Link>
-        {/* <Link
-              href={"/watch"}
-              className={buttonVariants({
-                variant: "outline",
-                className: "relative flex flex-row items-center gap-2",
-              })}
-            >
-              <Eye className="size-4" /> Watch
-              <Badge
-                className="absolute -right-3 -top-[0.4rem] px-[0.2rem] py-[0.1rem] text-xs opacity-90"
-                variant={"red"}
+      <AnimatePresence>
+        {pendingVideo && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm"
+          >
+            <div className="flex flex-row items-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex gap-2"
               >
-                NEW
-              </Badge>
-            </Link> */}
+                <span className="font-bold">Place in queue:</span>{" "}
+                {progress > 0 ? 0 : placeInQueue}
+              </motion.div>
+            </div>
+            <div>
+              <span className="font-bold">Status:</span> {status}
+            </div>
+            <div>
+              <span className="font-bold">Est. time remaining: </span>{" "}
+              {(
+                (progress > 0 ? 0 : placeInQueue * 4) +
+                ((100 - progress) / 100) * 4
+              ).toFixed(2)}{" "}
+              mins
+            </div>
 
-        {pendingVideo ? (
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              className="flex w-full flex-row items-center gap-2"
+            >
+              <p className="text-xs">{progress}%</p>
+              <Progress className="w-full" value={progress} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        variants={containerVariants}
+        initial="initial"
+        animate="animate"
+        className="flex w-full flex-col gap-4"
+      >
+        <motion.div variants={buttonVariantsAnimated} className="w-full">
           <Button
-            className="flex flex-row items-center gap-2 border border-red-500/60 bg-red-500/20 hover:bg-red-500/30"
-            variant={"outline"}
+            className="flex w-full flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
+            variant={"pink"}
+            size={"lg"}
+            disabled={pendingVideo}
             onClick={() => {
-              cancelPendingVideoMutation.mutate({
-                id: videoStatus.data?.videos?.id ?? 0,
-                credits: videoStatus.data?.videos?.credits ?? 0,
-              });
+              setIsGenerationTypeOpen(true);
             }}
           >
-            <X className="h-4 w-4 text-red-500" /> Cancel Generation
+            <Wand className="h-5 w-5" /> Create Video
           </Button>
-        ) : null}
+        </motion.div>
 
-        {clerkUser?.id ? (
-          <>
-            <Credits />
-            <Button
-              variant={"outline"}
-              className="flex flex-row items-center gap-2 "
-              onClick={() => setIsYourVideosOpen(true)}
+        <motion.div variants={buttonVariantsAnimated} className="w-full">
+          <Link
+            href={"https://github.com/noahgsolomon/brainrot.js"}
+            target="_blank"
+            className={buttonVariants({
+              className:
+                "flex w-full flex-row items-center justify-center gap-2 text-lg",
+              size: "lg",
+              variant: "outline",
+            })}
+          >
+            <Star className="h-5 w-5" />
+            <p className="text-lg">Star on GitHub</p>
+          </Link>
+        </motion.div>
+
+        <AnimatePresence>
+          {pendingVideo && (
+            <motion.div
+              variants={buttonVariantsAnimated}
+              initial="initial"
+              animate="animate"
+              exit={{ opacity: 0, y: -10 }}
+              className="w-full"
             >
-              <Folder className="h-4 w-4" />
-              Your videos
-            </Button>
-          </>
-        ) : null}
-      </div>
+              <Button
+                className="flex w-full flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
+                variant={"outline"}
+                onClick={() => {
+                  cancelPendingVideoMutation.mutate({
+                    id: videoStatus.data?.videos?.id ?? 0,
+                    credits: videoStatus.data?.videos?.credits ?? 0,
+                  });
+                }}
+              >
+                <X className="h-5 w-5 text-red-500" /> Cancel Generation
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
+        {clerkUser?.id && (
+          <motion.div
+            variants={buttonVariantsAnimated}
+            className="flex w-full flex-col gap-4"
+          >
+            <Credits />
+            {(userVideosQuery.data?.videos?.length ?? 0) > 0 && (
+              <motion.div variants={buttonVariantsAnimated} className="w-full">
+                <Button
+                  variant={"outline"}
+                  className="flex w-full flex-row items-center justify-center gap-2 text-lg"
+                  onClick={() => setIsYourVideosOpen(true)}
+                >
+                  <Folder className="h-5 w-5" />
+                  Your videos
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </motion.div>
+      {/* 
       <div className="flex flex-wrap justify-center gap-4 py-36 ">
         <ClientTweetCard
           className=" bg-card/60 text-sm"
@@ -295,7 +352,7 @@ export default function PageClient({
           className=" bg-card/60 text-sm"
           id="1780386464091591078"
         />
-      </div>
+      </div> */}
     </>
   );
 }
