@@ -133,7 +133,7 @@ jobs:
           --cluster brainrot-cluster \
           --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
           --launch-type EC2 \
-          --network-configuration "awsvpcConfiguration={subnets=[subnet-008bc1b2a2557d4d1],assignPublicIp=ENABLED}" \
+          --network-configuration "awsvpcConfiguration={subnets=[subnet-008bc1b2a2557d4d1]}" \
           --region us-east-1
 
     # Step 11: Wait for task to start
