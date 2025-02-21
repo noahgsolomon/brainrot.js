@@ -1,5 +1,5 @@
 # Name of the GitHub Actions workflow - shown in the Actions tab
-name: Deploy to Amazon ECS
+name: Build and Push to Amazon ECR
 
 # Defines when this workflow will run
 on:
@@ -13,9 +13,9 @@ on:
       - 'generate/**'
 
 jobs:
-  # Define a single job named "deploy"
-  deploy:
-    name: Deploy
+  # Define a single job named "build"
+  build:
+    name: Build and Push
     # Use latest Ubuntu runner provided by GitHub
     runs-on: ubuntu-latest
     # Use "production" environment (helps with secrets management)
@@ -70,83 +70,11 @@ jobs:
         EOF
 
     # Step 5: Build and push the Docker image
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image  # ID used to reference outputs in later steps
+    - name: Build and push Docker image
       env:
-        # Get ECR registry URL from login step
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        # Our ECR repository name
         ECR_REPOSITORY: brainrot
-        # Use git commit SHA as unique image tag
-        IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Change to generate directory where Dockerfile lives
         cd generate
-        # Build image with unique tag and specify platform
-        docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        # Push to ECR
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        # Save image URI for later steps
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-    # Step 6: Get and clean the task definition
-    - name: Download and clean task definition
-      run: |
-        # Download current task definition
-        aws ecs describe-task-definition --task-definition brainrot-task --query 'taskDefinition' > task-definition-full.json
-        
-        # Use jq to remove the fields that cause registration issues
-        jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .enableFaultInjection)' task-definition-full.json > task-definition.json
-
-    # Step 7: Update the task definition with new image
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: task-definition.json  # Use cleaned task definition
-        container-name: brainrot-container     # Container name to update
-        image: ${{ steps.build-image.outputs.image }}  # New image URI from build step
-
-    # Step 8: Register new task definition
-    - name: Register new task definition
-      id: register-task-def
-      run: |
-        TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://${{ steps.task-def.outputs.task-definition }} --query 'taskDefinition.taskDefinitionArn' --output text)
-        echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
-
-    # Step 9: Stop existing tasks
-    - name: Stop existing tasks
-      run: |
-        TASKS=$(aws ecs list-tasks --cluster brainrot-cluster --region us-east-1 --query 'taskArns[]' --output text)
-        if [ ! -z "$TASKS" ]; then
-          for TASK in $TASKS; do
-            aws ecs stop-task --cluster brainrot-cluster --task $TASK --reason "Deploying new version" --region us-east-1
-          done
-        fi
-        # Wait for tasks to stop
-        sleep 30
-
-    # Step 10: Start new task
-    - name: Start new task
-      run: |
-        aws ecs run-task \
-          --cluster brainrot-cluster \
-          --task-definition ${{ steps.register-task-def.outputs.task_def_arn }} \
-          --launch-type EC2 \
-          --network-configuration "awsvpcConfiguration={subnets=[subnet-008bc1b2a2557d4d1]}" \
-          --region us-east-1
-
-    # Step 11: Wait for task to start
-    - name: Wait for task to start
-      run: |
-        sleep 30
-        TASK_ARN=$(aws ecs list-tasks --cluster brainrot-cluster --region us-east-1 --query 'taskArns[0]' --output text)
-        if [ "$TASK_ARN" = "None" ]; then
-          echo "No task found running after deployment"
-          exit 1
-        fi
-        STATUS=$(aws ecs describe-tasks --cluster brainrot-cluster --tasks $TASK_ARN --region us-east-1 --query 'tasks[0].lastStatus' --output text)
-        if [ "$STATUS" != "RUNNING" ]; then
-          echo "Task is not running. Current status: $STATUS"
-          exit 1
-        fi 
+        docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest 
