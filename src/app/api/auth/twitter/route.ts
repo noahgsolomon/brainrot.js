@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const authUrl = new URL("https://twitter.com/i/oauth2/authorize");
   const returnUrl = request.nextUrl.searchParams.get("returnUrl") || "/";
 
-  // Base64 encode the state to preserve special characters
+  // Base64 encode the state to preserve special chars
   const state = Buffer.from(
     JSON.stringify({
       returnUrl: returnUrl,
