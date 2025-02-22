@@ -32,13 +32,13 @@ async function generateTranscript(
 					)} and ${agentB.replace(
 						'_',
 						' '
-					)} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of ${7} exchanges, aiming for a concise transcript that would last for 1 minute. The agentId attribute should either be ${agentA} or ${agentB}. The text attribute should be that character's line of dialogue. Make it as edgy and controversial as possible while still being funny. I also need an asset description under the asset attribute which would be a relevant search query to find an image which should be relevant to the overall topic of the conversation. The asset descriptions shouldn't be vague, but a description of something that you think would be a good image to go along with the conversation. Specificity is key. Remember, ${agentA} and ${agentB} are both ${agentA.replace(
+					)} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of ${7} exchanges, aiming for a concise transcript that would last for 1 minute. The agentId attribute should either be ${agentA} or ${agentB}. The text attribute should be that character's line of dialogue. Make it as edgy and controversial as possible while still being funny. Remember, ${agentA} and ${agentB} are both ${agentA.replace(
 						'_',
 						' '
 					)} and ${agentB.replace(
 						'_',
 						' '
-					)} behaving like they would in real life, but more inflammatory. and don't include a direct mention of a politician in assets, if for example, Trump is mentioned, don't use the word Trump in the asset description, but instead something like white male with blonde hair combover ya know. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'agentId': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'text': 'their line of conversation in the dialog', 'asset': 'relevant search query based on the current line'} ] } }`,
+					)} behaving like they would in real life, but more inflammatory. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'agentId': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'text': 'their line of conversation in the dialog'} ] } }`,
 				},
 				{
 					role: 'user',
@@ -101,7 +101,6 @@ export default async function transcript(
 				console.log('📜 Transcript lines:');
 				transcript.forEach((entry, index) => {
 					console.log(`${index + 1}. ${entry.agentId}: "${entry.text}"`);
-					console.log(`   🖼️ Asset: ${entry.asset}`);
 				});
 				return transcript;
 			} else {
