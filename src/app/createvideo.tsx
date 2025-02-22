@@ -129,21 +129,8 @@ export default function CreateVideo({
       id: number;
     }[]
   >([]);
-  const [background, setBackground] = useState<
-    "TRUCK" | "MINECRAFT" | "GTA" | null
-  >(null);
-  const [music, setMusic] = useState<
-    | "FLUFFING_A_DUCK"
-    | "MONKEYS_SPINNING_MONKEYS"
-    | "WII_SHOP_CHANNEL_TRAP"
-    | "NONE"
-    | null
-  >(null);
-  const [fps, setFps] = useState<number | null>(null);
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
-  const [duration, setDuration] = useState<number | null>(null);
-  const [assetType, setAssetType] = useState<"AI" | "GOOGLE" | null>("AI");
-  const [credits, setCredits] = useState(10);
+  const credits = 10;
 
   const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
@@ -161,7 +148,6 @@ export default function CreateVideo({
         await fetch("/api/create", {
           method: "POST",
           body: JSON.stringify({
-            userId: dbUser.data?.user?.id,
             topic: videoDetails.title,
             agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
             agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
@@ -173,16 +159,17 @@ export default function CreateVideo({
             aiGeneratedImages: videoDetails.assetType === "AI" ? true : false,
             cleanSrt: true,
             credits: videoDetails.cost,
+            apiKey: data.apiKey,
           }),
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${data.apiKey}`,
           },
         });
 
         setGenerating(false);
         setIsInQueue(true);
         setIsOpen(false);
-        toast.success("Video is in queue!");
       } else {
         setGenerating(false);
         setInvalidTopic(true);
@@ -231,22 +218,6 @@ export default function CreateVideo({
       )}&fps=${encodeURIComponent(videoDetails.fps)}`,
     );
   }, [videoDetails]);
-
-  useEffect(() => {
-    let value = 10;
-    if (assetType === "AI") {
-      value += 0;
-    }
-    if (duration) {
-      value += 10 * (duration - 1) * (fps && fps > 20 ? fps / 30 : 1);
-    }
-    if (fps) {
-      value += fps === 30 ? 3 : fps === 50 ? 9 : fps === 60 ? 12 : 0;
-    }
-    setCredits(Math.min(Math.round(value), 60));
-  }, [fps, duration, assetType]);
-
-  const dbUser = trpc.user.user.useQuery();
 
   const [isPurchaseCreditsOpen, setIsPurchaseCreditsOpen] = useState(false);
 
@@ -320,7 +291,7 @@ export default function CreateVideo({
           </motion.div>
 
           <div>
-            <div className="flex flex-col justify-center gap-1 py-4">
+            <div className="flex flex-col justify-center gap-1 pb-4">
               <Textarea
                 spellCheck
                 id="name"
@@ -937,413 +908,6 @@ export default function CreateVideo({
               </AnimatePresence>
             </motion.div>
           ) : null}
-          {videoDetails.mode === "brainrot" && (
-            <div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant={"outline"}>Additional Options</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <div className="relative flex flex-col gap-2">
-                    <div className="flex items-center gap-1">
-                      <h6>Background video</h6>
-                      <Film className="size-4 text-success" />
-                    </div>
-                    <DialogClose>
-                      <XIcon className="absolute right-2 top-2 h-4 w-4 cursor-pointer transition-all hover:opacity-80" />
-                    </DialogClose>
-                    <div className="flex flex-wrap gap-2">
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (background === "TRUCK") {
-                            setBackground(null);
-                          } else {
-                            setBackground("TRUCK");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            background === "TRUCK" ? "opacity-40" : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/TRUCK.png"}
-                          width={90}
-                          height={90}
-                          alt="TRUCK"
-                        />
-                      </div>
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (background === "MINECRAFT") {
-                            setBackground(null);
-                          } else {
-                            setBackground("MINECRAFT");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            background === "MINECRAFT"
-                              ? "opacity-40"
-                              : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/minecraft.webp"}
-                          width={90}
-                          height={90}
-                          alt="minecraft"
-                        />
-                      </div>
-                      <div
-                        className={cn(
-                          `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                        )}
-                        onClick={() => {
-                          if (background === "GTA") {
-                            setBackground(null);
-                          } else {
-                            setBackground("GTA");
-                          }
-                        }}
-                      >
-                        <Image
-                          className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                            background === "GTA" ? "opacity-40" : "opacity-0"
-                          }`}
-                          height={90}
-                          width={90}
-                          src={"https://images.smart.wtf/fireball.gif"}
-                          alt="fire"
-                        />
-                        <Image
-                          className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                          src={"https://images.smart.wtf/gta.png"}
-                          width={90}
-                          height={90}
-                          alt="bender"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-row items-center gap-4 ">
-                      <div className="flex items-center gap-1">
-                        <h6>Background music</h6>
-                        <Music className="size-4 text-english" />
-                      </div>{" "}
-                      |{" "}
-                      <Button
-                        onClick={() => setMusic("NONE")}
-                        size={"sm"}
-                        variant={music === "NONE" ? "default" : "outline"}
-                      >
-                        off
-                      </Button>
-                    </div>
-
-                    <div
-                      className={`flex flex-wrap gap-2 ${
-                        music === "NONE" ? "opacity-50" : ""
-                      }`}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div
-                            className={cn(
-                              `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                            )}
-                            onClick={() => {
-                              if (music === "WII_SHOP_CHANNEL_TRAP") {
-                                setMusic(null);
-                              } else {
-                                setMusic("WII_SHOP_CHANNEL_TRAP");
-                              }
-                            }}
-                          >
-                            <Image
-                              className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                                music === "WII_SHOP_CHANNEL_TRAP"
-                                  ? "opacity-40"
-                                  : "opacity-0"
-                              }`}
-                              height={90}
-                              width={90}
-                              src={"https://images.smart.wtf/fireball.gif"}
-                              alt="fire"
-                            />
-                            <Image
-                              className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                              src={"https://images.smart.wtf/wiisports.png"}
-                              width={90}
-                              height={90}
-                              alt="wii sports"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="z-50">
-                          Wii Shop Channel Trap
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div
-                            className={cn(
-                              `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                            )}
-                            onClick={() => {
-                              if (music === "MONKEYS_SPINNING_MONKEYS") {
-                                setMusic(null);
-                              } else {
-                                setMusic("MONKEYS_SPINNING_MONKEYS");
-                              }
-                            }}
-                          >
-                            <Image
-                              className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                                music === "MONKEYS_SPINNING_MONKEYS"
-                                  ? "opacity-40"
-                                  : "opacity-0"
-                              }`}
-                              height={90}
-                              width={90}
-                              src={"https://images.smart.wtf/fireball.gif"}
-                              alt="fire"
-                            />
-                            <Image
-                              className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                              src={"https://images.smart.wtf/monkey.png"}
-                              width={90}
-                              height={90}
-                              alt="minecraft"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="z-50">
-                          Monkeys Spinning Monkeys
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div
-                            className={cn(
-                              `relative cursor-pointer overflow-hidden rounded-lg border border-border bg-secondary transition-all hover:scale-[102%] active:scale-[98%]`,
-                            )}
-                            onClick={() => {
-                              if (music === "FLUFFING_A_DUCK") {
-                                setMusic(null);
-                              } else {
-                                setMusic("FLUFFING_A_DUCK");
-                              }
-                            }}
-                          >
-                            <Image
-                              className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                                music === "FLUFFING_A_DUCK"
-                                  ? "opacity-40"
-                                  : "opacity-0"
-                              }`}
-                              height={90}
-                              width={90}
-                              src={"https://images.smart.wtf/fireball.gif"}
-                              alt="fire"
-                            />
-                            <Image
-                              className="z-10 h-[60px] w-[60px] xs:h-[90px] xs:w-[90px]"
-                              src={"https://images.smart.wtf/fluffing.png"}
-                              width={90}
-                              height={80}
-                              alt="fluffing a duck"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="z-50">
-                          Fluffing a Duck
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="relative">
-                      {!userDB?.subscribed ? (
-                        <div className="absolute z-20 flex h-full w-full items-center justify-center rounded-lg border border-border bg-black/40 text-xl font-bold text-secondary dark:text-primary">
-                          <ProButton>
-                            <Button
-                              data-action="subscribe"
-                              className="flex flex-row items-center gap-2 "
-                              variant="pink"
-                              size="sm"
-                            >
-                              GO PRO <Crown className="size-4" />
-                            </Button>
-                          </ProButton>
-                        </div>
-                      ) : null}
-                      <div className=" flex flex-col gap-2 p-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h6>FPS: </h6>
-                          <div className="flex flex-wrap items-center gap-1 xs:gap-2">
-                            <Button
-                              variant={fps === 20 ? "default" : "outline"}
-                              onClick={() => setFps(20)}
-                              size={"sm"}
-                            >
-                              20
-                            </Button>{" "}
-                            |
-                            <Button
-                              onClick={() => setFps(30)}
-                              size={"sm"}
-                              variant={fps === 30 ? "default" : "outline"}
-                            >
-                              30
-                            </Button>{" "}
-                            |
-                            <Button
-                              onClick={() => setFps(50)}
-                              size={"sm"}
-                              variant={fps === 50 ? "default" : "outline"}
-                            >
-                              50
-                            </Button>{" "}
-                            |
-                            <Button
-                              onClick={() => setFps(60)}
-                              size={"sm"}
-                              variant={fps === 60 ? "default" : "outline"}
-                            >
-                              60
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h6>Duration: </h6>
-                          <div className="flex flex-row items-center gap-1 xs:gap-2">
-                            <Button
-                              variant={duration === 1 ? "default" : "outline"}
-                              onClick={() => setDuration(1)}
-                              size={"sm"}
-                            >
-                              1 min
-                            </Button>{" "}
-                            |
-                            <Button
-                              disabled
-                              onClick={() => {
-                                if (assetType === "AI") {
-                                  setAssetType("GOOGLE");
-                                }
-                                setDuration(2);
-                              }}
-                              size={"sm"}
-                              variant={duration === 2 ? "default" : "outline"}
-                            >
-                              2 min
-                            </Button>{" "}
-                            |
-                            <Button
-                              disabled
-                              onClick={() => {
-                                if (assetType === "AI") {
-                                  setAssetType("GOOGLE");
-                                }
-                                setDuration(3);
-                              }}
-                              size={"sm"}
-                              variant={duration === 3 ? "default" : "outline"}
-                            >
-                              3 min
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h6>Assets: </h6>
-                          <div className="flex flex-row items-center gap-1 xs:gap-2">
-                            <Button
-                              variant={
-                                assetType === "AI" ? "default" : "outline"
-                              }
-                              onClick={() => setAssetType("AI")}
-                              size={"sm"}
-                              disabled={(duration ?? 0) > 1}
-                            >
-                              AI Generated
-                            </Button>
-                            |
-                            <Button
-                              disabled
-                              onClick={() => setAssetType("GOOGLE")}
-                              size={"sm"}
-                              variant={
-                                assetType === "GOOGLE" ? "default" : "outline"
-                              }
-                            >
-                              Google Search
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {userDB?.subscribed ? (
-                    <p className="flex flex-row items-center gap-1 text-sm text-blue">
-                      <Info className="size-3 text-blue" />
-                      We only support 1 min videos rn
-                    </p>
-                  ) : null}
-
-                  <div className="flex flex-row items-center justify-between">
-                    <DialogClose
-                      disabled={
-                        !background && !music && !fps && !duration && !assetType
-                      }
-                    >
-                      <Button
-                        disabled={
-                          !background &&
-                          !music &&
-                          !fps &&
-                          !duration &&
-                          !assetType
-                        }
-                        className="flex items-center gap-2"
-                        onClick={() =>
-                          toast.info("saved options!", { icon: "💾" })
-                        }
-                      >
-                        Save <Save className="size-4" />
-                      </Button>
-                    </DialogClose>
-                    <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
-                      <p className="text-xs font-bold">
-                        Cost in Credits:{" "}
-                        <span className="text-blue">{credits}</span>/
-                        <span className="text-red-500">
-                          {userDB?.credits ?? 0}
-                        </span>
-                      </p>
-                      <Progress value={credits / 0.6} />
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
           {user.userId ? (
             <>
               {videoStatus.data?.videos !== null && (
@@ -1384,11 +948,11 @@ export default function CreateVideo({
                     agents: agent,
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
-                    duration: duration ?? 1,
-                    fps: fps ?? 30,
-                    background: background ?? null,
-                    music: music ?? null,
-                    assetType: assetType ?? null,
+                    assetType: "AI",
+                    background: "MINECRAFT",
+                    music: "WII_SHOP_CHANNEL_TRAP",
+                    duration: 1,
+                    fps: 60,
                   });
                   setGenerating(true);
                   createVideoMutation.mutate({
