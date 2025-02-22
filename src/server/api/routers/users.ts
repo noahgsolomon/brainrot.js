@@ -476,4 +476,15 @@ export const userRouter = createTRPCRouter({
     const subscriptionPlan = await getUserSubscriptionPlan();
     return subscriptionPlan;
   }),
+  disconnectTwitter: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db
+      .update(brainrotusers)
+      .set({
+        twitter_handle: null,
+        twitter_id: null,
+      })
+      .where(eq(brainrotusers.clerk_id, ctx.user.userId));
+
+    return { success: true };
+  }),
 });

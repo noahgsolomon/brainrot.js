@@ -12,11 +12,22 @@ import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { Landmark, Twitter } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const UserButton = () => {
   const user = useUser();
   const clerk = useClerk();
   const userDB = trpc.user.user.useQuery();
+
+  const disconnectTwitterMutation = trpc.user.disconnectTwitter.useMutation({
+    onSuccess: () => {
+      userDB.refetch();
+      toast.success("Twitter disconnected successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to disconnect Twitter");
+    },
+  });
 
   const logOutHandler = async () => {
     await clerk.signOut();
@@ -47,7 +58,7 @@ const UserButton = () => {
             Achievements
           </DropdownMenuItem>
         </Link> */}
-        {!userDB.data?.user?.twitter_handle && (
+        {!userDB.data?.user?.twitter_handle ? (
           <DropdownMenuItem
             className="mx-1 my-1 cursor-pointer gap-2 text-sm"
             onClick={() => {
@@ -59,6 +70,20 @@ const UserButton = () => {
             <Twitter className="h-4 w-4" />
             Connect Twitter
           </DropdownMenuItem>
+        ) : (
+          <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2 text-sm">
+              <Twitter className="h-4 w-4" />@{userDB.data.user.twitter_handle}
+            </div>
+            <button
+              onClick={() => {
+                disconnectTwitterMutation.mutate();
+              }}
+              className="text-xs text-white hover:text-gray-400"
+            >
+              Disconnect
+            </button>
+          </div>
         )}
         <div className="border-t border-border">
           <DropdownMenuItem
