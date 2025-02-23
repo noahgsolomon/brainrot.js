@@ -248,23 +248,52 @@ export const userRouter = createTRPCRouter({
         input: { title, agent1, agent2, remainingCredits, cost },
       }) => {
         try {
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: `Assess the legibility of the following title: "${title}". If the title consists of random characters (e.g., "c3fwgerwfg"), return a JSON object with 'valid': false. Otherwise, return a JSON object with 'valid': true.`,
-              },
-            ],
-            response_format: { type: "json_object" },
-          });
+          const [validityResponse, commentResponse] = await Promise.all([
+            openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                {
+                  role: "system",
+                  content: `Assess the legibility of the following title: "${title}". If the title consists of random characters (e.g., "c3fwgerwfg"), return a JSON object with 'valid': false. Otherwise, return a JSON object with 'valid': true.`,
+                },
+              ],
+              response_format: { type: "json_object" },
+            }),
+            openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                {
+                  role: "system",
+                  content: `Analyze if the following topic is offensive or controversial: "${title}".
+                  If it is, respond with a short, witty reaction comment (max 45 chars) following these guidelines:
+                  - Use internet slang, emojis, or popular meme references
+                  - Mix shock, humor, and mild disapproval
+                  - Unless an emojis is directly applicable, don't use one or just use a skull or crying emoji
+                  - Examples:
+                    "bro chose violence today 💀"
+                    "my brother in christ... WHY ⁉️"
+                    "FBI OPEN UP 🚔"
+                    "touch grass immediately"
+                    "down astronomical rn 📉"
+                  If not offensive, return empty string. Return as JSON with 'comment' field.`,
+                },
+              ],
+              response_format: { type: "json_object" },
+            }),
+          ]);
 
           const argumentsData = JSON.parse(
-            response.choices[0]?.message.content ?? "{}",
+            validityResponse.choices[0]?.message.content ?? "{}",
+          );
+          const commentData = JSON.parse(
+            commentResponse.choices[0]?.message.content ?? "{}",
           );
 
           if (!argumentsData.valid) {
-            return { valid: false };
+            return {
+              valid: false,
+              comment: commentData.comment || null,
+            };
           }
 
           await ctx.db
@@ -276,7 +305,11 @@ export const userRouter = createTRPCRouter({
             where: eq(brainrotusers.id, ctx.user_id),
           });
 
-          return { valid: true, apiKey: user?.apiKey };
+          return {
+            valid: true,
+            apiKey: user?.apiKey,
+            comment: commentData.comment || null,
+          };
         } catch (error) {
           console.error("Error fetching data:", error);
         }
