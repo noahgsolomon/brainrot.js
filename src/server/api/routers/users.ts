@@ -264,7 +264,7 @@ export const userRouter = createTRPCRouter({
               messages: [
                 {
                   role: "system",
-                  content: `Analyze if the following topic is significantly offensive or controversial: "${title}".
+                  content: `Analyze if the following topic is offensive or controversial: "${title}".
                   If it is, respond with a short, witty reaction comment (max 45 chars) following these guidelines:
                   - Use internet slang, emojis, or popular meme references
                   - Mix shock, humor, and mild disapproval
