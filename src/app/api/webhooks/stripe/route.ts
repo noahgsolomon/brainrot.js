@@ -131,9 +131,13 @@ export async function POST(request: Request) {
 
     // Handle subscription cancellations
     if (event.type === "customer.subscription.deleted") {
-      const subscription = await stripe.subscriptions.retrieve(
-        session.subscription as string,
-      );
+      const subscription = event.data.object as Stripe.Subscription;
+
+      const userId = subscription.metadata?.userId;
+      if (!userId) {
+        console.error("Missing userId in subscription metadata");
+        return new Response(null, { status: 400 });
+      }
 
       await db
         .update(brainrotusers)
