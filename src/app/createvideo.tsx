@@ -176,6 +176,38 @@ export default function CreateVideo({
         setVideoInput("");
         toast.error("Invalid topic. Please try again.");
       }
+
+      // Show comment toast regardless of valid/invalid topic
+      if (data?.comment) {
+        data.comment = data.comment
+          .replace(/[\u2018\u2019\u201B\u2032\u2035\u275B\u275C']/g, "'")
+          .replace(/[\u201C\u201D\u201F\u275D\u275E"]/g, '"');
+
+        const selectedAgent =
+          Math.random() < 0.5
+            ? videoDetails.agents[0]?.name
+            : videoDetails.agents[1]?.name;
+
+        setTimeout(() => {
+          toast(
+            <div className="relative flex w-full items-center">
+              <div className="absolute left-0">
+                <Image
+                  src={`https://images.smart.wtf/${selectedAgent}.png`}
+                  width={48}
+                  height={48}
+                  alt="agent"
+                  className="rounded-full"
+                />
+              </div>
+              <div className="w-full pl-16">{data.comment}</div>
+            </div>,
+            {
+              className: "text-lg font-bold",
+            },
+          );
+        }, 3000);
+      }
     },
     onError: (e) => {
       console.log(e);
