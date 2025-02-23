@@ -11,30 +11,44 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
-import { fps, music } from './tmp/context';
+import { music } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
-	AudioViz,
 	SubtitleEntry,
-	AudiogramCompositionSchemaType,
+	SubtitleFileSchema,
 	parseSRT,
 } from './composition_helpers';
+import { z } from 'zod';
+import { zColor } from '@remotion/zod-types';
 
-export const BrainrotComposition: React.FC<AudiogramCompositionSchemaType> = ({
+export const BrainrotSchema = z.object({
+	initialAgentName: z.string(),
+	videoFileName: z.string().optional(),
+	durationInSeconds: z.number().positive(),
+	audioOffsetInSeconds: z.number().min(0),
+	subtitlesFileName: z.array(SubtitleFileSchema),
+	audioFileName: z.string().refine((s) => s.endsWith('.mp3'), {
+		message: 'Audio file must be a .mp3 file',
+	}),
+	titleText: z.string(),
+	titleColor: zColor(),
+	subtitlesTextColor: zColor(),
+	subtitlesLinePerPage: z.number().int().min(0),
+	subtitlesLineHeight: z.number().int().min(0),
+	subtitlesZoomMeasurerSize: z.number().int().min(0),
+});
+
+export type BrainrotSchemaType = z.infer<typeof BrainrotSchema>;
+
+export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	subtitlesFileName,
-	agentDetails,
 	audioFileName,
 	subtitlesLinePerPage,
 	initialAgentName,
-	waveNumberOfSamples,
-	waveFreqRangeStartIndex,
-	waveLinesToDisplay,
 	subtitlesZoomMeasurerSize,
 	subtitlesLineHeight,
-	mirrorWave,
 	audioOffsetInSeconds,
 	videoFileName,
-	useBackground,
 }) => {
 	const [currentAgentName, setCurrentAgentName] = useState<string>('');
 	const { durationInFrames, fps } = useVideoConfig();
@@ -130,14 +144,13 @@ export const BrainrotComposition: React.FC<AudiogramCompositionSchemaType> = ({
 					<Audio src={audioFileName} />
 					{music !== 'NONE' && <Audio volume={0.1} src={staticFile(music)} />}
 					<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
-						{useBackground && videoFileName && (
+						{videoFileName && (
 							<OffthreadVideo
 								muted
 								className="h-full w-full object-cover"
 								src={staticFile(videoFileName)}
 							/>
 						)}
-						{!useBackground && <div className="h-full w-full bg-black" />}
 						<div
 							className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-12 right-12 text-white font-bold text-7xl"
 							style={{

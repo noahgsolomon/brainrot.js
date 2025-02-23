@@ -3,17 +3,17 @@ import path from 'path';
 import { exec } from 'child_process';
 import { rm, mkdir, unlink } from 'fs/promises';
 
-type VideoMode = 'brainrot' | 'podcast' | 'monologue';
+export type VideoMode = 'brainrot' | 'podcast' | 'monologue';
 
 async function cleanupResources() {
 	try {
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
 		await rm(path.join('public', 'voice'), { recursive: true, force: true });
 		await unlink(path.join('public', `audio.mp3`)).catch((e) =>
-			console.error(e),
+			console.error(e)
 		);
 		await unlink(path.join('src', 'tmp', 'context.tsx')).catch((e) =>
-			console.error(e),
+			console.error(e)
 		);
 		await mkdir(path.join('public', 'srt'), { recursive: true });
 		await mkdir(path.join('public', 'voice'), { recursive: true });
@@ -31,40 +31,27 @@ async function main() {
 	console.log('Starting local build');
 	console.log('MODE:', process.env.MODE);
 
-	// Note: Not sure why this is here. Commenting out for now.
-	// let agentAIndex = Math.floor(Math.random() * agents.length);
-	// let agentBIndex;
-
-	// do {
-	// 	agentBIndex = Math.floor(Math.random() * agents.length);
-	// } while (agentAIndex === agentBIndex);
-	
-	// Get video mode from environment or default to 'brainrot'
-	const mode = (process.env.VIDEO_MODE as VideoMode) || 'brainrot';
-	console.log('Video Mode:', mode);
-
+	const mode = 'brainrot' as VideoMode;
 	const agentA = agents[0];
 	const agentB = agents[1];
-	const fps = 60;
 	const music = 'WII_SHOP_CHANNEL_TRAP';
 
 	// Mode-specific configuration
 	let videoTopic: string;
-	let useBackground = true;
 
 	switch (mode) {
 		case 'podcast':
-			videoTopic = 'Joe Rogan interviews Jordan Peterson about consciousness and DMT';
-			useBackground = false;
+			videoTopic =
+				'Joe Rogan interviews Jordan Peterson about consciousness and DMT';
 			break;
 		case 'monologue':
-			videoTopic = 'Jordan Peterson gives a lecture about the importance of cleaning your room';
-			useBackground = false;
+			videoTopic =
+				'Jordan Peterson gives a lecture about the importance of cleaning your room';
 			break;
 		case 'brainrot':
 		default:
-			videoTopic = 'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
-			useBackground = true;
+			videoTopic =
+				'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
 			break;
 	}
 
@@ -73,11 +60,8 @@ async function main() {
 		topic: videoTopic,
 		agentA,
 		agentB,
-		fps,
 		music,
-		videoId: '123',
 		mode,
-		useBackground,
 	});
 
 	// Skip build step if in studio mode

@@ -96,32 +96,26 @@ export default async function transcribe({
 	topic,
 	agentA,
 	agentB,
-	fps,
 	music,
 	videoId,
 	mode = 'brainrot',
-	useBackground = true,
 }: {
 	local: boolean;
 	topic: string;
 	agentA: string;
 	agentB: string;
-	fps: number;
 	music: string;
-	videoId: string;
+	videoId?: string;
 	mode?: 'brainrot' | 'podcast' | 'monologue';
-	useBackground?: boolean;
 }) {
 	const { audios, transcript } = await generateTranscriptAudio({
 		local,
 		topic,
 		agentA,
 		agentB,
-		fps,
 		music,
 		videoId,
 		mode,
-		useBackground,
 	});
 	let startingTime = 0;
 
