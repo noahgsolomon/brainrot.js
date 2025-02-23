@@ -1,7 +1,6 @@
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
 import React from 'react';
 import { useCurrentFrame, staticFile } from 'remotion';
-import { fps } from './tmp/context';
 import { z } from 'zod';
 import { zColor } from '@remotion/zod-types';
 
@@ -28,18 +27,6 @@ export type SubtitleEntry = {
 };
 
 /**
- * Schema for agent configuration including color and image
- */
-export const AgentDetailsSchema = z.record(
-	z.object({
-		color: zColor(),
-		image: z.string().refine((s) => s.endsWith('.png'), {
-			message: 'Agent image must be a .png file',
-		}),
-	})
-);
-
-/**
  * Schema for subtitle file configuration
  */
 export const SubtitleFileSchema = z.object({
@@ -49,34 +36,6 @@ export const SubtitleFileSchema = z.object({
 	}),
 	asset: z.string(),
 });
-
-/**
- * Main schema for audio composition configuration
- */
-export const AudioGramSchema = z.object({
-	initialAgentName: z.string(),
-	agentDetails: AgentDetailsSchema,
-	videoFileName: z.string().optional(),
-	useBackground: z.boolean(),
-	durationInSeconds: z.number().positive(),
-	audioOffsetInSeconds: z.number().min(0),
-	subtitlesFileName: z.array(SubtitleFileSchema),
-	audioFileName: z.string().refine((s) => s.endsWith('.mp3'), {
-		message: 'Audio file must be a .mp3 file',
-	}),
-	titleText: z.string(),
-	titleColor: zColor(),
-	subtitlesTextColor: zColor(),
-	subtitlesLinePerPage: z.number().int().min(0),
-	subtitlesLineHeight: z.number().int().min(0),
-	subtitlesZoomMeasurerSize: z.number().int().min(0),
-	mirrorWave: z.boolean(),
-	waveLinesToDisplay: z.number().int().min(0),
-	waveFreqRangeStartIndex: z.number().int().min(0),
-	waveNumberOfSamples: z.enum(['32', '64', '128', '256', '512']),
-});
-
-export type AudiogramCompositionSchemaType = z.infer<typeof AudioGramSchema>;
 
 /**
  * Converts SRT timestamp format to seconds
@@ -229,7 +188,7 @@ export const AudioViz: React.FC<AudioVizProps> = ({
 	}
 
 	const frequencyData = visualizeAudio({
-		fps,
+		fps: 60,
 		frame,
 		audioData,
 		numberOfSamples,
@@ -263,4 +222,4 @@ export const AudioViz: React.FC<AudioVizProps> = ({
 			})}
 		</div>
 	);
-}; 
+};

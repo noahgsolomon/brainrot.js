@@ -38,12 +38,7 @@ async function mainFn(
 	agentB: string,
 	videoId: string,
 	userId: string,
-	aiGeneratedImages: boolean,
-	fps: number,
-	duration: number,
-	background: string,
 	music: string,
-	cleanSrt: boolean,
 	credits: number,
 	videoMode: VideoMode
 ) {
@@ -70,11 +65,9 @@ async function mainFn(
 			topic,
 			agentA,
 			agentB,
-			fps,
 			music,
 			videoId,
 			mode: videoMode,
-			useBackground: videoMode === 'brainrot',
 		});
 		console.log('✅ Transcription completed successfully');
 
@@ -183,12 +176,7 @@ async function pollPendingVideos() {
 					video.agent2,
 					video.video_id,
 					video.user_id,
-					video.ai_generated_images,
-					video.fps,
-					video.duration,
-					video.background,
 					video.music,
-					video.clean_srt,
 					video.credits,
 					video.video_mode as VideoMode
 				);

@@ -7,39 +7,28 @@ import { query } from './dbClient';
 
 dotenv.config();
 
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function generateTranscriptAudio({
 	local,
 	topic,
 	agentA,
 	agentB,
-	fps,
 	music,
 	videoId,
 	mode = 'brainrot',
-	useBackground = true,
 }: {
 	local: boolean;
 	topic: string;
 	agentA: string;
 	agentB: string;
-	fps: number;
 	music: string;
-	videoId: string;
+	videoId?: string;
 	mode?: 'brainrot' | 'podcast' | 'monologue';
-	useBackground?: boolean;
 }) {
 	console.log('⭐ Starting generateTranscriptAudio with params:', {
 		local,
 		topic,
 		agentA,
 		mode,
-		useBackground,
 	});
 
 	try {
@@ -105,7 +94,6 @@ import { staticFile } from 'remotion';
 export const music: string = ${
 			music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
 		};
-export const fps = ${fps};
 export const initialAgentName = '${initialAgentName}';
 export const useBackground = ${mode === 'brainrot'};
 ${
@@ -173,81 +161,3 @@ async function generateAudio(
 		audioStream.on('error', reject);
 	});
 }
-
-async function fetchValidImages(transcript: Transcript[], length: number) {
-	console.log('🔍 Starting fetchValidImages with params:', {
-		length,
-	});
-
-	console.log('🤖 Using AI image generation');
-	const promises = [];
-
-	for (let i = 0; i < length; i++) {
-		console.log(
-			`📸 Queueing image generation for transcript ${i}:`,
-			transcript[i].asset
-		);
-		promises.push(imageGeneneration(transcript[i].asset));
-	}
-
-	console.log('⏳ Waiting for all image generations to complete');
-	const aiImages = await Promise.all(promises);
-	console.log('✅ AI images generated:', aiImages.length);
-	return aiImages;
-}
-
-const imagePrompt = async (title: string) => {
-	console.log('💭 Generating image prompt for:', title);
-	try {
-		const response = await openai.chat.completions.create({
-			model: process.env.OPENAI_IMAGE_DESCRIPTION_MODEL ?? 'gpt-4o-mini',
-			messages: [{ role: 'user', content: title }],
-		});
-		console.log('✅ Prompt generated:', response.choices[0]?.message.content);
-		return response.choices[0]?.message.content;
-	} catch (error) {
-		console.error('❌ Error generating prompt:', error);
-		throw error;
-	}
-};
-
-const imageGeneneration = async (initialPrompt: string) => {
-	console.log('🎨 Starting image generation for prompt:', initialPrompt);
-	try {
-		console.log('1️⃣ Getting AI prompt');
-		const prompt = await imagePrompt(initialPrompt);
-
-		console.log('2️⃣ Building full prompt');
-		const detailed8BitPreface =
-			'Create an image in a detailed retro 8-bit style. The artwork should have a pixelated texture and should have vibrant coloring and scenery.';
-
-		let fullPrompt = `${detailed8BitPreface} ${prompt} Remember, this is in retro 8-bit style`;
-		fullPrompt = fullPrompt.substring(0, 900);
-
-		console.log('3️⃣ Calling DALL-E API');
-		const responseFetch = await openai.images.generate({
-			model: 'dall-e-3',
-			prompt: fullPrompt,
-			n: 1,
-			size: '1024x1024',
-			quality: 'standard',
-			style: 'vivid',
-			response_format: 'url',
-			user: 'user-1234',
-		});
-
-		console.log('✅ Image generated successfully');
-		return {
-			imageUrl: responseFetch.data[0]?.url,
-			initialPrompt: initialPrompt,
-			prompt: prompt,
-		};
-	} catch (error) {
-		console.error('❌ Error in imageGeneration:', error);
-		return {
-			imageUrl: 'https://images.smart.wtf/black.png',
-			initialPrompt: initialPrompt,
-			prompt: 'Error occurred during image generation',
-		};
-	}
-};

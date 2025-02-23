@@ -1,18 +1,16 @@
 import { Composition, staticFile } from 'remotion';
-import { AudioGramSchema } from './BrainrotComposition';
-import { BrainrotComposition } from './BrainrotComposition';
-import { PodcastComposition } from './PodcastComposition';
-import { MonologueComposition } from './MonologueComposition';
+import { BrainrotComposition, BrainrotSchema } from './BrainrotComposition';
+import { PodcastComposition, PodcastSchema } from './PodcastComposition';
+import { MonologueComposition, MonologueSchema } from './MonologueComposition';
 import './style.css';
 import {
 	initialAgentName,
 	subtitlesFileName,
 	videoFileName,
-	useBackground,
-	fps,
 	videoMode,
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
+import { VideoMode } from '../localBuild';
 
 export const RemotionRoot: React.FC = () => {
 	const getCompositionProps = () => {
@@ -25,10 +23,12 @@ export const RemotionRoot: React.FC = () => {
 			titleColor: 'rgba(186, 186, 186, 0.93)',
 			initialAgentName,
 			// Video settings
-			useBackground,
 			videoFileName,
 			// Subtitles settings
-			subtitlesFileName,
+			subtitlesFileName: subtitlesFileName.map((sub) => ({
+				...sub,
+				asset: sub.file,
+			})),
 			agentDetails: {
 				JOE_ROGAN: {
 					color: '#bc462b',
@@ -76,7 +76,7 @@ export const RemotionRoot: React.FC = () => {
 		};
 
 		// Mode-specific modifications
-		switch (videoMode) {
+		switch (videoMode as VideoMode) {
 			case 'podcast':
 				return {
 					...baseProps,
@@ -92,7 +92,7 @@ export const RemotionRoot: React.FC = () => {
 	};
 
 	const getCompositionComponent = () => {
-		switch (videoMode) {
+		switch (videoMode as VideoMode) {
 			case 'podcast':
 				return PodcastComposition;
 			case 'monologue':
@@ -103,21 +103,33 @@ export const RemotionRoot: React.FC = () => {
 		}
 	};
 
+	const getCompositionSchema = () => {
+		switch (videoMode as VideoMode) {
+			case 'podcast':
+				return PodcastSchema;
+			case 'monologue':
+				return MonologueSchema;
+			case 'brainrot':
+			default:
+				return BrainrotSchema;
+		}
+	};
+
 	return (
 		<>
 			<Composition
 				id="Video"
 				component={getCompositionComponent()}
-				fps={fps}
+				fps={60}
 				width={1080}
 				height={1920}
-				schema={AudioGramSchema}
+				schema={getCompositionSchema()}
 				defaultProps={getCompositionProps()}
 				calculateMetadata={async ({ props }) => {
 					const duration =
 						(await getAudioDuration(staticFile(`audio.mp3`))) + 0.5;
 					return {
-						durationInFrames: Math.ceil(duration * fps),
+						durationInFrames: Math.ceil(duration * 60),
 						props,
 					};
 				}}
