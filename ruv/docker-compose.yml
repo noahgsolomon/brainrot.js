@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  rvc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rvc
+    ports:
+      - 7865:7865
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

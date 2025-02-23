@@ -69,7 +69,7 @@ export const pendingVideos = mysqlTable(
     id: int("id").primaryKey().autoincrement(),
     user_id: int("user_id").notNull(),
     agent1: varchar("agent1", { length: 100 }).notNull(),
-    agent2: varchar("agent2", { length: 100 }).notNull(),
+    agent2: varchar("agent2", { length: 100 }),
     title: varchar("title", { length: 1000 }).notNull().default(""),
     videoId: varchar("video_id", { length: 100 }).unique().notNull(),
     url: varchar("url", { length: 1000 }).default(""),
@@ -80,7 +80,6 @@ export const pendingVideos = mysqlTable(
     background: varchar("background", { length: 100 }).notNull(),
     music: varchar("music", { length: 100 }).notNull(),
     cleanSrt: boolean("clean_srt").notNull().default(false),
-    // video_mode: varchar("video_mode", { length: 20 }).notNull().default("brainrot"),
     // which process is processing this video (-1 if up for grabs)
     processId: int("process_id").notNull().default(-1),
     // in case we need to credit the user if errors out
@@ -92,6 +91,8 @@ export const pendingVideos = mysqlTable(
     videoMode: varchar("video_mode", { length: 20 })
       .notNull()
       .default("brainrot"),
+    audioUrl: varchar("audio_url", { length: 1000 }),
+    lyrics: varchar("lyrics", { length: 1000 }),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
