@@ -116,5 +116,8 @@ export default async function generateBrainrot({
 		);
 	}
 
-	await generateCleanSrt(transcript, uncleanSrtContentArr);
+	await generateCleanSrt(
+		transcript.map((t) => t.text),
+		uncleanSrtContentArr
+	);
 }

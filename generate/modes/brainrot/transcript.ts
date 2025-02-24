@@ -4,6 +4,7 @@ import Groq from 'groq-sdk';
 import { query } from '../../dbClient';
 import { writeFile } from 'fs/promises';
 import { generateAudio } from '../../audioGenerator';
+import { generateFillerContext } from '../../fillerContext';
 
 const groq = new Groq({
 	apiKey: process.env.GROQ_API_KEY,
@@ -201,7 +202,7 @@ export async function generateBrainrotTranscriptAudio({
 
 		const initialAgentName = audios[0].person;
 
-		const contextContent = `
+		let contextContent = `
 import { staticFile } from 'remotion';
 
 export const music: string = ${
@@ -222,6 +223,8 @@ export const subtitlesFileName = [
 		.join(',\n  ')}
 ];
 `;
+
+		contextContent += generateFillerContext('brainrot');
 
 		await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 

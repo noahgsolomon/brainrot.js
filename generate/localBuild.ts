@@ -30,7 +30,7 @@ async function main() {
 	console.log('Starting local build');
 	console.log('MODE:', process.env.MODE);
 
-	const mode = 'brainrot' as VideoMode;
+	const mode = 'rap' as VideoMode;
 
 	// Mode-specific configuration
 	let videoTopic: string;
@@ -49,9 +49,10 @@ async function main() {
 			await generateRap({
 				local,
 				topic: videoTopic,
-				agentA: agents[0],
-				agentB: agents[1],
-				music: 'NONE',
+				rapper: 'SPONGEBOB',
+				lyrics: '',
+				audioUrl:
+					'https://cdn-spotify.zm.io.vn/stream/59J5nzL1KniFHnU120dQzt/USUM71702277',
 			});
 			break;
 		case 'brainrot':
