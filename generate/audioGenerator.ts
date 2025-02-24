@@ -31,6 +31,7 @@ export async function generateAudio(
 	const audioStream = fs.createWriteStream(
 		`public/voice/${person}-${index}.mp3`
 	);
+
 	response.body.pipe(audioStream);
 
 	return new Promise((resolve, reject) => {
