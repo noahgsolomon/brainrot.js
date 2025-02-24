@@ -85,6 +85,13 @@ export const RemotionRoot: React.FC = () => {
 					...baseProps,
 				};
 			case 'brainrot':
+				return {
+					...baseProps,
+				};
+			case 'rap':
+				return {
+					...baseProps,
+				};
 			default:
 				return baseProps;
 		}
@@ -97,6 +104,9 @@ export const RemotionRoot: React.FC = () => {
 			case 'monologue':
 				return MonologueComposition;
 			case 'brainrot':
+				return BrainrotComposition;
+			case 'rap':
+				return RapComposition;
 			default:
 				return BrainrotComposition;
 		}
