@@ -50,3 +50,9 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
+          TWITTER_CLIENT_SECRET: ${{ secrets.TWITTER_CLIENT_SECRET }}
+          TWITTER_CLIENT_ID: ${{ secrets.TWITTER_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          GENIUS_CLIENT_SECRET: ${{ secrets.GENIUS_CLIENT_SECRET }}
+          MUSIC_DOWNLOAD_KEY: ${{ secrets.MUSIC_DOWNLOAD_KEY }}
