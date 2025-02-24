@@ -9,12 +9,12 @@ const openai = new OpenAI({
 });
 
 export async function generateCleanSrt(
-	transcript: Transcript[],
-	srt: { content: string; fileName: string }[],
+	transcript: string[],
+	srt: { content: string; fileName: string }[]
 ) {
 	const promises = [];
 	for (let i = 0; i < transcript.length; i++) {
-		promises.push(cleanSrt(transcript[i].text, srt[i].content, i));
+		promises.push(cleanSrt(transcript[i], srt[i].content, i));
 	}
 	const responses = await Promise.all(promises);
 
