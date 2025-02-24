@@ -1,0 +1,174 @@
+# Name of the GitHub Actions workflow - shown in the Actions tab
+name: Build and Push to Amazon ECR
+
+# Defines when this workflow will run
+on:
+  push:
+    # Only run on pushes to main branch
+    branches:
+      - main
+    # Only trigger when files in generate/ directory change
+    # This prevents unnecessary deployments when other parts of the repo change
+    paths:
+      - "generate/**"
+      - "rvc/**"
+      - ".github/workflows/deploy-ec2.yml"
+
+jobs:
+  build-brainrot:
+    name: Build and Push Brainrot
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # Step 1: Get the code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Set up AWS credentials for the entire workflow
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Step 4: Log into Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Step 5: Create .env file from secrets
+      - name: Create .env file
+        run: |
+          cd generate
+          cat << EOF > .env
+          JORDAN_PETERSON_VOICE_ID=${{ secrets.JORDAN_PETERSON_VOICE_ID }}
+          JOE_ROGAN_VOICE_ID=${{ secrets.JOE_ROGAN_VOICE_ID }}
+          BARACK_OBAMA_VOICE_ID=${{ secrets.BARACK_OBAMA_VOICE_ID }}
+          KAMALA_HARRIS_VOICE_ID=${{ secrets.KAMALA_HARRIS_VOICE_ID }}
+          BEN_SHAPIRO_VOICE_ID=${{ secrets.BEN_SHAPIRO_VOICE_ID }}
+          ANDREW_TATE_VOICE_ID=${{ secrets.ANDREW_TATE_VOICE_ID }}
+          JOE_BIDEN_VOICE_ID=${{ secrets.JOE_BIDEN_VOICE_ID }}
+          DONALD_TRUMP_VOICE_ID=${{ secrets.DONALD_TRUMP_VOICE_ID }}
+
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          NEETS_API_KEY=${{ secrets.NEETS_API_KEY }}
+
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_URL=${{ secrets.DB_URL }}
+          DB_NAME=${{ secrets.DB_NAME }}
+
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EOF
+
+      # Step 6: Build and push the Docker image
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: brainrot
+        uses: docker/build-push-action@v4
+        with:
+          context: ./generate
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # Step 7: Copy deployment script to EC2
+      - name: Copy deployment script
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: "3.95.240.57"
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: "22"
+          source: "generate/scripts/start_prod.sh"
+          target: "/home/ec2-user/start_brainrot_prod.sh"
+
+      # Step 8: Deploy to EC2 via SSH
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        with:
+          host: "3.95.240.57"
+          port: "22"
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCOUNT_ID
+          script: |
+            chmod +x /home/ec2-user/start_brainrot_prod.sh
+            /home/ec2-user/start_brainrot_prod.sh
+
+  build-rvc:
+    name: Build and Push RVC
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: rvc
+        uses: docker/build-push-action@v4
+        with:
+          context: ./rvc
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # Step 7: Copy deployment script to EC2
+      - name: Copy deployment script
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: "3.95.240.57"
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: "22"
+          source: "rvc/scripts/start_prod.sh"
+          target: "/home/ec2-user/start_rvc_prod.sh"
+
+      # Step 8: Deploy to EC2 via SSH
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        with:
+          host: "3.95.240.57"
+          port: "22"
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCOUNT_ID
+          script: |
+            chmod +x /home/ec2-user/start_rvc_prod.sh
+            /home/ec2-user/start_rvc_prod.sh
