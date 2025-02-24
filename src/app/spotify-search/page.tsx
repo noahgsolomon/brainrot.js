@@ -10,6 +10,9 @@ interface Track {
   name: string;
   artists: { name: string }[];
   external_urls: { spotify: string };
+  album: {
+    images: { url: string; height: number; width: number }[];
+  };
 }
 
 export default function SpotifySearch() {
@@ -164,11 +167,20 @@ export default function SpotifySearch() {
               {tracks.map((track) => (
                 <div key={track.id}>
                   <div className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <p className="font-medium">{track.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {track.artists.map((a) => a.name).join(", ")}
-                      </p>
+                    <div className="flex items-center gap-4">
+                      {track.album.images[0] && (
+                        <img
+                          src={track.album.images[0].url}
+                          alt={`${track.name} album artwork`}
+                          className="h-16 w-16 rounded-md object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium">{track.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {track.artists.map((a) => a.name).join(", ")}
+                        </p>
+                      </div>
                     </div>
                     <div>
                       <Button
