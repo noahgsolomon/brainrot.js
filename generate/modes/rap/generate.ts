@@ -4,31 +4,38 @@ import { generateCleanSrt } from '../../cleanSrt';
 import { query } from '../../dbClient';
 import { secondsToSrtTime, srtTimeToSeconds } from '../../transcribeAudio';
 import { transcribeAudio } from '../../transcribeAudio';
-import { generateRapTranscriptAudio } from './transcript';
+import { generateFillerContext } from '../../fillerContext';
+import { writeFile } from 'fs/promises';
 
 export default async function generateRap({
 	local,
 	topic,
-	agentA,
-	agentB,
-	music,
+	rapper,
+	lyrics,
+	audioUrl,
 	videoId,
 }: {
 	local: boolean;
 	topic: string;
-	agentA: string;
-	agentB: string;
-	music: string;
+	rapper: Rapper;
+	lyrics?: string;
+	audioUrl: string;
 	videoId?: string;
 }) {
-	const { audios, transcript } = await generateRapTranscriptAudio({
-		local,
-		topic,
-		agentA,
-		agentB,
-		music,
-		videoId,
-	});
+	// fetch request to audio separator with the audio url, which returns a path to an instrumental file and a path to a vocal file
+	const { instrumentalPath, vocalPath } = await fetch(
+		'http://127.0.0.1:5555/audio-separator',
+		{
+			method: 'POST',
+			body: JSON.stringify({ url: audioUrl }),
+		}
+	).then((res) => res.json());
+
+	const { finalAudioPath } = await fetch('http://127.0.0.1:5555/rvc', {
+		method: 'POST',
+		body: JSON.stringify({ instrumentalPath, vocalPath, rapper }),
+	}).then((res) => res.json());
+
 	let startingTime = 0;
 
 	// Concatenate audio files if needed, or comment out if not used
@@ -42,19 +49,15 @@ export default async function generateRap({
 	}
 
 	// Perform transcription and get the result
-	const transcriptionResults = await transcribeAudio(
-		audios.map((audio) => audio.audio)
-	);
+	const transcriptionResults = await transcribeAudio([vocalPath]);
 
 	const uncleanSrtContentArr = [];
 
 	// Iterate over each transcription result and corresponding audio file
 	for (let i = 0; i < (transcriptionResults ?? []).length; i++) {
 		const transcription = transcriptionResults![i][0];
-		const audio = audios[i]; // Corresponding audio file object
-		let srtIndex = 1; // SRT index starts at 1
+		let srtIndex = 1;
 
-		// Initialize SRT content
 		let srtContent = '';
 
 		const words = transcription.segments.flatMap(
@@ -64,16 +67,12 @@ export default async function generateRap({
 			const word = words[j];
 			const nextWord = words[j + 1];
 
-			// Set the start time to the word's start time
 			const startTime = secondsToSrtTime(word.start);
 
-			// If there's a next word, the end time is the next word's start time
-			// Otherwise, use the current word's end time
 			const endTime = nextWord
 				? secondsToSrtTime(nextWord.start)
 				: secondsToSrtTime(word.end);
 
-			// Append the formatted SRT entry to the content
 			srtContent += `${srtIndex}\n${startTime} --> ${endTime}\n${word.text}\n\n`;
 			srtIndex++;
 		}
@@ -96,8 +95,7 @@ export default async function generateRap({
 
 		const incrementedSrtContent = incrementedSrtLines.join('\n');
 
-		// The name of the SRT file is based on the second element of the audio array but with the .srt extension
-		const srtFileName = audio.audio
+		const srtFileName = finalAudioPath
 			.replace('voice', 'srt')
 			.replace('.mp3', '.srt');
 
@@ -106,7 +104,7 @@ export default async function generateRap({
 			fileName: srtFileName,
 		});
 
-		const duration = await getAudioDuration(audio.audio);
+		const duration = await getAudioDuration(finalAudioPath);
 		startingTime += duration + 0.2;
 	}
 	if (!local) {
@@ -116,5 +114,19 @@ export default async function generateRap({
 		);
 	}
 
-	await generateCleanSrt(transcript, uncleanSrtContentArr);
+	if (lyrics) {
+		await generateCleanSrt([lyrics], uncleanSrtContentArr);
+	}
+
+	let contextContent = `
+import { staticFile } from 'remotion';
+
+export const rapper: string = '${rapper}';
+export const videoMode = 'rap';
+export const imageBackground: string = '/rap/${rapper}.png'
+`;
+
+	contextContent += generateFillerContext('rap');
+
+	await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 }
