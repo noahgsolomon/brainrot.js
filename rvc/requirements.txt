@@ -47,3 +47,6 @@ torchfcpe
 ffmpy==0.3.1
 python-dotenv>=1.0.0
 av
+flask==3.0.2
+audio-separator==0.8.0
+requests==2.31.0
