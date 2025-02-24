@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import * as cheerio from "cheerio";
+import axios from "axios";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, artists } = body;
 
-    const searchResponse = await fetch(
+    const searchResponse = await axios.get(
       `https://api.genius.com/search?q=${encodeURIComponent(
         `${name} ${artists[0].name}`,
       )}`,
@@ -17,7 +19,7 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    const searchData = await searchResponse.json();
+    const searchData = searchResponse.data;
 
     if (!searchData.response.hits.length) {
       return NextResponse.json({ error: "No lyrics found" });
@@ -37,34 +39,25 @@ export async function POST(request: NextRequest) {
 
     const hit = songHit.result;
 
-    const lyricsResponse = await fetch(hit.url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        Referer: "https://genius.com/",
-      },
-    });
-    const html = await lyricsResponse.text();
-    console.log("Response status:", lyricsResponse.status);
-    console.log("HTML snippet:", html.substring(0, 1000));
+    const lyricsResponse = await axios.get(hit.url);
+    const html = lyricsResponse.data;
 
-    let lyricsMatch = html.match(
-      /<div[^>]*(?:class="Lyrics__Container-sc-[^"]*"|data-lyrics-container="true")[^>]*>([\s\S]*?)<\/div>/g,
-    );
+    // Load HTML into Cheerio
+    const $ = cheerio.load(html);
 
-    if (!lyricsMatch) {
-      lyricsMatch =
-        html.match(/<div[^>]*class="lyrics"[^>]*>([\s\S]*?)<\/div>/g) ||
-        html.match(/class="Lyrics__Root-sc[^>]*>([\s\S]*?)<\/div>/g) ||
-        html.match(
-          /<div[^>]*(?:class="SongPageGrid-sc[^"]*")[^>]*>([\s\S]*?)<\/div>/g,
-        );
+    // Try different selectors that Genius might use for lyrics
+    let lyricsElements = $('div[data-lyrics-container="true"]');
+    if (!lyricsElements.length) {
+      lyricsElements = $(".lyrics");
+    }
+    if (!lyricsElements.length) {
+      lyricsElements = $(".Lyrics__Root-sc");
+    }
+    if (!lyricsElements.length) {
+      lyricsElements = $(".SongPageGrid-sc");
     }
 
-    if (!lyricsMatch) {
+    if (!lyricsElements.length) {
       return NextResponse.json({
         lyrics: `Unable to extract lyrics automatically.\nView lyrics at: ${hit.url}`,
         title: hit.title,
@@ -73,18 +66,30 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const lyrics = lyricsMatch
+    // Extract and clean lyrics
+    const lyrics = lyricsElements
+      .map((_, element) => $(element).text())
+      .get()
       .join("\n")
-      .replace(/<br\s*\/?>/g, "\n")
-      .replace(/<[^>]*>/g, "")
       .replace(/\n{3,}/g, "\n\n")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/&#x27;/g, "'")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/data-lyrics-container="true" class="Lyrics-sc-[^"]*">/g, "")
       .replace(/\[Produced by[^\n]*\]/g, "")
+
+      // Add proper spacing
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/\]([A-Z])/g, "] $1")
+      .replace(/\)([A-Z])/g, ") $1")
+      .replace(/\'([A-Z])/g, "' $1")
+      .replace(/([a-z])\'([A-Z])/g, "$1' $2")
+
+      // Section formatting
+      .replace(/\[([^\]]+)\]/g, "\n[$1]\n")
+      .replace(/\n([A-Z][a-z]+:)/g, "\n\n$1")
+      .replace(/([.?!])\s*([A-Z])/g, "$1\n$2")
+
+      // Clean up extra whitespace
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n\s+/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
       .trim();
 
     return NextResponse.json({
