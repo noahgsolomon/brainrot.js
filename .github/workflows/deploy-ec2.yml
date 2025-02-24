@@ -89,7 +89,7 @@ jobs:
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: "3.95.240.57"
+          host: "18.207.194.90"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
@@ -102,7 +102,7 @@ jobs:
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         with:
-          host: "3.95.240.57"
+          host: "18.207.194.90"
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
@@ -130,6 +130,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      # New step: Download assets and logs from S3
+      - name: Download assets and logs from S3
+        run: |
+          # Remove existing directories (if they exist)
+          rm -rf ./rvc/assets ./rvc/logs
+
+          # Create directories
+          mkdir -p ./rvc/assets ./rvc/logs
+
+          # Download from S3
+          aws s3 sync s3://brainrot-weights/assets/ ./rvc/assets/
+          aws s3 sync s3://brainrot-weights/logs/ ./rvc/logs/
+
+          # Print status for debugging
+          echo "Downloaded $(find ./rvc/assets -type f | wc -l) files to assets directory"
+          echo "Downloaded $(find ./rvc/logs -type f | wc -l) files to logs directory"
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -151,7 +168,7 @@ jobs:
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: "3.95.240.57"
+          host: "18.207.194.90"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
@@ -164,7 +181,7 @@ jobs:
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         with:
-          host: "3.95.240.57"
+          host: "18.207.194.90"
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
