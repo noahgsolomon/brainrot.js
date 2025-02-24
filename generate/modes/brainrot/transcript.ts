@@ -1,12 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import Groq from 'groq-sdk';
+import { query } from '../../dbClient';
+import { writeFile } from 'fs/promises';
+import { generateAudio } from '../../audioGenerator';
 
 const groq = new Groq({
 	apiKey: process.env.GROQ_API_KEY,
 });
 
-async function generateTranscript(
+async function generateBrainrotTranscript(
 	topic: string,
 	agentA: string,
 	agentB: string
@@ -71,7 +74,7 @@ function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export default async function transcript(
+export default async function brainrotTranscript(
 	topic: string,
 	agentA: string,
 	agentB: string
@@ -89,7 +92,7 @@ export default async function transcript(
 		console.log(`🔄 Attempt ${attempts + 1}/5`);
 		try {
 			console.log('📝 Generating transcript...');
-			const content = await generateTranscript(topic, agentA, agentB);
+			const content = await generateBrainrotTranscript(topic, agentA, agentB);
 
 			console.log('🔍 Parsing content...');
 			const parsedContent = content === '' ? null : JSON.parse(content);
@@ -118,4 +121,113 @@ export default async function transcript(
 	throw new Error(
 		`Failed to generate valid transcript after 5 attempts for topic: ${topic}`
 	);
+}
+
+export async function generateBrainrotTranscriptAudio({
+	local,
+	topic,
+	agentA,
+	agentB,
+	music,
+	videoId,
+}: {
+	local: boolean;
+	topic: string;
+	agentA: string;
+	agentB: string;
+	music: string;
+	videoId?: string;
+}) {
+	console.log('⭐ Starting generateTranscriptAudio with params:', {
+		local,
+		topic,
+		agentA,
+	});
+
+	try {
+		if (!local) {
+			console.log('📝 Updating video status - Generating transcript');
+			await query(
+				"UPDATE `pending-videos` SET status = 'Generating transcript', progress = 0 WHERE video_id = ?",
+				[videoId]
+			);
+		}
+
+		console.log('📜 Getting transcript from transcriptFunction');
+		let transcript = (await brainrotTranscript(
+			topic,
+			agentA,
+			agentB
+		)) as Transcript[];
+		console.log('✅ Transcript generated:', transcript.length, 'entries');
+
+		const audios = [];
+
+		if (!local) {
+			await query(
+				"UPDATE `pending-videos` SET status = 'Generating audio', progress = 12 WHERE video_id = ?",
+				[videoId]
+			);
+		}
+
+		for (let i = 0; i < transcript.length; i++) {
+			const person = transcript[i].agentId;
+			const line = transcript[i].text;
+
+			const voice_id =
+				person === 'JOE_ROGAN'
+					? process.env.JOE_ROGAN_VOICE_ID
+					: person === 'BARACK_OBAMA'
+					? process.env.BARACK_OBAMA_VOICE_ID
+					: person === 'BEN_SHAPIRO'
+					? process.env.BEN_SHAPIRO_VOICE_ID
+					: person === 'DONALD_TRUMP'
+					? process.env.DONALD_TRUMP_VOICE_ID
+					: person === 'JOE_BIDEN'
+					? process.env.JOE_BIDEN_VOICE_ID
+					: person === 'KAMALA_HARRIS'
+					? process.env.KAMALA_HARRIS_VOICE_ID
+					: person === 'ANDREW_TATE'
+					? process.env.ANDREW_TATE_VOICE_ID
+					: process.env.JORDAN_PETERSON_VOICE_ID;
+
+			await generateAudio(voice_id ?? '', person, line, i);
+			audios.push({
+				person: person,
+				audio: `public/voice/${person}-${i}.mp3`,
+				index: i,
+			});
+		}
+
+		const initialAgentName = audios[0].person;
+
+		const contextContent = `
+import { staticFile } from 'remotion';
+
+export const music: string = ${
+			music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
+		};
+export const initialAgentName = '${initialAgentName}';
+export const videoFileName = '/background/MINECRAFT-0.mp4';
+export const videoMode = 'brainrot';
+
+export const subtitlesFileName = [
+  ${audios
+		.map(
+			(entry, i) => `{
+    name: '${entry.person}',
+    file: staticFile('srt/${entry.person}-${i}.srt'),
+  }`
+		)
+		.join(',\n  ')}
+];
+`;
+
+		await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
+
+		return { audios, transcript };
+	} catch (error) {
+		console.error('❌ Error in generateTranscriptAudio:', error);
+		throw error;
+	}
 }

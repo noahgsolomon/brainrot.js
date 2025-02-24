@@ -5,3 +5,5 @@ interface Transcript {
 }
 
 type Music = 'wii' | 'none' | 'duck' | 'monkey';
+
+type VideoMode = 'brainrot' | 'podcast' | 'monologue' | 'rap';
