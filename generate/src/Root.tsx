@@ -10,7 +10,6 @@ import {
 	videoMode,
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
-import { VideoMode } from '../localBuild';
 
 export const RemotionRoot: React.FC = () => {
 	const getCompositionProps = () => {

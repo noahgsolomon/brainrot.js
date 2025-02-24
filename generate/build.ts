@@ -1,4 +1,4 @@
-import transcribe from './transcribe';
+import generateBrainrot from './modes/brainrot/generate';
 import { rm, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -60,14 +60,13 @@ async function mainFn(
 		console.log('✅ Process ID updated successfully');
 
 		console.log('🎙️ Starting transcription function...');
-		await transcribe({
+		await generateBrainrot({
 			local,
 			topic,
 			agentA,
 			agentB,
 			music,
 			videoId,
-			mode: videoMode,
 		});
 		console.log('✅ Transcription completed successfully');
 

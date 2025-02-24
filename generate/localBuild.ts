@@ -1,9 +1,8 @@
-import transcribe from './transcribe';
+import generateBrainrot from './modes/brainrot/generate';
 import path from 'path';
 import { exec } from 'child_process';
 import { rm, mkdir, unlink } from 'fs/promises';
-
-export type VideoMode = 'brainrot' | 'podcast' | 'monologue';
+import generateRap from './modes/rap/generate';
 
 async function cleanupResources() {
 	try {
@@ -32,9 +31,6 @@ async function main() {
 	console.log('MODE:', process.env.MODE);
 
 	const mode = 'brainrot' as VideoMode;
-	const agentA = agents[0];
-	const agentB = agents[1];
-	const music = 'WII_SHOP_CHANNEL_TRAP';
 
 	// Mode-specific configuration
 	let videoTopic: string;
@@ -48,21 +44,32 @@ async function main() {
 			videoTopic =
 				'Jordan Peterson gives a lecture about the importance of cleaning your room';
 			break;
+		case 'rap':
+			videoTopic = 'Spongebob raps about his love for Patrick Star';
+			await generateRap({
+				local,
+				topic: videoTopic,
+				agentA: agents[0],
+				agentB: agents[1],
+				music: 'NONE',
+			});
+			break;
 		case 'brainrot':
-		default:
 			videoTopic =
 				'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
+			const agentA = agents[0];
+			const agentB = agents[1];
+			const music = 'WII_SHOP_CHANNEL_TRAP';
+			await generateBrainrot({
+				local,
+				topic: videoTopic,
+				agentA,
+				agentB,
+				music,
+			});
+		default:
 			break;
 	}
-
-	await transcribe({
-		local,
-		topic: videoTopic,
-		agentA,
-		agentB,
-		music,
-		mode,
-	});
 
 	// Skip build step if in studio mode
 	if (process.env.MODE !== 'studio') {
