@@ -93,8 +93,8 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
-          source: "generate/scripts/start_prod.sh"
-          target: "/home/ec2-user/start_brainrot_prod.sh"
+          source: "generate/scripts/start_brainrot_prod.sh"
+          target: "/home/ec2-user/"
 
       # Step 8: Deploy to EC2 via SSH
       - name: Deploy to EC2
@@ -173,8 +173,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
-          source: "rvc/scripts/start_prod.sh"
-          target: "/home/ec2-user/start_rvc_prod.sh"
+          source: "rvc/scripts/start_rvc_prod.sh"
+          target: "/home/ec2-user/"
+          overwrite: true
 
       # Step 8: Deploy to EC2 via SSH
       - name: Deploy to EC2
