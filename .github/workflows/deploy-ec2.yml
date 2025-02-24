@@ -12,6 +12,8 @@ on:
     paths:
       - "generate/**"
       - "rvc/**"
+      - "start_brainrot_prod.sh"
+      - "start_rvc_prod.sh"
       - ".github/workflows/deploy-ec2.yml"
 
 jobs:
@@ -93,7 +95,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
-          source: "generate/scripts/start_brainrot_prod.sh"
+          source: "start_brainrot_prod.sh"
           target: "/home/ec2-user/"
 
       # Step 8: Deploy to EC2 via SSH
@@ -173,7 +175,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
-          source: "rvc/scripts/start_rvc_prod.sh"
+          source: "start_rvc_prod.sh"
           target: "/home/ec2-user/"
           overwrite: true
 
