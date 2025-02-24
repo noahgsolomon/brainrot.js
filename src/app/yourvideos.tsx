@@ -68,41 +68,41 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
 
                 const agent1Img =
                   agent1 === "JORDAN_PETERSON"
-                    ? "https://images.smart.wtf/JORDAN_PETERSON.png"
+                    ? "/img/JORDAN_PETERSON.png"
                     : agent1 === "JOE_ROGAN"
-                    ? "https://images.smart.wtf/JOE_ROGAN.png"
+                    ? "/img/JOE_ROGAN.png"
                     : agent1 === "BARACK_OBAMA"
-                    ? "https://images.smart.wtf/BARACK_OBAMA.png"
+                    ? "/img/BARACK_OBAMA.png"
                     : agent1 === "BEN_SHAPIRO"
-                    ? "https://images.smart.wtf/BEN_SHAPIRO.png"
+                    ? "/img/BEN_SHAPIRO.png"
                     : agent1 === "DONALD_TRUMP"
-                    ? "https://images.smart.wtf/DONALD_TRUMP.png"
+                    ? "/img/DONALD_TRUMP.png"
                     : agent1 === "KAMALA_HARRIS"
-                    ? "https://images.smart.wtf/KAMALA_HARRIS.png"
+                    ? "/img/KAMALA_HARRIS.png"
                     : agent1 === "JOE_BIDEN"
-                    ? "https://images.smart.wtf/JOE_BIDEN.png"
+                    ? "/img/JOE_BIDEN.png"
                     : agent1 === "ANDREW_TATE"
-                    ? "https://images.smart.wtf/ANDREW_TATE.png"
-                    : "https://images.smart.wtf/BEN_SHAPIRO.png";
+                    ? "/img/ANDREW_TATE.png"
+                    : "/img/BEN_SHAPIRO.png";
 
                 const agent2Img =
                   agent2 === "JORDAN_PETERSON"
-                    ? "https://images.smart.wtf/JORDAN_PETERSON.png"
+                    ? "/img/JORDAN_PETERSON.png"
                     : agent2 === "JOE_ROGAN"
-                    ? "https://images.smart.wtf/JOE_ROGAN.png"
+                    ? "/img/JOE_ROGAN.png"
                     : agent2 === "BARACK_OBAMA"
-                    ? "https://images.smart.wtf/BARACK_OBAMA.png"
+                    ? "/img/BARACK_OBAMA.png"
                     : agent2 === "BEN_SHAPIRO"
-                    ? "https://images.smart.wtf/BEN_SHAPIRO.png"
+                    ? "/img/BEN_SHAPIRO.png"
                     : agent2 === "DONALD_TRUMP"
-                    ? "https://images.smart.wtf/DONALD_TRUMP.png"
+                    ? "/img/DONALD_TRUMP.png"
                     : agent2 === "KAMALA_HARRIS"
-                    ? "https://images.smart.wtf/KAMALA_HARRIS.png"
+                    ? "/img/KAMALA_HARRIS.png"
                     : agent2 === "JOE_BIDEN"
-                    ? "https://images.smart.wtf/JOE_BIDEN.png"
+                    ? "/img/JOE_BIDEN.png"
                     : agent2 === "ANDREW_TATE"
-                    ? "https://images.smart.wtf/ANDREW_TATE.png"
-                    : "https://images.smart.wtf/BEN_SHAPIRO.png";
+                    ? "/img/ANDREW_TATE.png"
+                    : "/img/BEN_SHAPIRO.png";
 
                 return (
                   <>

@@ -187,7 +187,7 @@ export default function CreateVideo({
             <div className="relative flex w-full items-center">
               <div className="absolute left-0">
                 <Image
-                  src={`https://images.smart.wtf/${selectedAgent}.png`}
+                  src={`/img/${selectedAgent}.png`}
                   width={48}
                   height={48}
                   alt="agent"
@@ -395,7 +395,7 @@ export default function CreateVideo({
                   />
                   <Image
                     className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"https://images.smart.wtf/JORDAN_PETERSON.png"}
+                    src={"/img/JORDAN_PETERSON.png"}
                     width={75}
                     height={75}
                     alt="jordan"
@@ -430,7 +430,7 @@ export default function CreateVideo({
                   />
                   <Image
                     className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"https://images.smart.wtf/BEN_SHAPIRO.png"}
+                    src={"/img/BEN_SHAPIRO.png"}
                     width={75}
                     height={75}
                     alt="ben shapiro"
@@ -465,7 +465,7 @@ export default function CreateVideo({
                   />
                   <Image
                     className="z-10 h-[60px] w-[60px] scale-[125%] xs:h-[75px] xs:w-[75px]"
-                    src={"https://images.smart.wtf/JOE_ROGAN.png"}
+                    src={"/img/JOE_ROGAN.png"}
                     width={75}
                     height={75}
                     alt="bender"
@@ -501,7 +501,7 @@ export default function CreateVideo({
                   />
                   <Image
                     className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                    src={"https://images.smart.wtf/BARACK_OBAMA.png"}
+                    src={"/img/BARACK_OBAMA.png"}
                     width={75}
                     height={75}
                     alt="barack"
@@ -538,7 +538,7 @@ export default function CreateVideo({
                       />
                       <Image
                         className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                        src={"https://images.smart.wtf/DONALD_TRUMP.png"}
+                        src={"/img/DONALD_TRUMP.png"}
                         width={75}
                         height={75}
                         alt="trump"
@@ -575,7 +575,7 @@ export default function CreateVideo({
                     />
                     <Image
                       className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                      src={"https://images.smart.wtf/DONALD_TRUMP.png"}
+                      src={"/img/DONALD_TRUMP.png"}
                       width={75}
                       height={75}
                       alt="trump"
@@ -613,7 +613,7 @@ export default function CreateVideo({
                       />
                       <Image
                         className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"https://images.smart.wtf/JOE_BIDEN.png"}
+                        src={"/img/JOE_BIDEN.png"}
                         width={75}
                         height={75}
                         alt="biden"
@@ -650,7 +650,7 @@ export default function CreateVideo({
                     />
                     <Image
                       className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"https://images.smart.wtf/JOE_BIDEN.png"}
+                      src={"/img/JOE_BIDEN.png"}
                       width={75}
                       height={75}
                       alt="biden"
@@ -688,7 +688,7 @@ export default function CreateVideo({
                       />
                       <Image
                         className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"https://images.smart.wtf/ANDREW_TATE.png"}
+                        src={"/img/ANDREW_TATE.png"}
                         width={75}
                         height={75}
                         alt="andrewtate"
@@ -725,7 +725,7 @@ export default function CreateVideo({
                     />
                     <Image
                       className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"https://images.smart.wtf/ANDREW_TATE.png"}
+                      src={"/img/ANDREW_TATE.png"}
                       width={75}
                       height={75}
                       alt="andrewtate"
@@ -763,7 +763,7 @@ export default function CreateVideo({
                       />
                       <Image
                         className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"https://images.smart.wtf/KAMALA_HARRIS.png"}
+                        src={"/img/KAMALA_HARRIS.png"}
                         width={75}
                         height={75}
                         alt="kamala"
@@ -800,7 +800,7 @@ export default function CreateVideo({
                     />
                     <Image
                       className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"https://images.smart.wtf/KAMALA_HARRIS.png"}
+                      src={"/img/KAMALA_HARRIS.png"}
                       width={75}
                       height={75}
                       alt="kamala"
@@ -859,7 +859,7 @@ export default function CreateVideo({
                       />
                       <Image
                         className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                        src={`https://images.smart.wtf/${hostName}.png`}
+                        src={`/img/${hostName}.png`}
                         width={75}
                         height={75}
                         alt={hostName.toLowerCase()}
@@ -920,7 +920,7 @@ export default function CreateVideo({
                             />
                             <Image
                               className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                              src={`https://images.smart.wtf/${guestName}.png`}
+                              src={`/img/${guestName}.png`}
                               width={75}
                               height={75}
                               alt={guestName.toLowerCase()}
