@@ -37,20 +37,8 @@ export async function POST(request: NextRequest) {
 
     const hit = songHit.result;
 
-    const lyricsResponse = await fetch(hit.url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        Referer: "https://genius.com/",
-      },
-    });
+    const lyricsResponse = await fetch(hit.url);
     const html = await lyricsResponse.text();
-
-    console.log("Response status:", lyricsResponse.status);
-    console.log("HTML snippet:", html.substring(0, 500));
 
     const lyricsMatch = html.match(
       /<div[^>]*(?:class="Lyrics__Container-sc-[^"]*"|data-lyrics-container="true")[^>]*>([\s\S]*?)<\/div>/g,
