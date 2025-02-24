@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const html = await lyricsResponse.text();
 
     const lyricsMatch = html.match(
-      /data-lyrics-container[^>]*>([\s\S]*?)<\/div>|class="lyrics"[^>]*>([\s\S]*?)<\/div>/g,
+      /<div[^>]*(?:class="Lyrics__Container-sc-[^"]*"|data-lyrics-container="true")[^>]*>([\s\S]*?)<\/div>/g,
     );
 
     if (!lyricsMatch) {
