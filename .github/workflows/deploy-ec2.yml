@@ -120,11 +120,13 @@ jobs:
               sudo systemctl enable docker
               sudo systemctl start docker
               sudo usermod -aG docker ec2-user
-              # Need to refresh group membership
-              newgrp docker
+              # No need to use newgrp as it doesn't work in non-interactive sessions
             fi
 
-            # Configure AWS credentials
+            # Make sure Docker is running
+            sudo systemctl start docker
+
+            # Configure AWS credentials for ECR access
             mkdir -p ~/.aws
             cat > ~/.aws/credentials << EOL
             [default]
@@ -133,9 +135,13 @@ jobs:
             region=us-east-1
             EOL
 
-            # Run the deployment script
-            chmod +x /home/ec2-user/start_brainrot_prod.sh
-            /home/ec2-user/start_brainrot_prod.sh
+            # Set AWS environment variables for this session
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY
+            export AWS_DEFAULT_REGION=us-east-1
+
+            # Use sudo for running Docker commands (temporary solution)
+            bash -x /home/ec2-user/start_brainrot_prod.sh
 
   build-rvc:
     name: Build and Push RVC
@@ -225,11 +231,13 @@ jobs:
               sudo systemctl enable docker
               sudo systemctl start docker
               sudo usermod -aG docker ec2-user
-              # Need to refresh group membership
-              newgrp docker
+              # No need to use newgrp as it doesn't work in non-interactive sessions
             fi
 
-            # Configure AWS credentials
+            # Make sure Docker is running
+            sudo systemctl start docker
+
+            # Configure AWS credentials for ECR access
             mkdir -p ~/.aws
             cat > ~/.aws/credentials << EOL
             [default]
@@ -238,6 +246,10 @@ jobs:
             region=us-east-1
             EOL
 
-            # Run the deployment script
-            chmod +x /home/ec2-user/start_rvc_prod.sh
-            /home/ec2-user/start_rvc_prod.sh
+            # Set AWS environment variables for this session
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY
+            export AWS_DEFAULT_REGION=us-east-1
+
+            # Use sudo for running Docker commands (temporary solution)
+            bash -x /home/ec2-user/start_rvc_prod.sh
