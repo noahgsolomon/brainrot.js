@@ -31,12 +31,6 @@ import { useAuth } from "@clerk/nextjs";
 import { trpc } from "@/trpc/client";
 
 import { toast } from "sonner";
-import { DialogClose, DialogTrigger } from "@radix-ui/react-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import ProButton from "./ProButton";
