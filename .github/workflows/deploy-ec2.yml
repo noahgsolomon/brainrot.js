@@ -132,6 +132,7 @@ jobs:
 
       # New step: Download assets and logs from S3
       - name: Download assets and logs from S3
+
         run: |
           # Remove existing directories (if they exist)
           rm -rf ./rvc/assets ./rvc/logs
