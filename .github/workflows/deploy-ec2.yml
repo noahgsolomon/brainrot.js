@@ -123,6 +123,7 @@ jobs:
             fi
 
             # Make sure Docker is running
+
             sudo systemctl start docker
 
             # Configure AWS credentials for ECR access
