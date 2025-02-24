@@ -29,6 +29,15 @@ RUN apt-get update && \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.9 1
 
 RUN python3 -m pip install --upgrade pip==24.0
+
+# Increase pip's memory usage limit and upgrade
+RUN python3 -m pip install --upgrade pip==24.0
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1 
+ENV PIP_DEFAULT_TIMEOUT=300
+ENV MAKEFLAGS="-j$(nproc)"
+
+# Install dependencies in smaller chunks with more verbose output
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/pretrained_v2/D40k.pth -d assets/pretrained_v2/ -o D40k.pth
