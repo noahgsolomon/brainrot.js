@@ -103,13 +103,37 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
         with:
           host: "18.207.194.90"
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCOUNT_ID
+          envs: AWS_ACCOUNT_ID,AWS_ACCESS_KEY,AWS_SECRET_KEY
           script: |
+            # Install Docker if not already installed
+            if ! command -v docker &> /dev/null; then
+              echo "Installing Docker..."
+              sudo yum update -y
+              sudo yum install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              # Need to refresh group membership
+              newgrp docker
+            fi
+
+            # Configure AWS credentials
+            mkdir -p ~/.aws
+            cat > ~/.aws/credentials << EOL
+            [default]
+            aws_access_key_id=$AWS_ACCESS_KEY
+            aws_secret_access_key=$AWS_SECRET_KEY
+            region=us-east-1
+            EOL
+
+            # Run the deployment script
             chmod +x /home/ec2-user/start_brainrot_prod.sh
             /home/ec2-user/start_brainrot_prod.sh
 
@@ -184,12 +208,36 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
         with:
           host: "18.207.194.90"
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCOUNT_ID
+          envs: AWS_ACCOUNT_ID,AWS_ACCESS_KEY,AWS_SECRET_KEY
           script: |
+            # Install Docker if not already installed
+            if ! command -v docker &> /dev/null; then
+              echo "Installing Docker..."
+              sudo yum update -y
+              sudo yum install -y docker
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ec2-user
+              # Need to refresh group membership
+              newgrp docker
+            fi
+
+            # Configure AWS credentials
+            mkdir -p ~/.aws
+            cat > ~/.aws/credentials << EOL
+            [default]
+            aws_access_key_id=$AWS_ACCESS_KEY
+            aws_secret_access_key=$AWS_SECRET_KEY
+            region=us-east-1
+            EOL
+
+            # Run the deployment script
             chmod +x /home/ec2-user/start_rvc_prod.sh
             /home/ec2-user/start_rvc_prod.sh
