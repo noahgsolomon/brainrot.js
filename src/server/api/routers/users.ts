@@ -270,6 +270,7 @@ export const userRouter = createTRPCRouter({
                   - Mix shock, humor, and mild disapproval
                   - Unless an emojis is directly applicable, don't use one or just use a skull or crying emoji
                   - Examples:
+                    "The hell is wrong with you 😭"
                     "bro chose violence today 💀"
                     "my brother in christ... WHY ⁉️"
                     "FBI OPEN UP 🚔"
