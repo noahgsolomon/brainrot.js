@@ -120,7 +120,6 @@ jobs:
               sudo systemctl enable docker
               sudo systemctl start docker
               sudo usermod -aG docker ec2-user
-              # No need to use newgrp as it doesn't work in non-interactive sessions
             fi
 
             # Make sure Docker is running
@@ -139,9 +138,12 @@ jobs:
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY
             export AWS_DEFAULT_REGION=us-east-1
+            export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
 
-            # Use sudo for running Docker commands (temporary solution)
-            bash -x /home/ec2-user/start_brainrot_prod.sh
+            # Make the script executable and run it
+            chmod +x /home/ec2-user/start_brainrot_prod.sh
+            echo "Running brainrot deployment script with AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
+            /home/ec2-user/start_brainrot_prod.sh
 
   build-rvc:
     name: Build and Push RVC
@@ -231,7 +233,6 @@ jobs:
               sudo systemctl enable docker
               sudo systemctl start docker
               sudo usermod -aG docker ec2-user
-              # No need to use newgrp as it doesn't work in non-interactive sessions
             fi
 
             # Make sure Docker is running
@@ -250,6 +251,9 @@ jobs:
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY
             export AWS_DEFAULT_REGION=us-east-1
+            export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
 
-            # Use sudo for running Docker commands (temporary solution)
-            bash -x /home/ec2-user/start_rvc_prod.sh
+            # Make the script executable and run it
+            chmod +x /home/ec2-user/start_rvc_prod.sh
+            echo "Running RVC deployment script with AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
+            /home/ec2-user/start_rvc_prod.sh
