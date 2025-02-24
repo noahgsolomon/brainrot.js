@@ -1,120 +1,152 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import * as cheerio from "cheerio";
-import axios from "axios";
+import { NextRequest, NextResponse } from "next/server";
+
+let accessToken: string | null = null;
+let tokenExpiration: number = 0;
+
+async function getSpotifyToken() {
+  if (accessToken && tokenExpiration > Date.now()) {
+    return accessToken;
+  }
+
+  console.log("Getting new Spotify token...");
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.SPOTIFY_CLIENT_ID!,
+      client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Token error:", data);
+    throw new Error(`Failed to get token: ${data.error}`);
+  }
+
+  console.log("Got new token, expires in:", data.expires_in);
+  accessToken = data.access_token;
+  tokenExpiration = Date.now() + data.expires_in * 1000;
+  return accessToken;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, artists } = body;
+    const { id: trackId } = body;
 
-    const searchResponse = await axios.get(
-      `https://api.genius.com/search?q=${encodeURIComponent(
-        `${name} ${artists[0].name}`,
-      )}`,
+    const token = await getSpotifyToken();
+    const trackResponse = await fetch(
+      `https://api.spotify.com/v1/tracks/${trackId}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.GENIUS_ACCESS_TOKEN}`,
+          authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
       },
     );
 
-    const searchData = searchResponse.data;
-
-    if (!searchData.response.hits.length) {
-      return NextResponse.json({ error: "No lyrics found" });
-    }
-
-    const songHit = searchData.response.hits.find((hit: any) => {
-      const result = hit.result;
-      return (
-        result.title.toLowerCase().includes(name.toLowerCase()) ||
-        name.toLowerCase().includes(result.title.toLowerCase())
-      );
-    });
-
-    if (!songHit) {
-      return NextResponse.json({ error: "No matching song lyrics found" });
-    }
-
-    const hit = songHit.result;
-
-    const response = await axios.get(hit.url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-      },
-      timeout: 5000,
-    });
-
-    const html = response.data;
-
-    // Load HTML into Cheerio
-    const $ = cheerio.load(html);
-
-    // Try different selectors that Genius might use for lyrics
-    let lyricsElements = $('div[data-lyrics-container="true"]');
-    if (!lyricsElements.length) {
-      lyricsElements = $(".lyrics");
-    }
-    if (!lyricsElements.length) {
-      lyricsElements = $(".Lyrics__Root-sc");
-    }
-    if (!lyricsElements.length) {
-      lyricsElements = $(".SongPageGrid-sc");
-    }
-
-    if (!lyricsElements.length) {
+    if (!trackResponse.ok) {
       return NextResponse.json({
-        lyrics: `Unable to extract lyrics automatically.\nView lyrics at: ${hit.url}`,
-        title: hit.title,
-        artist: hit.primary_artist.name,
-        url: hit.url,
+        error: `Failed to fetch track details: ${trackResponse.status}`,
       });
     }
 
-    // Extract and clean lyrics
-    const lyrics = lyricsElements
-      .map((_, element) => $(element).text())
-      .get()
-      .join("\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .replace(/\[Produced by[^\n]*\]/g, "")
+    const trackData = await trackResponse.json();
 
-      // Add proper spacing
-      .replace(/([a-z])([A-Z])/g, "$1 $2")
-      .replace(/\]([A-Z])/g, "] $1")
-      .replace(/\)([A-Z])/g, ") $1")
-      .replace(/\'([A-Z])/g, "' $1")
-      .replace(/([a-z])\'([A-Z])/g, "$1' $2")
+    // Query LRCLIB API
+    const params = new URLSearchParams({
+      track_name: trackData.name,
+      artist_name: trackData.artists[0].name,
+      album_name: trackData.album.name,
+    });
 
-      // Section formatting
-      .replace(/\[([^\]]+)\]/g, "\n[$1]\n")
-      .replace(/\n([A-Z][a-z]+:)/g, "\n\n$1")
-      .replace(/([.?!])\s*([A-Z])/g, "$1\n$2")
+    const lyricsResponse = await fetch(
+      `https://lrclib.net/api/get?${params.toString()}`,
+      {
+        headers: {
+          "Lrclib-Client": "SpotifyLyricsApp v1.0",
+        },
+      },
+    );
 
-      // Clean up extra whitespace
-      .replace(/[ \t]+/g, " ")
-      .replace(/\n\s+/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
+    if (!lyricsResponse.ok) {
+      const searchParams = new URLSearchParams({
+        track_name: trackData.name,
+        artist_name: trackData.artists[0].name,
+      });
+
+      const searchResponse = await fetch(
+        `https://lrclib.net/api/search?${searchParams.toString()}`,
+        {
+          headers: {
+            "Lrclib-Client": "SpotifyLyricsApp v1.0",
+          },
+        },
+      );
+
+      if (!searchResponse.ok) {
+        return NextResponse.json({ error: "No lyrics found" });
+      }
+
+      const searchResults = await searchResponse.json();
+      if (!searchResults.length) {
+        return NextResponse.json({ error: "No lyrics found" });
+      }
+
+      return NextResponse.json({
+        lyrics: searchResults[0].plainLyrics,
+        syncType: searchResults[0].syncedLyrics ? "LINE_SYNCED" : "UNSYNCED",
+        lines: searchResults[0].syncedLyrics
+          ? parseSyncedLyrics(searchResults[0].syncedLyrics)
+          : searchResults[0].plainLyrics
+              .split("\n")
+              .map((words: string) => ({ words })),
+      });
+    }
+
+    const lyricsData = await lyricsResponse.json();
 
     return NextResponse.json({
-      lyrics,
-      title: hit.title,
-      artist: hit.primary_artist.name,
-      url: hit.url,
+      lyrics: lyricsData.plainLyrics,
+      syncType: lyricsData.syncedLyrics ? "LINE_SYNCED" : "UNSYNCED",
+      lines: lyricsData.syncedLyrics
+        ? parseSyncedLyrics(lyricsData.syncedLyrics)
+        : lyricsData.plainLyrics.split("\n").map((words: string) => ({
+            words,
+          })),
     });
   } catch (error) {
     console.error("Lyrics fetch error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch lyrics" },
+      {
+        error: `Failed to fetch lyrics: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      },
       { status: 500 },
     );
   }
+}
+
+function parseSyncedLyrics(syncedLyrics: string) {
+  return syncedLyrics
+    .split("\n")
+    .filter((line) => line.trim())
+    .map((line) => {
+      const match = line.match(/\[(\d{2}:\d{2}\.\d{2})\](.*)/);
+      if (!match) return { words: line.trim() };
+      const [, timeStr, words] = match;
+      const [mins, secs] = timeStr?.split(":") ?? [];
+      const startTimeMs =
+        (parseInt(mins ?? "0") * 60 + parseFloat(secs ?? "0")) * 1000;
+      return {
+        words: words?.trim() ?? "",
+        startTimeMs,
+      };
+    });
 }

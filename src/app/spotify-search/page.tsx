@@ -104,8 +104,7 @@ export default function SpotifySearch() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: track.name,
-          artists: track.artists,
+          id: track.id,
         }),
       });
 
@@ -116,7 +115,9 @@ export default function SpotifySearch() {
       }
 
       setLyricsData({
-        ...data,
+        lyrics: data.lyrics,
+        title: track.name,
+        artist: track.artists.map((a) => a.name).join(", "),
         trackId: track.id,
       });
     } catch (err) {
