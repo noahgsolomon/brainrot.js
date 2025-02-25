@@ -10,16 +10,25 @@ import tempfile
 import requests
 from pathlib import Path
 
+# Ensure log directory exists
+log_dir = "/app/server/logs"
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "server_debug.log")
+
 # Set up detailed logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler("server_debug.log")
+        logging.FileHandler(log_file)
     ]
 )
 logger = logging.getLogger(__name__)
+logger.info(f"Logging to file: {log_file}")
+
+# Add progress logging for requests
+logging.getLogger("urllib3").setLevel(logging.INFO)
 
 app = Flask(__name__)
 
@@ -43,12 +52,6 @@ def health_check():
     logger.info("Health check endpoint hit")
     return jsonify({"status": "healthy", "timestamp": time.time()})
 
-# Add file serving capability
-@app.route('/files/<path:filename>')
-def serve_file(filename):
-    logger.info(f"Serving file: {filename}")
-    return send_from_directory('/app', filename)
-
 @app.route('/audio-separator', methods=['POST'])
 def separate_audio():
     logger.info("Audio separator endpoint called")
@@ -67,12 +70,13 @@ def separate_audio():
         with tempfile.TemporaryDirectory() as temp_dir:
             logger.debug(f"Created temp directory: {temp_dir}")
             
-            # Download the audio file
+            # Download the audio file - add shorter timeout
             input_path = os.path.join(temp_dir, "input.wav")
             logger.info(f"Downloading audio from {audio_url} to {input_path}")
             
             try:
-                response = requests.get(audio_url, timeout=30)
+                # Add timeout to avoid hanging
+                response = requests.get(audio_url, timeout=10)
                 logger.debug(f"Download response status: {response.status_code}")
                 logger.debug(f"Download response headers: {response.headers}")
                 
@@ -91,7 +95,13 @@ def separate_audio():
             # Initialize the separator with the input file path
             logger.info(f"Initializing Separator with {input_path}")
             try:
-                separator = Separator(input_path, model_name='UVR_MDXNET_KARA_2')
+                # Add logging message about processing time
+                logger.info("Initializing separator - this may take a few minutes for large files")
+                separator = Separator(
+                    input_path, 
+                    model_name='UVR_MDXNET_KARA_1', 
+                    use_cuda=True
+                )
                 logger.debug("Separator initialized successfully")
             except Exception as e:
                 logger.error(f"Error initializing Separator: {str(e)}", exc_info=True)
@@ -109,9 +119,14 @@ def separate_audio():
             # Separate the audio - using the correct API
             logger.info(f"Separating audio from {input_path}")
             try:
+                # Add warning about processing time
+                logger.warning("STARTING AUDIO SEPARATION - this can take several minutes for large files")
+                start_time = time.time()
                 # The separate method returns primary and secondary stem paths
                 instrumental_path, vocal_path = separator.separate()
-                logger.info(f"Separation complete: instrumental={instrumental_path}, vocal={vocal_path}")
+                end_time = time.time()
+                processing_time = end_time - start_time
+                logger.info(f"Separation complete in {processing_time:.2f} seconds: instrumental={instrumental_path}, vocal={vocal_path}")
             except Exception as e:
                 logger.error(f"Error in audio separation process: {str(e)}", exc_info=True)
                 return jsonify({"error": f"Error in audio separation process: {str(e)}"}), 500
@@ -139,76 +154,6 @@ def separate_audio():
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/audio-separator-file', methods=['POST'])
-def separate_audio_file():
-    logger.info("Audio separator file endpoint called")
-    try:
-        data = request.json
-        logger.debug(f"Request data: {data}")
-        
-        file_path = data.get('file_path')
-        logger.info(f"File path: {file_path}")
-        
-        if not file_path:
-            logger.warning("No file path provided")
-            return jsonify({"error": "No file path provided"}), 400
-        
-        if not os.path.exists(file_path):
-            logger.error(f"File not found: {file_path}")
-            return jsonify({"error": f"File not found: {file_path}"}), 404
-        
-        # Log file details
-        logger.info(f"File exists, size: {os.path.getsize(file_path)} bytes")
-
-        # Initialize the separator with the file path
-        logger.info(f"Initializing Separator with {file_path}")
-        try:
-            separator = Separator(file_path, model_name='UVR_MDXNET_KARA_2')
-            logger.debug("Separator initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing Separator: {str(e)}", exc_info=True)
-            return jsonify({"error": f"Error initializing Separator: {str(e)}"}), 500
-        
-        # Create output paths
-        output_dir = os.path.join(os.getcwd(), "output")
-        os.makedirs(output_dir, exist_ok=True)
-        logger.debug(f"Output directory: {output_dir}")
-        
-        final_instrumental = os.path.join(output_dir, f"instrumental_{Path(file_path).stem}.wav")
-        final_vocal = os.path.join(output_dir, f"vocal_{Path(file_path).stem}.wav")
-        logger.debug(f"Output files: instrumental={final_instrumental}, vocal={final_vocal}")
-        
-        # Separate the audio
-        logger.info(f"Separating audio from {file_path}")
-        try:
-            instrumental_path, vocal_path = separator.separate()
-            logger.info(f"Separation complete: instrumental={instrumental_path}, vocal={vocal_path}")
-        except Exception as e:
-            logger.error(f"Error in audio separation process: {str(e)}", exc_info=True)
-            return jsonify({"error": f"Error in audio separation process: {str(e)}"}), 500
-        
-        # Move or copy the output files if needed
-        try:
-            if instrumental_path != final_instrumental:
-                logger.debug(f"Moving instrumental from {instrumental_path} to {final_instrumental}")
-                os.rename(instrumental_path, final_instrumental)
-            if vocal_path != final_vocal:
-                logger.debug(f"Moving vocal from {vocal_path} to {final_vocal}")
-                os.rename(vocal_path, final_vocal)
-        except Exception as e:
-            logger.error(f"Error moving output files: {str(e)}", exc_info=True)
-            return jsonify({"error": f"Error moving output files: {str(e)}"}), 500
-
-        logger.info("Audio file separation completed successfully")
-        return jsonify({
-            "instrumentalPath": final_instrumental,
-            "vocalPath": final_vocal
-        })
-
-    except Exception as e:
-        logger.error(f"Unexpected error in audio file separation: {str(e)}", exc_info=True)
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/rvc', methods=['POST'])
 def process_rvc():
@@ -235,7 +180,7 @@ def process_rvc():
             logger.debug(f"File exists: {path}, size: {os.path.getsize(path)} bytes")
 
         # Process vocals with RVC
-        output_dir = os.path.join(os.getcwd(), "output")
+        output_dir = os.getcwd()
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, f"rvc_output_{Path(vocal_path).stem}.wav")
         logger.debug(f"Output path: {output_path}")
