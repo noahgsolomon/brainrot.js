@@ -25,7 +25,7 @@ gunicorn --timeout 300 -w 1 -b 0.0.0.0:5555 --access-logfile /app/server/logs/ac
   cat /app/server/logs/error.log 2>/dev/null || echo "No error log found"
   # Keep container running for debugging
   echo "Keeping container running for debugging. Press Ctrl+C to exit."
-  
+
   sleep infinity
 }
 
