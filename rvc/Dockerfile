@@ -16,7 +16,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Add the deadsnakes PPA to get Python 3.9
-RUN add-apt-repository ppa:deadsnakes/ppa
+RUN add-apt-repository -y ppa:deadsnakes/ppa
 
 # Install Python 3.9 and pip
 RUN apt-get update && \
