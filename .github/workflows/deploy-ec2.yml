@@ -27,11 +27,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Step 2: Set up Docker Buildx
+      # Step 2: Free up disk space
+      - name: Free up disk space
+        run: |
+          echo "Freeing up disk space on CI system"
+          df -h
+          echo "Removing large directories"
+          sudo rm -rf /opt/hostedtoolcache
+          df -h
+
+      # Step 3: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Set up AWS credentials for the entire workflow
+      # Step 4: Set up AWS credentials for the entire workflow
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -39,12 +48,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Step 4: Log into Amazon ECR
+      # Step 5: Log into Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Step 5: Create .env file from secrets
+      # Step 6: Create .env file from secrets
       - name: Create .env file
         run: |
           cd generate
@@ -73,7 +82,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           EOF
 
-      # Step 6: Build and push the Docker image
+      # Step 7: Build and push the Docker image
       - name: Build and push Docker image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -87,7 +96,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-      # Step 7: Copy deployment script to EC2
+      # Step 8: Copy deployment script to EC2
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -98,7 +107,7 @@ jobs:
           source: "start_brainrot_prod.sh"
           target: "/home/ec2-user/"
 
-      # Step 8: Deploy to EC2 via SSH
+      # Step 9: Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         env:
@@ -157,6 +166,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      # Add step to free up disk space
+      - name: Free up disk space
+        run: |
+          echo "Freeing up disk space on CI system"
+          df -h
+          echo "Removing large directories"
+          sudo rm -rf /opt/hostedtoolcache
+          df -h
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
