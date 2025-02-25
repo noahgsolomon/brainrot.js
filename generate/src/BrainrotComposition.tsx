@@ -77,7 +77,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		const amplitude =
 			frequencyData.reduce((sum, val) => sum + val, 0) / frequencyData.length;
 		console.log('amplitude', amplitude * 50);
-		return amplitude * 100; // Adjust this multiplier to control the bounce intensity
+		return amplitude * 50; // Adjust this multiplier to control the bounce intensity
 	};
 
 	useEffect(() => {
@@ -163,7 +163,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 						</div>
 						<div
 							className={`absolute left-0 right-0 flex flex-row p-8 z-30 transition-all duration-500 ease-in-out ${
-								currentSubtitle ? '-bottom-28' : '-bottom-[1000px]'
+								currentSubtitle ? '-bottom-64' : '-bottom-[1000px]'
 							} ${
 								currentAgentName === subtitlesFileName[0].name
 									? 'justify-end'
