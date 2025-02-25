@@ -77,7 +77,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		const amplitude =
 			frequencyData.reduce((sum, val) => sum + val, 0) / frequencyData.length;
 		console.log('amplitude', amplitude * 50);
-		return amplitude * 100; // Adjust this multiplier to control the bounce intensity
+		return amplitude * 50; // Adjust this multiplier to control the bounce intensity
 	};
 
 	useEffect(() => {
