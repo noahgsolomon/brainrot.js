@@ -172,8 +172,34 @@ jobs:
         run: |
           echo "Freeing up disk space on CI system"
           df -h
-          echo "Removing large directories"
+          # Remove unnecessary large directories
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/lib/jvm
           sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+          # Remove existing Docker images
+          docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
+
+          # Remove unused packages
+          sudo apt-get autoremove -y
+          sudo apt-get clean -y
+
+          # Purge large packages that aren't needed for the build
+          sudo apt-get purge -y azure-cli google-cloud-sdk dotnet* firefox google-chrome-stable
+          sudo apt-get purge -y '^ghc-*' '^php*' '^mysql*' mono-complete
+          sudo apt-get purge -y llvm* powershell ruby-full postgresql*
+
+          # Final cleanup
+          sudo apt-get autoremove -y
+          sudo apt-get clean -y
+
+          # Show available space after cleanup
           df -h
 
       - name: Set up Docker Buildx
