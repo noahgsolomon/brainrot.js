@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Initialize audio separator
-separator = Separator()
 
 @app.route('/audio-separator', methods=['POST'])
 def separate_audio():
@@ -33,26 +31,27 @@ def separate_audio():
             with open(input_path, 'wb') as f:
                 f.write(response.content)
 
-            # Separate the audio
-            logger.info(f"Separating audio from {input_path}")
-            instrumental_path = os.path.join(temp_dir, "instrumental.wav")
-            vocal_path = os.path.join(temp_dir, "vocals.wav")
+            # Initialize the separator with the input file path
+            logger.info(f"Initializing Separator with {input_path}")
+            separator = Separator(input_path, model_name='UVR_MDXNET_KARA_2')
             
-            separator.separate_audio_file(
-                input_path,
-                instrumental_path,
-                vocal_path
-            )
-
-            # Move files to a more permanent location
+            # Create output paths
             output_dir = os.path.join(os.getcwd(), "output")
             os.makedirs(output_dir, exist_ok=True)
             
             final_instrumental = os.path.join(output_dir, f"instrumental_{Path(input_path).stem}.wav")
             final_vocal = os.path.join(output_dir, f"vocal_{Path(input_path).stem}.wav")
             
-            os.rename(instrumental_path, final_instrumental)
-            os.rename(vocal_path, final_vocal)
+            # Separate the audio - using the correct API
+            logger.info(f"Separating audio from {input_path}")
+            # The separate method returns primary and secondary stem paths
+            instrumental_path, vocal_path = separator.separate()
+            
+            # Move or copy the output files if needed
+            if instrumental_path != final_instrumental:
+                os.rename(instrumental_path, final_instrumental)
+            if vocal_path != final_vocal:
+                os.rename(vocal_path, final_vocal)
 
             return jsonify({
                 "instrumentalPath": final_instrumental,
