@@ -91,7 +91,7 @@ jobs:
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: "18.207.194.90"
+          host: ${{ secrets.EC2_HOST_IP }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
@@ -106,7 +106,7 @@ jobs:
           AWS_ACCESS_KEY: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_KEY: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
         with:
-          host: "18.207.194.90"
+          host: ${{ secrets.EC2_HOST_IP }}
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
@@ -204,7 +204,7 @@ jobs:
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: "18.207.194.90"
+          host: ${{ secrets.EC2_HOST_IP }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
@@ -220,7 +220,7 @@ jobs:
           AWS_ACCESS_KEY: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_KEY: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
         with:
-          host: "18.207.194.90"
+          host: ${{ secrets.EC2_HOST_IP }}
           port: "22"
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
