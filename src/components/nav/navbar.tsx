@@ -41,8 +41,8 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
-        <div className="flex items-center justify-between px-[5%] py-1">
-          <div>
+        <div className="flex items-center justify-end px-[5%] py-3">
+          {/* <div>
             <Link href={"/"}>
               <Image
                 src={"https://images.smart.wtf/brain.gif"}
@@ -55,7 +55,7 @@ const NavBar = () => {
                 )}
               />
             </Link>
-          </div>
+          </div> */}
           <div className="flex items-center justify-end gap-4">
             <div className="coarse:hidden">
               <ThemeButton />
