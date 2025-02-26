@@ -188,7 +188,7 @@ def process_rvc():
         logger.debug(f"Output path: {output_path}")
 
         # Check for model and index files
-        model_path = f"logs/{rapper}/{rapper}.pth"
+        model_path = f"assets/weights/{rapper}.pth"
         index_path = f"logs/{rapper}/{rapper}.index"
         
         if not os.path.exists(model_path):
