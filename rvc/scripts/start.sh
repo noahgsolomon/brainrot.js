@@ -4,6 +4,16 @@
 
 echo "Starting RVC server..."
 
+# Create the weights directory and symlink all model files
+echo "Setting up model symlinks..."
+mkdir -p /app/weights
+# Remove any existing symlinks first to avoid errors
+rm -f /app/weights/*
+# Create symlinks for all model files
+ln -sf /app/assets/weights/* /app/weights/
+echo "Model symlinks created:"
+ls -la /app/weights/
+
 # Create log directory
 mkdir -p /app/server/logs
 
