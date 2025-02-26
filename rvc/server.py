@@ -99,8 +99,9 @@ def separate_audio():
                 logger.info("Initializing separator - this may take a few minutes for large files")
                 separator = Separator(
                     input_path, 
-                    model_name='UVR_MDXNET_KARA_1', 
-                    use_cuda=True
+                    model_name='UVR_MDXNET_KARA_2', 
+                    use_cuda=True,
+                    denoise_enabled=False
                 )
                 logger.debug("Separator initialized successfully")
             except Exception as e:
@@ -121,6 +122,7 @@ def separate_audio():
             try:
                 # Add warning about processing time
                 logger.warning("STARTING AUDIO SEPARATION - this can take several minutes for large files")
+
                 start_time = time.time()
                 # The separate method returns primary and secondary stem paths
                 instrumental_path, vocal_path = separator.separate()
