@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Coins, Crown, Info } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import ProButton from "./ProButton";
 
 export default function Credits() {
   const user = trpc.user.user.useQuery().data?.user;
@@ -100,17 +101,19 @@ export default function Credits() {
             </div>
           </div> */}
           {!user?.subscribed ? (
-            <Link
-              data-action="subscribe"
-              href={"/pricing"}
-              className={buttonVariants({
-                className: "flex w-full flex-row items-center gap-2 ",
-                variant: "pink",
-                size: "xl",
-              })}
-            >
-              GO PRO <Crown className="size-4" />
-            </Link>
+            <ProButton>
+              <Button
+                data-action="subscribe"
+                className={buttonVariants({
+                  className:
+                    "flex w-full flex-row items-center gap-2 text-secondary dark:text-primary ",
+                  variant: "pink",
+                  size: "xl",
+                })}
+              >
+                GO PRO <Crown className="size-4" />
+              </Button>
+            </ProButton>
           ) : (
             <div className="flex flex-col gap-1">
               {subscriptionPlan?.isSubscribed ? (
