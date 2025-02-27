@@ -183,7 +183,7 @@ export default function GenerationType() {
               )}
             >
               <div className="absolute inset-0 z-10 bg-black/50"></div>
-              <div className="absolute inset-0 z-10 bg-black/60"></div>
+              <div className="absolute inset-0 z-10 bg-black/40"></div>
               <div className="absolute inset-0 h-full w-full">
                 <Image
                   src="/podcast-style.png"
@@ -249,7 +249,7 @@ export default function GenerationType() {
               )}
             >
               <div className="absolute inset-0 z-10 bg-black/50"></div>
-              <div className="absolute inset-0 z-10 bg-black/60"></div>
+              <div className="absolute inset-0 z-10 bg-black/40"></div>
               <div className="absolute inset-0 h-full w-full">
                 <Image
                   src="/monologue-style.png"
