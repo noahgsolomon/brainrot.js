@@ -3,7 +3,7 @@ joblib>=1.1.0
 numba==0.56.4
 numpy==1.23.5
 scipy
-librosa==0.9.1
+librosa>=0.10.0,<0.11.0
 llvmlite==0.39.0
 fairseq==0.12.2
 faiss-cpu==1.7.3
@@ -41,7 +41,6 @@ pyworld==0.3.2
 httpx
 onnxruntime; sys_platform == 'darwin'
 onnxruntime-gpu; sys_platform != 'darwin'
-torchcrepe==0.0.20
 fastapi==0.88
 torchfcpe
 ffmpy==0.3.1
@@ -50,3 +49,4 @@ av
 flask==3.0.2
 requests==2.31.0
 gunicorn>=20.1.0
+audio-separator==0.30.0
