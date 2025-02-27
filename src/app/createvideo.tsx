@@ -370,14 +370,7 @@ export default function CreateVideo({
                   variants={agentAnimation}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                    `${
-                      agent.some((a) => a.name === "JORDAN_PETERSON")
-                        ? "border border-blue"
-                        : ""
-                    }`,
-                  )}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                   onClick={() =>
                     handleAgentSelection({ name: "JORDAN_PETERSON", id: 1 })
                   }
@@ -405,14 +398,7 @@ export default function CreateVideo({
                   variants={agentAnimation}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                    `${
-                      agent.some((a) => a.name === "BEN_SHAPIRO")
-                        ? "border border-mrburns"
-                        : ""
-                    }`,
-                  )}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                   onClick={() =>
                     handleAgentSelection({ name: "BEN_SHAPIRO", id: 2 })
                   }
@@ -440,14 +426,7 @@ export default function CreateVideo({
                   variants={agentAnimation}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                    `${
-                      agent.some((a) => a.name === "JOE_ROGAN")
-                        ? "border border-bender"
-                        : ""
-                    }`,
-                  )}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                   onClick={() =>
                     handleAgentSelection({ name: "JOE_ROGAN", id: 3 })
                   }
@@ -476,14 +455,7 @@ export default function CreateVideo({
                   variants={agentAnimation}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                    `${
-                      agent.some((a) => a.name === "BARACK_OBAMA")
-                        ? "border border-patrick"
-                        : ""
-                    }`,
-                  )}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                   onClick={() =>
                     handleAgentSelection({ name: "BARACK_OBAMA", id: 4 })
                   }
@@ -513,14 +485,7 @@ export default function CreateVideo({
                       variants={agentAnimation}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                        `${
-                          agent.some((a) => a.name === "DONALD_TRUMP")
-                            ? "border border-red-500"
-                            : ""
-                        }`,
-                      )}
+                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     >
                       <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
                         <Crown className="size-4 text-secondary dark:text-primary" />
@@ -550,14 +515,7 @@ export default function CreateVideo({
                     variants={agentAnimation}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                      `${
-                        agent.some((a) => a.name === "DONALD_TRUMP")
-                          ? "border border-red-500"
-                          : ""
-                      }`,
-                    )}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     onClick={() =>
                       handleAgentSelection({ name: "DONALD_TRUMP", id: 1 })
                     }
@@ -588,14 +546,7 @@ export default function CreateVideo({
                       variants={agentAnimation}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                        `${
-                          agent.some((a) => a.name === "JOE_BIDEN")
-                            ? "border border-border"
-                            : ""
-                        }`,
-                      )}
+                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     >
                       <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
                         <Crown className="size-4 text-secondary dark:text-primary" />
@@ -625,14 +576,7 @@ export default function CreateVideo({
                     variants={agentAnimation}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                      `${
-                        agent.some((a) => a.name === "JOE_BIDEN")
-                          ? "border border-border"
-                          : ""
-                      }`,
-                    )}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     onClick={() =>
                       handleAgentSelection({ name: "JOE_BIDEN", id: 5 })
                     }
@@ -663,14 +607,7 @@ export default function CreateVideo({
                       variants={agentAnimation}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                        `${
-                          agent.some((a) => a.name === "ANDREW_TATE")
-                            ? "border border-patrick"
-                            : ""
-                        }`,
-                      )}
+                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     >
                       <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
                         <Crown className="size-4 text-secondary dark:text-primary" />
@@ -700,14 +637,7 @@ export default function CreateVideo({
                     variants={agentAnimation}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                      `${
-                        agent.some((a) => a.name === "ANDREW_TATE")
-                          ? "border border-patrick"
-                          : ""
-                      }`,
-                    )}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     onClick={() =>
                       handleAgentSelection({ name: "ANDREW_TATE", id: 7 })
                     }
@@ -738,14 +668,7 @@ export default function CreateVideo({
                       variants={agentAnimation}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                        `${
-                          agent.some((a) => a.name === "KAMALA_HARRIS")
-                            ? "border border-patrick"
-                            : ""
-                        }`,
-                      )}
+                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     >
                       <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
                         <Crown className="size-4 text-secondary dark:text-primary" />
@@ -775,14 +698,7 @@ export default function CreateVideo({
                     variants={agentAnimation}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                      `${
-                        agent.some((a) => a.name === "KAMALA_HARRIS")
-                          ? "border border-patrick"
-                          : ""
-                      }`,
-                    )}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                     onClick={() =>
                       handleAgentSelection({ name: "KAMALA_HARRIS", id: 6 })
                     }
@@ -831,14 +747,7 @@ export default function CreateVideo({
                       variants={agentAnimation}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={cn(
-                        `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                        `${
-                          agent[0]?.name === hostName
-                            ? "border border-blue"
-                            : ""
-                        }`,
-                      )}
+                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                       onClick={() =>
                         handleAgentSelection({
                           name: hostName as PodcastHost,
@@ -892,14 +801,7 @@ export default function CreateVideo({
                             variants={agentAnimation}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className={cn(
-                              `relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary`,
-                              `${
-                                agent[1]?.name === guestName
-                                  ? "border border-blue"
-                                  : ""
-                              }`,
-                            )}
+                            className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                             onClick={() =>
                               handleAgentSelection({
                                 name: guestName as PodcastGuest,
