@@ -176,62 +176,98 @@ export default function GenerationType() {
             </div>
           ) : null} */}
 
-          <div
-            className={cn(
-              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-purple-500 bg-purple-200 shadow-sm dark:border-purple-900/80 dark:bg-purple-400/80 md:flex-1`,
-            )}
-          >
-            <Badge variant={"math"} className="absolute -right-2 -top-2 z-10">
+          <div className="relative md:flex-1">
+            <div
+              className={cn(
+                `relative flex h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 shadow-md transition-all hover:scale-[101%] hover:shadow-lg active:scale-[99%] dark:border-gray-700`,
+              )}
+            >
+              <div className="absolute inset-0 z-10 bg-black/50"></div>
+              <div className="absolute inset-0 z-10 bg-black/60"></div>
+              <div className="absolute inset-0 h-full w-full">
+                <Image
+                  src="/podcast-style.png"
+                  alt="Podcast Style"
+                  fill
+                  className="object-cover opacity-70"
+                />
+              </div>
+              <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
+                Podcast Style
+              </p>
+            </div>
+            <Badge
+              variant={"math"}
+              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+            >
               Coming Soon
             </Badge>
-            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30"></div>
-            <p className="text-xl font-bold text-secondary/80 dark:text-primary/80">
-              Podcast Style
-            </p>
-            <Mic className="h-[64px] w-[64px] text-secondary/60 dark:text-primary/60" />
           </div>
 
-          <Button
-            variant={"none"}
-            disabled={
-              typeSelected === "brainrot" ||
-              typeSelected === "podcast" ||
-              typeSelected === "monologue" ||
-              !user.userId
-            }
-            onClick={() => {
-              setIsOpen(false);
-              setIsCreateVideoOpen(true);
-              setInvalidTopic(false);
-              setVideoInput("");
-              setVideoDetails({
-                ...videoDetails,
-                mode: "brainrot",
-              });
-            }}
-            className={cn(
-              `flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue bg-lightBlue shadow-sm transition-all hover:scale-[101%] hover:opacity-80 active:scale-[99%] md:flex-1`,
-            )}
-          >
-            <p className="text-xl font-bold text-secondary/80 dark:text-primary/80">
-              Brainrot Style
-            </p>
-            <Skull className="h-[64px] w-[64px] text-secondary/60 dark:text-primary/60" />
-          </Button>
+          <div className="relative md:flex-1">
+            <Button
+              variant={"none"}
+              disabled={
+                typeSelected === "brainrot" ||
+                typeSelected === "podcast" ||
+                typeSelected === "monologue" ||
+                !user.userId
+              }
+              onClick={() => {
+                setIsOpen(false);
+                setIsCreateVideoOpen(true);
+                setInvalidTopic(false);
+                setVideoInput("");
+                setVideoDetails({
+                  ...videoDetails,
+                  mode: "brainrot",
+                });
+              }}
+              className={cn(
+                `relative flex h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 shadow-md transition-all hover:scale-[101%] hover:shadow-lg active:scale-[99%] dark:border-gray-700`,
+              )}
+            >
+              <div className="absolute inset-0 z-10 bg-black/40"></div>
+              <div className="absolute inset-0 h-full w-full">
+                <Image
+                  src="/brainrot-style.png"
+                  alt="Brainrot Style"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
+                Brainrot Style
+              </p>
+            </Button>
+          </div>
 
-          <div
-            className={cn(
-              `relative flex h-[250px] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-green-500 bg-green-200 shadow-sm dark:border-green-900/80 dark:bg-green-400/80 md:flex-1`,
-            )}
-          >
-            <Badge variant={"math"} className="absolute -right-2 -top-2 z-10">
+          <div className="relative md:flex-1">
+            <div
+              className={cn(
+                `relative flex h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 shadow-md transition-all hover:scale-[101%] hover:shadow-lg active:scale-[99%] dark:border-gray-700`,
+              )}
+            >
+              <div className="absolute inset-0 z-10 bg-black/50"></div>
+              <div className="absolute inset-0 z-10 bg-black/60"></div>
+              <div className="absolute inset-0 h-full w-full">
+                <Image
+                  src="/monologue-style.png"
+                  alt="Monologue Style"
+                  fill
+                  className="object-cover opacity-70"
+                />
+              </div>
+              <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
+                Monologue Style
+              </p>
+            </div>
+            <Badge
+              variant={"math"}
+              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+            >
               Coming Soon
             </Badge>
-            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/30"></div>
-            <p className="text-xl font-bold text-secondary/80 dark:text-primary/80">
-              Monologue Style
-            </p>
-            <User className="h-[64px] w-[64px] text-secondary/60 dark:text-primary/60" />
           </div>
         </div>
       </DialogContent>
