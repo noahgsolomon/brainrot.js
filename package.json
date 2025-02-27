@@ -49,7 +49,7 @@
     "ai": "^2.2.18",
     "antd": "^5.14.0",
     "aws-sdk": "^2.1517.0",
-    "caniuse-lite": "^1.0.30001643",
+    "caniuse-lite": "^1.0.30001701",
     "class-variance-authority": "^0.7.0",
     "clerk": "^0.8.3",
     "clsx": "^2.1.1",
