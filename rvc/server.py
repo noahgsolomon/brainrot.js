@@ -99,7 +99,6 @@ def separate_audio():
                 logger.info("Initializing separator - this may take a few minutes for large files")
                 separator = Separator(
                     input_path, 
-                    model_name='UVR_MDXNET_KARA_2', 
                     use_cuda=True,
                     denoise_enabled=False
                 )
