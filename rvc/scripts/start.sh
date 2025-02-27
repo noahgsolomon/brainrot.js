@@ -17,6 +17,7 @@ echo "Added environment variables to ~/.bashrc and sourced it"
 
 echo "Starting RVC server..."
 
+
 # Create the weights directory and symlink all model files
 echo "Setting up model symlinks..."
 mkdir -p /app/weights
