@@ -2,18 +2,33 @@
 # Don't exit immediately on errors so we can see what's happening
 # set -e 
 
+# Set necessary environment variables
+# Add environment variables to .bashrc
+cat >> ~/.bashrc << EOL
+export TERM=xterm-256color
+export weight_root="/app/weights"
+export index_root="/app/logs"
+export rmvpe_root="/app/assets/rmvpe"
+EOL
+
+# Source .bashrc to apply changes
+source ~/.bashrc
+echo "Added environment variables to ~/.bashrc and sourced it"
+
 echo "Starting RVC server..."
 
 # Create the weights directory and symlink all model files
 echo "Setting up model symlinks..."
 mkdir -p /app/weights
+mkdir -p /app/None
 # Remove any existing symlinks first to avoid errors
 rm -f /app/weights/*
 # Create symlinks for all model files
 ln -sf /app/assets/weights/* /app/weights/
+ln -sf /app/assets/weights/* /app/None/
 echo "Model symlinks created:"
 ls -la /app/weights/
-
+ls -la /app/None/
 # Create log directory
 mkdir -p /app/server/logs
 
