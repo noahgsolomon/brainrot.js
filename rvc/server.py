@@ -98,9 +98,8 @@ def separate_audio():
                 # Add logging message about processing time
                 logger.info("Initializing separator - this may take a few minutes for large files")
                 separator = Separator(
-                    input_path, 
+                    input_path,
                     use_cuda=True,
-                    denoise_enabled=False
                 )
                 logger.debug("Separator initialized successfully")
             except Exception as e:
