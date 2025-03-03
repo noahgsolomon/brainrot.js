@@ -5,6 +5,7 @@ import {
   index,
   int,
   mysqlTable,
+  text,
   uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
@@ -68,18 +69,13 @@ export const pendingVideos = mysqlTable(
   {
     id: int("id").primaryKey().autoincrement(),
     user_id: int("user_id").notNull(),
-    agent1: varchar("agent1", { length: 100 }).notNull(),
+    agent1: varchar("agent1", { length: 100 }),
     agent2: varchar("agent2", { length: 100 }),
-    title: varchar("title", { length: 1000 }).notNull().default(""),
+    title: varchar("title", { length: 1000 }).default(""),
     videoId: varchar("video_id", { length: 100 }).unique().notNull(),
     url: varchar("url", { length: 1000 }).default(""),
     timestamp: datetime("timestamp", { mode: "date" }),
-    duration: int("duration").notNull(),
-    fps: int("fps").notNull(),
-    aiGeneratedImages: boolean("ai_generated_images").notNull(),
-    background: varchar("background", { length: 100 }).notNull(),
-    music: varchar("music", { length: 100 }).notNull(),
-    cleanSrt: boolean("clean_srt").notNull().default(false),
+    music: varchar("music", { length: 100 }),
     // which process is processing this video (-1 if up for grabs)
     processId: int("process_id").notNull().default(-1),
     // in case we need to credit the user if errors out
@@ -92,7 +88,11 @@ export const pendingVideos = mysqlTable(
       .notNull()
       .default("brainrot"),
     audioUrl: varchar("audio_url", { length: 1000 }),
-    lyrics: varchar("lyrics", { length: 1000 }),
+    lyrics: text("lyrics"),
+    outputType: varchar("output_type", { length: 20 }),
+    songName: varchar("song_name", { length: 255 }),
+    artistName: varchar("artist_name", { length: 255 }),
+    rapper: varchar("rapper", { length: 255 }),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
