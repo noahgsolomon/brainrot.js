@@ -13,21 +13,17 @@ async function insertRecordToDB(body: any, userId: number) {
     videoId: body.videoId,
     url: "",
     timestamp: new Date(),
-    duration: body.duration ?? 1,
     music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
-    background:
-      body.background !== null
-        ? body.background
-        : Math.random() < 0.33
-        ? "MINECRAFT"
-        : Math.random() > 0.5
-        ? "GTA"
-        : "TRUCK",
-    fps: body.fps ?? 30,
-    aiGeneratedImages: true,
-    cleanSrt: false,
     credits: body.credits,
     status: "Waiting in Queue",
+    videoMode: body.videoMode,
+    // rap mode stuff
+    outputType: body.outputType,
+    lyrics: body.lyrics,
+    audioUrl: body.audioUrl,
+    songName: body.songName,
+    artistName: body.artistName,
+    rapper: body.rapper,
   });
 }
 
