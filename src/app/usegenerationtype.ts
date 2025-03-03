@@ -28,7 +28,7 @@ interface useGenerationTypeProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   videoDetails: {
-    mode: "brainrot" | "podcast" | "monologue";
+    mode: "brainrot" | "podcast" | "monologue" | "rap";
     title: string;
     agents: {
       name:
@@ -53,7 +53,7 @@ interface useGenerationTypeProps {
     assetType: string | null;
   };
   setVideoDetails: (videoDetails: {
-    mode: "brainrot" | "podcast" | "monologue";
+    mode: "brainrot" | "podcast" | "monologue" | "rap";
     title: string;
     agents: {
       name:
