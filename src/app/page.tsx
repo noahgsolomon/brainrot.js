@@ -108,6 +108,9 @@ export default async function Home({
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
                   <NumberTicker value={29521} /> videos generated 💀
                 </p>
+                <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic text-red-500">
+                  we are down for maintenance until march 5th.
+                </p>
               </div>
               {/* Add the following block */}
             </div>
