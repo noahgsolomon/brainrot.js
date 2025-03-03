@@ -9,6 +9,7 @@ import ProgressBarProvider from "./progressbar";
 import { Background } from "@/components/ui/background";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { gaegu } from "../lib/fonts";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 export const metadata: Metadata = {
   appleWebApp: true,
@@ -48,6 +49,7 @@ export default function RootLayout({
                   <NavBar />
                   <Background />
                   {children}
+                  <AudioPlayer />
                 </ProgressBarProvider>
               </Providers>
             </TooltipProvider>
