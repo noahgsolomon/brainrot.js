@@ -1222,7 +1222,7 @@ export default function CreateVideo({
                   whileTap={{ scale: 0.95 }}
                   className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                   onClick={() =>
-                    handleAgentSelection({ name: "SPONGEBOB", id: 4 })
+                    handleAgentSelection({ name: "SPONGEBOB", id: 1 })
                   }
                 >
                   <Image
@@ -1244,9 +1244,37 @@ export default function CreateVideo({
                     alt="spongebob"
                   />
                 </motion.div>
+                <motion.div
+                  variants={agentAnimation}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                  onClick={() =>
+                    handleAgentSelection({ name: "BARACK_OBAMA", id: 2 })
+                  }
+                >
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "BARACK_OBAMA")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"/img/BARACK_OBAMA.png"}
+                    width={75}
+                    height={75}
+                    alt="barack obama"
+                  />
+                </motion.div>
               </motion.div>
 
-              <motion.div className="flex flex-col gap-2">
+              {/* <motion.div className="flex flex-col gap-2">
                 <h4>3.{")"} Choose your output type</h4>
                 <div className="flex gap-2">
                   <button
@@ -1276,7 +1304,7 @@ export default function CreateVideo({
                     )}
                   </button>
                 </div>
-              </motion.div>
+              </motion.div> */}
             </motion.div>
           ) : null}
           {user.userId ? (
