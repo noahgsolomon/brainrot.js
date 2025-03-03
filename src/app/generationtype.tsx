@@ -27,7 +27,7 @@ import BuyCreditsDialog from "./buy-credits-dialog";
 
 export default function GenerationType() {
   const [typeSelected, _] = useState<
-    "math" | "brainrot" | "podcast" | "monologue" | ""
+    "math" | "brainrot" | "podcast" | "monologue" | "rap" | ""
   >("");
   const router = useRouter();
 
@@ -117,7 +117,7 @@ export default function GenerationType() {
           </DialogTitle>
           <DialogDescription>Choose a video style</DialogDescription>
         </DialogHeader>
-        <div className="relative flex flex-col gap-4 p-2 md:flex-row md:p-4">
+        <div className="relative grid grid-cols-1 gap-4 p-2 sm:grid-cols-2 sm:p-4">
           {!user.userId ? (
             <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 text-secondary dark:text-primary">
               <div className="flex flex-col items-center gap-2">
@@ -211,6 +211,7 @@ export default function GenerationType() {
                 typeSelected === "brainrot" ||
                 typeSelected === "podcast" ||
                 typeSelected === "monologue" ||
+                typeSelected === "rap" ||
                 !user.userId
               }
               onClick={() => {
@@ -260,6 +261,34 @@ export default function GenerationType() {
               </div>
               <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
                 Monologue Style
+              </p>
+            </div>
+            <Badge
+              variant={"math"}
+              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+            >
+              Coming Soon
+            </Badge>
+          </div>
+
+          <div className="relative md:flex-1">
+            <div
+              className={cn(
+                `relative flex h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 shadow-md transition-all hover:scale-[101%] hover:shadow-lg active:scale-[99%] dark:border-gray-700`,
+              )}
+            >
+              <div className="absolute inset-0 z-10 bg-black/50"></div>
+              <div className="absolute inset-0 z-10 bg-black/40"></div>
+              <div className="absolute inset-0 h-full w-full">
+                <Image
+                  src="/brainrot-style.png"
+                  alt="Rap Style"
+                  fill
+                  className="object-cover opacity-70"
+                />
+              </div>
+              <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
+                Rap Style
               </p>
             </div>
             <Badge
