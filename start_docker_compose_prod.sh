@@ -24,9 +24,24 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 echo "Stopping any existing containers..."
 docker-compose down || true
 
-# Clean up old images
-echo "Cleaning up old images..."
+# Enhanced cleanup section
+echo "Performing thorough Docker cleanup..."
+echo "Stopping all containers..."
+docker stop $(docker ps -a -q) 2>/dev/null || true
+echo "Removing all containers..."
+docker rm $(docker ps -a -q) 2>/dev/null || true
+echo "Removing all images..."
+docker rmi $(docker images -q) --force 2>/dev/null || true
+echo "Removing all volumes..."
+docker volume rm $(docker volume ls -q) 2>/dev/null || true
+echo "Removing unused networks..."
+docker network prune -f 2>/dev/null || true
+echo "Final system prune..."
 docker system prune -a -f --volumes
+
+# Check available disk space
+echo "Checking available disk space..."
+df -h /
 
 # Pull latest images
 echo "Pulling latest images..."
