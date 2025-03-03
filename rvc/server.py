@@ -32,7 +32,12 @@ logging.getLogger("urllib3").setLevel(logging.INFO)
 
 app = Flask(__name__)
 
-# Add request logging middleware
+SHARED_DIR = os.environ.get('SHARED_DIR', '/app/shared_data')
+os.makedirs(SHARED_DIR, exist_ok=True)
+
+PUBLIC_DIR = '/app/public'
+os.makedirs(PUBLIC_DIR, exist_ok=True)
+
 @app.before_request
 def log_request_info():
     logger.debug('Request Headers: %s', request.headers)
@@ -172,17 +177,22 @@ def process_rvc():
             logger.warning("Missing required parameters")
             return jsonify({"error": "Missing required parameters"}), 400
 
-        # Check if files exist
+        if instrumental_path.startswith('public/'):
+            instrumental_path = os.path.join('/app', instrumental_path)
+        if vocal_path.startswith('public/'):
+            vocal_path = os.path.join('/app', vocal_path)
+            
         for path in [instrumental_path, vocal_path]:
             if not os.path.exists(path):
                 logger.error(f"File not found: {path}")
                 return jsonify({"error": f"File not found: {path}"}), 404
             logger.debug(f"File exists: {path}, size: {os.path.getsize(path)} bytes")
 
-        # Process vocals with RVC
-        output_dir = os.getcwd()
+        output_dir = SHARED_DIR
         os.makedirs(output_dir, exist_ok=True)
-        output_path = os.path.join(output_dir, f"rvc_output_{Path(vocal_path).stem}.wav")
+        output_filename = f"rvc_output_{Path(vocal_path).stem}.wav"
+        output_path = os.path.join(output_dir, output_filename)
+        public_output_path = os.path.join(PUBLIC_DIR, output_filename)
         logger.debug(f"Output path: {output_path}")
 
         # Check for model and index files
@@ -241,8 +251,18 @@ def process_rvc():
             
         logger.info(f"RVC processing completed successfully, output file: {output_path}, size: {os.path.getsize(output_path)} bytes")
 
+        if os.path.exists(output_path):
+            try:
+                import shutil
+                shutil.copy2(output_path, public_output_path)
+                logger.info(f"Copied output to public directory: {public_output_path}")
+            except Exception as e:
+                logger.warning(f"Failed to copy to public directory: {str(e)}")
+
+        relative_path = os.path.join('shared_data', output_filename)
+        
         return jsonify({
-            "finalAudioPath": output_path
+            "finalAudioPath": relative_path
         })
 
     except Exception as e:
