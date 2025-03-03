@@ -194,7 +194,7 @@ export default function PageClient({
           );
           deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
         } else {
-          setPendingVideoTitle(videoStatus.data.videos.title);
+          setPendingVideoTitle(videoStatus.data.videos.title ?? "");
           setPendingVideo(true);
           setIsInQueue(true);
           setPlaceInQueue(videoStatus.data.queueLength);
