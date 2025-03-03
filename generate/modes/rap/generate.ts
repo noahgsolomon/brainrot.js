@@ -9,6 +9,8 @@ import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 
+const RVC_SERVICE_URL = process.env.RVC_SERVICE_URL || 'http://127.0.0.1:5555';
+
 export default async function generateRap({
 	local,
 	rapper,
@@ -32,10 +34,18 @@ export default async function generateRap({
 		}
 	).then((res) => res.json());
 
-	const { finalAudioPath } = await fetch('http://127.0.0.1:5555/rvc', {
+	const { finalAudioPath } = await fetch(`${RVC_SERVICE_URL}/rvc`, {
 		method: 'POST',
 		body: JSON.stringify({ instrumentalPath, vocalPath, rapper }),
+		headers: {
+			'Content-Type': 'application/json',
+		},
 	}).then((res) => res.json());
+
+	// Ensure the finalAudioPath is correctly resolved
+	const resolvedFinalAudioPath = finalAudioPath.startsWith('/')
+		? finalAudioPath
+		: path.join(process.cwd(), finalAudioPath);
 
 	let startingTime = 0;
 
@@ -51,8 +61,7 @@ export default async function generateRap({
 		const command = ffmpeg();
 
 		command.input(instrumentalPath);
-
-		command.input(finalAudioPath);
+		command.input(resolvedFinalAudioPath);
 
 		command
 			.outputOptions([
