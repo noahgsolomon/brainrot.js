@@ -20,6 +20,40 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+let accessToken: string | null = null;
+let tokenExpiration: number = 0;
+
+async function getSpotifyToken() {
+  if (accessToken && tokenExpiration > Date.now()) {
+    return accessToken;
+  }
+
+  console.log("Getting new Spotify token...");
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.SPOTIFY_CLIENT_ID!,
+      client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("Token error:", data);
+    throw new Error(`Failed to get token: ${data.error}`);
+  }
+
+  console.log("Got new token, expires in:", data.expires_in);
+  accessToken = data.access_token;
+  tokenExpiration = Date.now() + data.expires_in * 1000;
+  return accessToken;
+}
+
 // Helper function to generate a random string of specified length
 function generateRandomString(length: number) {
   const charset =
@@ -240,12 +274,27 @@ export const userRouter = createTRPCRouter({
         agent2: z.number(),
         remainingCredits: z.number(),
         cost: z.number(),
+        outputType: z.enum(["video", "audio"]).optional().default("video"),
+        mode: z
+          .enum(["brainrot", "podcast", "monologue", "rap"])
+          .optional()
+          .default("brainrot"),
+        trackId: z.string().optional(),
       }),
     )
     .mutation(
       async ({
         ctx,
-        input: { title, agent1, agent2, remainingCredits, cost },
+        input: {
+          title,
+          agent1,
+          agent2,
+          remainingCredits,
+          cost,
+          outputType,
+          mode,
+          trackId,
+        },
       }) => {
         try {
           const [validityResponse, commentResponse] = await Promise.all([
@@ -297,6 +346,71 @@ export const userRouter = createTRPCRouter({
             };
           }
 
+          // Fetch lyrics and download URL for rap mode
+          let lyrics = null;
+          let downloadUrl = null;
+
+          if (mode === "rap" && trackId) {
+            try {
+              const lyricsResponse = await fetch(
+                `${
+                  process.env.MODE === "LOCAL"
+                    ? "http://localhost:3000"
+                    : `https://${process.env.WEBSITE}`
+                }/api/spotify/lyrics`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ id: trackId }),
+                },
+              );
+
+              if (lyricsResponse.ok) {
+                const lyricsData = await lyricsResponse.json();
+                lyrics = lyricsData.lyrics || null;
+              }
+
+              const trackResponse = await fetch(
+                `https://api.spotify.com/v1/tracks/${trackId}`,
+                {
+                  headers: {
+                    authorization: `Bearer ${await getSpotifyToken()}`,
+                    Accept: "application/json",
+                  },
+                },
+              );
+
+              if (trackResponse.ok) {
+                const trackData = await trackResponse.json();
+                const downloadResponse = await fetch(
+                  `${
+                    process.env.MODE === "LOCAL"
+                      ? "http://localhost:3000"
+                      : `https://${process.env.WEBSITE}`
+                  }/api/spotify/download`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      url: trackData.external_urls.spotify,
+                    }),
+                  },
+                );
+
+                if (downloadResponse.ok) {
+                  const downloadData = await downloadResponse.json();
+                  downloadUrl = downloadData.medias[0].url || null;
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching lyrics or download URL:", error);
+            }
+          }
+
           await ctx.db
             .update(brainrotusers)
             .set({ credits: remainingCredits - cost })
@@ -310,6 +424,9 @@ export const userRouter = createTRPCRouter({
             valid: true,
             apiKey: user?.apiKey,
             comment: commentData.comment || null,
+            lyrics,
+            downloadUrl,
+            mode,
           };
         } catch (error) {
           console.error("Error fetching data:", error);
