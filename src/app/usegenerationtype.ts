@@ -40,6 +40,7 @@ interface useGenerationTypeProps {
         | "JOE_BIDEN"
         | "ANDREW_TATE"
         | "KAMALA_HARRIS"
+        | "SPONGEBOB"
         | PodcastHost
         | PodcastGuest;
       id: number;
@@ -51,6 +52,7 @@ interface useGenerationTypeProps {
     background: string | null;
     music: string | null;
     assetType: string | null;
+    outputType?: "video" | "audio";
   };
   setVideoDetails: (videoDetails: {
     mode: "brainrot" | "podcast" | "monologue" | "rap";
@@ -65,6 +67,7 @@ interface useGenerationTypeProps {
         | "JOE_BIDEN"
         | "ANDREW_TATE"
         | "KAMALA_HARRIS"
+        | "SPONGEBOB"
         | PodcastHost
         | PodcastGuest;
       id: number;
@@ -76,6 +79,7 @@ interface useGenerationTypeProps {
     background: string | null;
     music: string | null;
     assetType: string | null;
+    outputType?: "video" | "audio";
   }) => void;
 }
 
@@ -93,6 +97,7 @@ export const useGenerationType = create<useGenerationTypeProps>((set) => ({
     background: null,
     music: null,
     assetType: null,
+    outputType: "audio",
   },
   setVideoDetails: (videoDetails) => set({ videoDetails }),
 }));
