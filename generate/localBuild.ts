@@ -1,8 +1,9 @@
 import generateBrainrot from './modes/brainrot/generate';
 import path from 'path';
 import { exec } from 'child_process';
-import { rm, mkdir, unlink } from 'fs/promises';
+import { rm, mkdir, unlink, rename } from 'fs/promises';
 import generateRap from './modes/rap/generate';
+import { FAMILY_MATTERS_LYRICS } from './lyrics';
 
 async function cleanupResources() {
 	try {
@@ -30,12 +31,16 @@ async function main() {
 	console.log('Starting local build');
 	console.log('MODE:', process.env.MODE);
 
-	const mode = 'rap' as VideoMode;
+	const videoMode = 'rap' as VideoMode;
+	const outputType = 'audio' as 'audio' | 'video';
+	const songName = 'Family Matters';
+	const artistName = 'Drake';
+	const rapper = 'SPONGEBOB';
 
 	// Mode-specific configuration
 	let videoTopic: string;
 
-	switch (mode) {
+	switch (videoMode) {
 		case 'podcast':
 			videoTopic =
 				'Joe Rogan interviews Jordan Peterson about consciousness and DMT';
@@ -45,14 +50,15 @@ async function main() {
 				'Jordan Peterson gives a lecture about the importance of cleaning your room';
 			break;
 		case 'rap':
-			videoTopic = 'Spongebob raps about his love for Patrick Star';
+			const lyrics = FAMILY_MATTERS_LYRICS;
+			const audioUrl =
+				'https://cdn-spotify.zm.io.vn/stream/1wFFFzJ5EsKbBWZriAcubN/USUG12402984';
 			await generateRap({
 				local,
-				topic: videoTopic,
 				rapper: 'SPONGEBOB',
-				lyrics: '',
-				audioUrl:
-					'https://cdn-spotify.zm.io.vn/stream/59J5nzL1KniFHnU120dQzt/USUM71702277',
+				lyrics,
+				audioUrl,
+				outputType,
 			});
 			break;
 		case 'brainrot':
@@ -74,16 +80,24 @@ async function main() {
 
 	// Skip build step if in studio mode
 	if (process.env.MODE !== 'studio') {
-		exec('bun run build', async (error, stdout, stderr) => {
-			if (error) {
-				console.error(`exec error: ${error}`);
-				return;
-			}
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+		if (videoMode === 'rap' && outputType === 'audio') {
+			await rename(
+				path.join('public', 'audio.mp3'),
+				path.join('out', `${rapper}_${songName}_${artistName}.mp3`)
+			);
+			console.log(path.join('out', `${rapper}_${songName}_${artistName}.mp3`));
+		} else {
+			exec('bun run build', async (error, stdout, stderr) => {
+				if (error) {
+					console.error(`exec error: ${error}`);
+					return;
+				}
+				console.log(`stdout: ${stdout}`);
+				console.error(`stderr: ${stderr}`);
 
-			cleanupResources();
-		});
+				cleanupResources();
+			});
+		}
 	} else {
 		console.log('Studio mode: Skipping build step');
 	}
