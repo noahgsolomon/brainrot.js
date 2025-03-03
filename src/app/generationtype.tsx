@@ -113,9 +113,11 @@ export default function GenerationType() {
         </div> */}
         <DialogHeader>
           <DialogTitle className="relative ">
-            <h3>How would you like to learn?</h3>
+            <h3>Choose a video style</h3>
           </DialogTitle>
-          <DialogDescription>Choose a video style</DialogDescription>
+          <DialogDescription>
+            Choose a video style to get started
+          </DialogDescription>
         </DialogHeader>
         <div className="relative grid grid-cols-1 gap-4 p-2 sm:grid-cols-2 sm:p-4">
           {!user.userId ? (
@@ -272,31 +274,42 @@ export default function GenerationType() {
           </div>
 
           <div className="relative md:flex-1">
-            <div
+            <Button
+              variant={"none"}
+              disabled={
+                typeSelected === "brainrot" ||
+                typeSelected === "podcast" ||
+                typeSelected === "monologue" ||
+                typeSelected === "rap" ||
+                !user.userId
+              }
+              onClick={() => {
+                setIsOpen(false);
+                setIsCreateVideoOpen(true);
+                setInvalidTopic(false);
+                setVideoInput("");
+                setVideoDetails({
+                  ...videoDetails,
+                  mode: "rap",
+                });
+              }}
               className={cn(
                 `relative flex h-[250px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 shadow-md transition-all hover:scale-[101%] hover:shadow-lg active:scale-[99%] dark:border-gray-700`,
               )}
             >
-              <div className="absolute inset-0 z-10 bg-black/50"></div>
               <div className="absolute inset-0 z-10 bg-black/40"></div>
               <div className="absolute inset-0 h-full w-full">
                 <Image
-                  src="/brainrot-style.png"
+                  src="/rap-style.png"
                   alt="Rap Style"
                   fill
-                  className="object-cover opacity-70"
+                  className="object-cover"
                 />
               </div>
               <p className="text-shadow-[0_1px_3px_rgba(0,0,0,1)] relative z-10 px-4 text-center text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]">
                 Rap Style
               </p>
-            </div>
-            <Badge
-              variant={"math"}
-              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
-            >
-              Coming Soon
-            </Badge>
+            </Button>
           </div>
         </div>
       </DialogContent>
