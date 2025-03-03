@@ -312,13 +312,7 @@ export default function CreateVideo({
   const [selectedTrack, setSelectedTrack] = useState<(typeof tracks)[0] | null>(
     null,
   );
-  const [loadingTrackId, setLoadingTrackId] = useState<string>("");
   const [searchError, setSearchError] = useState("");
-
-  const [showLoading, setShowLoading] = useState(false);
-  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
-    null,
-  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const audioStore = useAudioStore();
@@ -473,37 +467,6 @@ export default function CreateVideo({
         `${track.name} by ${track.artists.map((a) => a.name).join(", ")}`,
       );
       setSearchQuery("");
-    }
-  };
-
-  const handlePlayPreview = (
-    e: React.MouseEvent,
-    trackId: string,
-    previewUrl: string | null,
-  ) => {
-    e.stopPropagation();
-
-    if (!previewUrl) {
-      toast.error("No preview available for this track");
-      return;
-    }
-
-    if (audioStore.currentTrack?.id === trackId) {
-      // Pause the current track
-      audioStore.pause();
-    } else {
-      // Play a new track
-      const track = tracks.find((t) => t.id === trackId);
-      if (track) {
-        const trackInfo = {
-          id: trackId,
-          title: track.name,
-          subtitle: track.artists.map((a) => a.name).join(", "),
-          src: previewUrl,
-        };
-        audioStore.play(trackInfo);
-        setCurrentlyPlayingId(trackId);
-      }
     }
   };
 
@@ -1149,26 +1112,6 @@ export default function CreateVideo({
                                   alt={`${selectedTrack.name} album artwork`}
                                   className="h-12 w-12 rounded-md object-cover"
                                 />
-                                <div
-                                  className={`absolute inset-0 flex items-center justify-center rounded-md bg-black/40 transition-opacity ${
-                                    currentlyPlayingId === selectedTrack.id
-                                      ? "opacity-100"
-                                      : "opacity-0 hover:opacity-100"
-                                  }`}
-                                  onClick={(e) =>
-                                    handlePlayPreview(
-                                      e,
-                                      selectedTrack.id,
-                                      selectedTrack.preview_url,
-                                    )
-                                  }
-                                >
-                                  {currentlyPlayingId === selectedTrack.id ? (
-                                    <Pause className="h-6 w-6 text-white" />
-                                  ) : (
-                                    <Play className="h-6 w-6 text-white" />
-                                  )}
-                                </div>
                               </div>
                             )}
                             <div>
@@ -1211,26 +1154,6 @@ export default function CreateVideo({
                                       alt={`${track.name} album artwork`}
                                       className="h-12 w-12 rounded-md object-cover"
                                     />
-                                    <div
-                                      className={`absolute inset-0 flex items-center justify-center rounded-md bg-black/40 transition-opacity ${
-                                        currentlyPlayingId === track.id
-                                          ? "opacity-100"
-                                          : "opacity-0 hover:opacity-100"
-                                      }`}
-                                      onClick={(e) =>
-                                        handlePlayPreview(
-                                          e,
-                                          track.id,
-                                          track.preview_url,
-                                        )
-                                      }
-                                    >
-                                      {currentlyPlayingId === track.id ? (
-                                        <Pause className="h-6 w-6 text-white" />
-                                      ) : (
-                                        <Play className="h-6 w-6 text-white" />
-                                      )}
-                                    </div>
                                   </div>
                                 )}
                                 <div>
@@ -1293,90 +1216,6 @@ export default function CreateVideo({
                 className="flex flex-wrap gap-2"
                 variants={staggerContainer}
               >
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "JORDAN_PETERSON", id: 1 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                      agent.some((a) => a.name === "JORDAN_PETERSON")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/JORDAN_PETERSON.png"}
-                    width={75}
-                    height={75}
-                    alt="jordan"
-                  />
-                </motion.div>
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "BEN_SHAPIRO", id: 2 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                      agent.some((a) => a.name === "BEN_SHAPIRO")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/BEN_SHAPIRO.png"}
-                    width={75}
-                    height={75}
-                    alt="ben shapiro"
-                  />
-                </motion.div>
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "DONALD_TRUMP", id: 3 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
-                      agent.some((a) => a.name === "DONALD_TRUMP")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/DONALD_TRUMP.png"}
-                    width={75}
-                    height={75}
-                    alt="trump"
-                  />
-                </motion.div>
                 <motion.div
                   variants={agentAnimation}
                   whileHover={{ scale: 1.05 }}
