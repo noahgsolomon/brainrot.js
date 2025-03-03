@@ -13,6 +13,13 @@ import {
   Save,
   Wand,
   XIcon,
+  Search,
+  Loader2,
+  Download,
+  FileText,
+  Check,
+  Play,
+  Pause,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -38,6 +45,9 @@ import { useGenerationType } from "./usegenerationtype";
 import { v4 as uuidv4 } from "uuid";
 import { motion, AnimatePresence } from "framer-motion";
 import BuyCreditsDialog from "./buy-credits-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAudioStore } from "@/store/audioStore";
 
 export type PodcastHost = "JOE_ROGAN" | "JORDAN_PETERSON" | "LEX_FRIDMAN";
 export type PodcastGuest =
@@ -75,8 +85,68 @@ const agentAnimation = {
     opacity: 1,
     transition: {
       type: "spring",
-      stiffness: 300,
+      stiffness: 260,
       damping: 20,
+    },
+  },
+};
+
+// Animation variants for song cards
+const songCardAnimation = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 25,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+// Staggered container for song cards
+const songListAnimation = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+    },
+  },
+};
+
+// Animation for selected track
+const selectedTrackAnimation = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 25,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: {
+      duration: 0.2,
     },
   },
 };
@@ -118,6 +188,7 @@ export default function CreateVideo({
         | "ANDREW_TATE"
         | "KAMALA_HARRIS"
         | "JOE_BIDEN"
+        | "SPONGEBOB"
         | PodcastHost
         | PodcastGuest;
       id: number;
@@ -138,6 +209,11 @@ export default function CreateVideo({
   const createVideoMutation = trpc.user.createVideo.useMutation({
     onSuccess: async (data) => {
       if (data?.valid) {
+        console.log(data);
+        if (data.mode === "rap" && !data.downloadUrl) {
+          toast.error("No download URL found. Please try a different song.");
+          return;
+        }
         const uuidVal = uuidv4();
         await fetch("/api/create", {
           method: "POST",
@@ -146,14 +222,22 @@ export default function CreateVideo({
             agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
             agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
             videoId: uuidVal,
-            duration: 1,
             music: videoDetails.music,
-            background: videoDetails.background,
-            fps: videoDetails.fps,
-            aiGeneratedImages: videoDetails.assetType === "AI" ? true : false,
-            cleanSrt: true,
             credits: videoDetails.cost,
             apiKey: data.apiKey,
+            mode: videoDetails.mode,
+            outputType: videoDetails.outputType,
+            lyrics: videoDetails.mode === "rap" ? data.lyrics : undefined,
+            audioUrl:
+              videoDetails.mode === "rap" ? data.downloadUrl : undefined,
+            songName:
+              videoDetails.mode === "rap" ? selectedTrack?.name : undefined,
+            artistName:
+              videoDetails.mode === "rap"
+                ? selectedTrack?.artists[0]?.name
+                : undefined,
+            rapper:
+              data.mode === "rap" ? videoDetails.agents[0]?.name : undefined,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -209,8 +293,63 @@ export default function CreateVideo({
     },
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [searchQueryString, setSearchQueryString] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [tracks, setTracks] = useState<
+    {
+      id: string;
+      name: string;
+      artists: { name: string }[];
+      album: {
+        images: { url: string; height: number; width: number }[];
+      };
+      external_urls: { spotify: string };
+      preview_url: string | null;
+    }[]
+  >([]);
+  const [selectedTrack, setSelectedTrack] = useState<(typeof tracks)[0] | null>(
+    null,
+  );
+  const [loadingTrackId, setLoadingTrackId] = useState<string>("");
+  const [searchError, setSearchError] = useState("");
 
+  const [showLoading, setShowLoading] = useState(false);
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
+    null,
+  );
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const audioStore = useAudioStore();
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Trigger search when debounced query changes
+  useEffect(() => {
+    if (debouncedSearchQuery) {
+      handleSongSearch(debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery]);
+
+  // Add back the searchQueryString effect
   useEffect(() => {
     const allParamsExist =
       videoDetails.title &&
@@ -264,6 +403,8 @@ export default function CreateVideo({
           }
         }
       }
+    } else if (videoDetails.mode === "rap") {
+      setAgent([newAgent]);
     } else {
       setAgent((currentAgents) => {
         const isAgentPresent = currentAgents.some(
@@ -278,6 +419,100 @@ export default function CreateVideo({
         return currentAgents;
       });
     }
+  };
+
+  const handleSongSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return;
+
+    try {
+      setIsSearching(true);
+      setSearchError("");
+      setTracks([]);
+
+      console.log("Searching for:", query);
+
+      const response = await fetch(
+        `/api/spotify/search?q=${encodeURIComponent(query)}`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Search response:", data);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (!data.tracks || !Array.isArray(data.tracks.items)) {
+        console.error("Invalid response format:", data);
+        throw new Error("Invalid response format from Spotify API");
+      }
+
+      setTracks(data.tracks.items || []);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchError(
+        err instanceof Error ? err.message : "Failed to search for tracks",
+      );
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  const handleSelectTrack = (track: (typeof tracks)[0]) => {
+    if (selectedTrack?.id === track.id) {
+      setSelectedTrack(null);
+      setVideoInput("");
+    } else {
+      // Select new track
+      setSelectedTrack(track);
+      setVideoInput(
+        `${track.name} by ${track.artists.map((a) => a.name).join(", ")}`,
+      );
+      setSearchQuery("");
+    }
+  };
+
+  const handlePlayPreview = (
+    e: React.MouseEvent,
+    trackId: string,
+    previewUrl: string | null,
+  ) => {
+    e.stopPropagation();
+
+    if (!previewUrl) {
+      toast.error("No preview available for this track");
+      return;
+    }
+
+    if (audioStore.currentTrack?.id === trackId) {
+      // Pause the current track
+      audioStore.pause();
+    } else {
+      // Play a new track
+      const track = tracks.find((t) => t.id === trackId);
+      if (track) {
+        const trackInfo = {
+          id: trackId,
+          title: track.name,
+          subtitle: track.artists.map((a) => a.name).join(", "),
+          src: previewUrl,
+        };
+        audioStore.play(trackInfo);
+        setCurrentlyPlayingId(trackId);
+      }
+    }
+  };
+
+  // Add this function to handle output type selection
+  const handleOutputTypeSelection = (type: "video" | "audio") => {
+    setVideoDetails({
+      ...videoDetails,
+      outputType: type,
+    });
   };
 
   return (
@@ -301,45 +536,49 @@ export default function CreateVideo({
             </DialogHeader>
           </motion.div>
 
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            className="flex items-center gap-2 pb-2"
-          >
-            <h4>1.{")"} Choose a topic.</h4>
-            <Image
-              height={30}
-              width={30}
-              src={"https://images.smart.wtf/book.gif"}
-              alt="book"
-            />
-          </motion.div>
-
-          <div>
-            <div className="flex flex-col justify-center gap-1 pb-4">
-              <Textarea
-                spellCheck
-                id="name"
-                placeholder="// Random topic"
-                className="col-span-3"
-                value={videoInput}
-                maxLength={500}
-                onChange={(e) => {
-                  setVideoInput(e.target.value);
-                  setRecommendedSelect(-1);
-                  setInvalidTopic(false);
-                }}
-              />
-              <p
-                className={`${
-                  invalidTopic ? "" : "hidden"
-                } text-base font-bold text-destructive`}
+          {videoDetails.mode !== "rap" && (
+            <>
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+                className="flex items-center gap-2 pb-2"
               >
-                Not a valid topic
-              </p>
-            </div>
-          </div>
+                <h4>1.{")"} Choose a topic.</h4>
+                <Image
+                  height={30}
+                  width={30}
+                  src={"https://images.smart.wtf/book.gif"}
+                  alt="book"
+                />
+              </motion.div>
+
+              <div>
+                <div className="flex flex-col justify-center gap-1 pb-4">
+                  <Textarea
+                    spellCheck
+                    id="name"
+                    placeholder="// Random topic"
+                    className="col-span-3"
+                    value={videoInput}
+                    maxLength={500}
+                    onChange={(e) => {
+                      setVideoInput(e.target.value);
+                      setRecommendedSelect(-1);
+                      setInvalidTopic(false);
+                    }}
+                  />
+                  <p
+                    className={`${
+                      invalidTopic ? "" : "hidden"
+                    } text-base font-bold text-destructive`}
+                  >
+                    Not a valid topic
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
 
           {videoDetails.mode === "monologue" ||
           videoDetails.mode === "brainrot" ? (
@@ -461,7 +700,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0  transition-all ${
                       agent.some((a) => a.name === "BARACK_OBAMA")
                         ? "opacity-40"
                         : "opacity-0"
@@ -835,6 +1074,371 @@ export default function CreateVideo({
                 )}
               </AnimatePresence>
             </motion.div>
+          ) : videoDetails.mode === "rap" ? (
+            <motion.div
+              className="flex flex-col gap-8"
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+                className="flex flex-col gap-4"
+              >
+                <motion.div className="flex items-center gap-2">
+                  <h4>1.{")"} Choose a song to rap over</h4>
+                  <Music className="h-4 w-4" />
+                </motion.div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <motion.div
+                      className="relative"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Input
+                        placeholder="Search for a song..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setSearchError("");
+                        }}
+                        className="pr-10"
+                      />
+                      {isSearching && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </motion.div>
+                    <AnimatePresence>
+                      {searchError && (
+                        <motion.p
+                          className="text-sm text-destructive"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          {searchError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="space-y-2">
+                    <AnimatePresence mode="wait">
+                      {selectedTrack ? (
+                        <motion.div
+                          key="selected-track"
+                          variants={selectedTrackAnimation}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="flex cursor-pointer items-center justify-between rounded-lg border border-blue bg-blue/20 p-[1.125rem] transition-colors duration-200"
+                          onClick={() => handleSelectTrack(selectedTrack)}
+                        >
+                          <div className="flex items-center gap-4">
+                            {selectedTrack.album.images[0] && (
+                              <div className="relative h-12 w-12">
+                                <img
+                                  src={selectedTrack.album.images[0].url}
+                                  alt={`${selectedTrack.name} album artwork`}
+                                  className="h-12 w-12 rounded-md object-cover"
+                                />
+                                <div
+                                  className={`absolute inset-0 flex items-center justify-center rounded-md bg-black/40 transition-opacity ${
+                                    currentlyPlayingId === selectedTrack.id
+                                      ? "opacity-100"
+                                      : "opacity-0 hover:opacity-100"
+                                  }`}
+                                  onClick={(e) =>
+                                    handlePlayPreview(
+                                      e,
+                                      selectedTrack.id,
+                                      selectedTrack.preview_url,
+                                    )
+                                  }
+                                >
+                                  {currentlyPlayingId === selectedTrack.id ? (
+                                    <Pause className="h-6 w-6 text-white" />
+                                  ) : (
+                                    <Play className="h-6 w-6 text-white" />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium">
+                                {selectedTrack.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {selectedTrack.artists
+                                  .map((a) => a.name)
+                                  .join(", ")}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="flex h-8 w-8 items-center justify-center text-blue">
+                              <Check className="h-4 w-4" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ) : tracks.length > 0 ? (
+                        <motion.div
+                          key="track-list"
+                          variants={songListAnimation}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                        >
+                          {tracks.map((track) => (
+                            <motion.div
+                              key={track.id}
+                              variants={songCardAnimation}
+                              className="flex cursor-pointer items-center justify-between rounded-lg border p-[1.125rem] transition-colors duration-200 hover:border-blue hover:bg-blue/20"
+                              onClick={() => handleSelectTrack(track)}
+                            >
+                              <div className="flex items-center gap-4">
+                                {track.album.images[0] && (
+                                  <div className="relative h-12 w-12">
+                                    <img
+                                      src={track.album.images[0].url}
+                                      alt={`${track.name} album artwork`}
+                                      className="h-12 w-12 rounded-md object-cover"
+                                    />
+                                    <div
+                                      className={`absolute inset-0 flex items-center justify-center rounded-md bg-black/40 transition-opacity ${
+                                        currentlyPlayingId === track.id
+                                          ? "opacity-100"
+                                          : "opacity-0 hover:opacity-100"
+                                      }`}
+                                      onClick={(e) =>
+                                        handlePlayPreview(
+                                          e,
+                                          track.id,
+                                          track.preview_url,
+                                        )
+                                      }
+                                    >
+                                      {currentlyPlayingId === track.id ? (
+                                        <Pause className="h-6 w-6 text-white" />
+                                      ) : (
+                                        <Play className="h-6 w-6 text-white" />
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-medium">{track.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {track.artists
+                                      .map((a) => a.name)
+                                      .join(", ")}
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      ) : isSearching && searchQuery.length > 0 ? (
+                        <motion.div
+                          key="searching"
+                          variants={fadeIn}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="rounded-md border border-dashed p-8 text-center"
+                        >
+                          <p className="text-sm text-muted-foreground">
+                            Searching...
+                          </p>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="empty-state"
+                          variants={fadeIn}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          className="rounded-md border border-dashed p-8 text-center"
+                        >
+                          <p className="text-sm text-muted-foreground">
+                            {searchQuery.length > 0
+                              ? "No tracks found. Try a different search."
+                              : "Search for a song to get started."}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div className="flex items-center gap-2">
+                <h4>2.{")"} Choose your rapper</h4>
+                <Image
+                  height={20}
+                  width={20}
+                  src={"https://images.smart.wtf/fireball.gif"}
+                  alt="fire"
+                />
+              </motion.div>
+
+              <motion.div
+                className="flex flex-wrap gap-2"
+                variants={staggerContainer}
+              >
+                <motion.div
+                  variants={agentAnimation}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                  onClick={() =>
+                    handleAgentSelection({ name: "JORDAN_PETERSON", id: 1 })
+                  }
+                >
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "JORDAN_PETERSON")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"/img/JORDAN_PETERSON.png"}
+                    width={75}
+                    height={75}
+                    alt="jordan"
+                  />
+                </motion.div>
+                <motion.div
+                  variants={agentAnimation}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                  onClick={() =>
+                    handleAgentSelection({ name: "BEN_SHAPIRO", id: 2 })
+                  }
+                >
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "BEN_SHAPIRO")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"/img/BEN_SHAPIRO.png"}
+                    width={75}
+                    height={75}
+                    alt="ben shapiro"
+                  />
+                </motion.div>
+                <motion.div
+                  variants={agentAnimation}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                  onClick={() =>
+                    handleAgentSelection({ name: "DONALD_TRUMP", id: 3 })
+                  }
+                >
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "DONALD_TRUMP")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"/img/DONALD_TRUMP.png"}
+                    width={75}
+                    height={75}
+                    alt="trump"
+                  />
+                </motion.div>
+                <motion.div
+                  variants={agentAnimation}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                  onClick={() =>
+                    handleAgentSelection({ name: "SPONGEBOB", id: 4 })
+                  }
+                >
+                  <Image
+                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      agent.some((a) => a.name === "SPONGEBOB")
+                        ? "opacity-40"
+                        : "opacity-0"
+                    }`}
+                    height={75}
+                    width={75}
+                    src={"https://images.smart.wtf/fireball.gif"}
+                    alt="fire"
+                  />
+                  <Image
+                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                    src={"/img/SPONGEBOB.png"}
+                    width={75}
+                    height={75}
+                    alt="spongebob"
+                  />
+                </motion.div>
+              </motion.div>
+
+              <motion.div className="flex flex-col gap-2">
+                <h4>3.{")"} Choose your output type</h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOutputTypeSelection("video")}
+                    className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border p-1 transition-all duration-200 ${
+                      videoDetails.outputType === "video"
+                        ? "border-blue bg-blue/20"
+                        : "hover:border-blue hover:bg-blue/20"
+                    } hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    Video
+                    {videoDetails.outputType === "video" && (
+                      <Check className="h-4 w-4 text-blue" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleOutputTypeSelection("audio")}
+                    className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border p-1 transition-all duration-200 ${
+                      videoDetails.outputType === "audio"
+                        ? "border-blue bg-blue/20"
+                        : "hover:border-blue hover:bg-blue/20"
+                    } hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    Audio Only
+                    {videoDetails.outputType === "audio" && (
+                      <Check className="h-4 w-4 text-blue" />
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
           ) : null}
           {user.userId ? (
             <>
@@ -846,6 +1450,54 @@ export default function CreateVideo({
             </>
           ) : null}
 
+          {videoDetails.mode === "rap" && (
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              className="mb-4 mt-4"
+            >
+              <div className="flex flex-col gap-2 rounded-lg border p-4">
+                <p className="text-sm text-muted-foreground">
+                  Listen to this example to get an idea of what will be
+                  generated in rap mode:
+                </p>
+                <div className="mt-2 flex items-center gap-3">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (audioStore.currentTrack?.id === "example-rap") {
+                        audioStore.toggle();
+                      } else {
+                        const exampleTrack = {
+                          id: "example-rap",
+                          title: "Family Matters",
+                          subtitle: "Spongebob - Example rap output",
+                          src: "/audios/fam.mp3",
+                        };
+                        audioStore.play(exampleTrack);
+                      }
+                    }}
+                    className="flex items-center justify-center rounded-full bg-blue/20 p-2 transition-all hover:scale-[1.05] hover:bg-blue/30 active:scale-[0.95]"
+                  >
+                    {audioStore.currentTrack?.id === "example-rap" &&
+                    audioStore.isPlaying ? (
+                      <Pause className="h-5 w-5 text-blue" />
+                    ) : (
+                      <Play className="h-5 w-5 text-blue" />
+                    )}
+                  </button>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Family Matters</span>
+                    <span className="text-xs text-muted-foreground">
+                      Spongebob - Example rap output
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           <motion.div
             variants={fadeIn}
             initial="hidden"
@@ -855,8 +1507,11 @@ export default function CreateVideo({
             <DialogFooter className="flex flex-row items-center justify-between">
               <Button
                 disabled={
-                  (videoDetails.mode !== "monologue" && agent.length !== 2) ||
+                  (videoDetails.mode !== "monologue" &&
+                    videoDetails.mode !== "rap" &&
+                    agent.length !== 2) ||
                   (videoDetails.mode === "monologue" && agent.length !== 1) ||
+                  (videoDetails.mode === "rap" && agent.length !== 1) ||
                   (videoInput === "" && recommendedSelect === -1) ||
                   generating ||
                   (!!user.userId && videoStatus.data?.videos !== null)
@@ -881,6 +1536,7 @@ export default function CreateVideo({
                     music: "WII_SHOP_CHANNEL_TRAP",
                     duration: 1,
                     fps: 60,
+                    outputType: videoDetails.outputType,
                   });
                   setGenerating(true);
                   createVideoMutation.mutate({
@@ -889,6 +1545,12 @@ export default function CreateVideo({
                     agent2: agent[1]?.id ?? 1,
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
+                    outputType: videoDetails.outputType,
+                    mode: videoDetails.mode,
+                    trackId:
+                      videoDetails.mode === "rap"
+                        ? selectedTrack?.id
+                        : undefined,
                   });
                 }}
               >
