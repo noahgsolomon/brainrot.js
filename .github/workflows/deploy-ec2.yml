@@ -12,8 +12,7 @@ on:
     paths:
       - "generate/**"
       - "rvc/**"
-      - "start_brainrot_prod.sh"
-      - "start_rvc_prod.sh"
+      - "start_docker_compose_prod.sh"
       - ".github/workflows/deploy-ec2.yml"
 
 jobs:
@@ -104,8 +103,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           port: "22"
-          source: "start_brainrot_prod.sh"
+          source: "start_docker_compose_prod.sh"
           target: "/home/ec2-user/"
+          overwrite: true
 
       # Step 9: Deploy to EC2 via SSH
       - name: Deploy to EC2
@@ -131,12 +131,16 @@ jobs:
               sudo usermod -aG docker ec2-user
             fi
 
+            # Install Docker Compose if not already installed
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Installing Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+            fi
+
             # Make sure Docker is running
             sudo systemctl start docker
-
-            # Clean up Docker resources to prevent "no space left on device" errors
-            echo "Cleaning up Docker resources..."
-            docker system prune -a -f --volumes
 
             # Configure AWS credentials for ECR access
             mkdir -p ~/.aws
@@ -154,9 +158,9 @@ jobs:
             export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
 
             # Make the script executable and run it
-            chmod +x /home/ec2-user/start_brainrot_prod.sh
-            echo "Running brainrot deployment script with AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
-            /home/ec2-user/start_brainrot_prod.sh
+            chmod +x /home/ec2-user/start_docker_compose_prod.sh
+            echo "Running Docker Compose deployment script"
+            /home/ec2-user/start_docker_compose_prod.sh
 
   build-rvc:
     name: Build and Push RVC
@@ -244,65 +248,8 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-      # Step 7: Copy deployment script to EC2
-      - name: Copy deployment script
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST_IP }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: "22"
-          source: "start_rvc_prod.sh"
-          target: "/home/ec2-user/"
-          overwrite: true
+      # Step 7: Copy deployment script to EC2 - This step is no longer needed as we're using the combined script
+      # We'll keep this job for building and pushing the RVC image, but we won't deploy it separately
 
-      # Step 8: Deploy to EC2 via SSH
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_ACCESS_KEY: ${{ secrets.ACTIONS_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_KEY: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
-        with:
-          host: ${{ secrets.EC2_HOST_IP }}
-          port: "22"
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCOUNT_ID,AWS_ACCESS_KEY,AWS_SECRET_KEY
-          script: |
-            # Install Docker if not already installed
-            if ! command -v docker &> /dev/null; then
-              echo "Installing Docker..."
-              sudo yum update -y
-              sudo yum install -y docker
-              sudo systemctl enable docker
-              sudo systemctl start docker
-              sudo usermod -aG docker ec2-user
-            fi
-
-            # Make sure Docker is running
-            sudo systemctl start docker
-
-            # Clean up Docker resources to prevent "no space left on device" errors
-            echo "Cleaning up Docker resources..."
-            docker system prune -a -f --volumes
-
-            # Configure AWS credentials for ECR access
-            mkdir -p ~/.aws
-            cat > ~/.aws/credentials << EOL
-            [default]
-            aws_access_key_id=$AWS_ACCESS_KEY
-            aws_secret_access_key=$AWS_SECRET_KEY
-            region=us-east-1
-            EOL
-
-            # Set AWS environment variables for this session
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY
-            export AWS_DEFAULT_REGION=us-east-1
-            export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
-
-            # Make the script executable and run it
-            chmod +x /home/ec2-user/start_rvc_prod.sh
-            echo "Running RVC deployment script with AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
-            /home/ec2-user/start_rvc_prod.sh
+      # Step 8: Deploy to EC2 via SSH - This step is no longer needed as we're using the combined script
+      # The deployment will happen in the build-brainrot job
