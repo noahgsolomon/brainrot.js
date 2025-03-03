@@ -15,10 +15,41 @@ on:
       - "start_docker_compose_prod.sh"
       - "docker-compose.yml"
       - ".github/workflows/deploy-ec2.yml"
+  # Add workflow_dispatch to allow manual triggering of just the deploy job
+  workflow_dispatch:
+    inputs:
+      run_deploy:
+        description: "Run deploy job"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
+  # This job determines which build jobs should run based on changed files
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    # Skip this job for manual triggers
+    if: github.event_name == 'push'
+    outputs:
+      brainrot: ${{ steps.filter.outputs.generate }}
+      rvc: ${{ steps.filter.outputs.rvc }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            generate:
+              - 'generate/**'
+            rvc:
+              - 'rvc/**'
+
   build-brainrot:
     name: Build and Push Brainrot
+    needs: [changes]
+    # Only run if generate files changed or this is a manual trigger
+    if: needs.changes.outputs.brainrot == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -98,6 +129,9 @@ jobs:
 
   build-rvc:
     name: Build and Push RVC
+    needs: [changes]
+    # Only run if rvc files changed
+    if: needs.changes.outputs.rvc == 'true'
     runs-on: ubuntu-latest
     environment: production
 
@@ -129,6 +163,18 @@ jobs:
           sudo apt-get purge -y azure-cli google-cloud-sdk dotnet* firefox google-chrome-stable
           sudo apt-get purge -y '^ghc-*' '^php*' '^mysql*' mono-complete
           sudo apt-get purge -y llvm* powershell ruby-full postgresql*
+
+          # Additional aggressive cleanup
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/local/lib/node_modules
+          sudo rm -rf /usr/local/share/cmake*
+          sudo rm -rf /usr/local/share/man
+          sudo rm -rf /var/lib/apt/lists/*
+
+          # Clean Docker images if Docker is installed
+          if command -v docker &> /dev/null; then
+            docker system prune -a -f --volumes
+          fi
 
           # Final cleanup
           sudo apt-get autoremove -y
@@ -181,11 +227,25 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
+  # Deploy job that runs after any builds that were triggered
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     environment: production
-    needs: [build-brainrot, build-rvc]
+    # Only depend on builds that actually ran
+    needs:
+      - changes
+      - build-brainrot
+      - build-rvc
+    # This special syntax makes the dependencies conditional
+    # The job will wait for build-brainrot only if it ran, and for build-rvc only if it ran
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy == 'true') ||
+      (github.event_name == 'push' && always() &&
+       (needs.changes.result == 'success') &&
+       (needs.changes.outputs.brainrot != 'true' || needs.build-brainrot.result == 'success') &&
+       (needs.changes.outputs.rvc != 'true' || needs.build-rvc.result == 'success'))
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -197,6 +257,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.ACTIONS_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      # Copy deployment script to EC2
       - name: Copy deployment script
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -208,6 +269,7 @@ jobs:
           target: "/home/ec2-user/"
           overwrite: true
 
+      # Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         env:
@@ -241,6 +303,21 @@ jobs:
 
             # Make sure Docker is running
             sudo systemctl start docker
+
+            # Aggressive disk cleanup before deployment
+            echo "Cleaning up disk space..."
+            # Remove unused Docker data
+            docker system prune -a -f --volumes
+            # Remove all stopped containers
+            docker rm $(docker ps -a -q) || true
+            # Remove all unused images
+            docker rmi $(docker images -q) || true
+            # Clean package manager cache
+            sudo yum clean all
+            # Remove temporary files
+            sudo rm -rf /tmp/*
+            # Show available disk space
+            df -h
 
             # Configure AWS credentials for ECR access
             mkdir -p ~/.aws
