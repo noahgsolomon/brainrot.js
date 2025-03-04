@@ -6,6 +6,7 @@ import {
 import {
   brainrotusers,
   pendingVideos,
+  rapAudio,
   videos,
 } from "@/server/db/schemas/users/schema";
 import { eq, or, sql } from "drizzle-orm";
@@ -212,6 +213,15 @@ export const userRouter = createTRPCRouter({
     });
 
     return { videos: userVideosDb };
+  }),
+
+  userRapAudio: protectedProcedure.query(async ({ ctx }) => {
+    const userRapAudioDb = await ctx.db.query.rapAudio.findMany({
+      where: eq(rapAudio.user_id, ctx.user_id),
+      orderBy: (rapAudio, { desc }) => [desc(rapAudio.id)],
+    });
+
+    return { rapAudio: userRapAudioDb };
   }),
 
   getVideos: publicProcedure

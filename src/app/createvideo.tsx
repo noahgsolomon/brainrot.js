@@ -226,6 +226,7 @@ export default function CreateVideo({
             credits: videoDetails.cost,
             apiKey: data.apiKey,
             mode: videoDetails.mode,
+            videoMode: videoDetails.mode,
             outputType: videoDetails.outputType,
             lyrics: videoDetails.mode === "rap" ? data.lyrics : undefined,
             audioUrl:
@@ -468,14 +469,6 @@ export default function CreateVideo({
       );
       setSearchQuery("");
     }
-  };
-
-  // Add this function to handle output type selection
-  const handleOutputTypeSelection = (type: "video" | "audio") => {
-    setVideoDetails({
-      ...videoDetails,
-      outputType: type,
-    });
   };
 
   return (

@@ -2,28 +2,6 @@ import { create } from "zustand";
 import { PodcastGuest } from "./createvideo";
 import { PodcastHost } from "./createvideo";
 
-/**
- * setVideoDetails({
-                brainrot: {
-                  title:
-                    (videoInput === ""
-                      ? recommendedTopics[recommendedSelect]
-                      : videoInput) ?? "the future of the world",
-                  agents: agent,
-                  cost: credits,
-                  remainingCredits: userDB?.credits ?? 0,
-                  duration: duration ?? 1,
-                  fps: fps ?? 30,
-                  background: background ?? null,
-                  music: music ?? null,
-                  assetType: assetType ?? null,
-                },
-                math: {},
-              });
-
-              agent has name and id attributes
- */
-
 interface useGenerationTypeProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
