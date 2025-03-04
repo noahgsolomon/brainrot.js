@@ -252,6 +252,19 @@ def process_rvc():
             
         logger.info(f"Model files found: model={model_path}, index={index_path}")
 
+        # Set the index_root environment variable if not already set
+        if not os.getenv("index_root"):
+            os.environ["index_root"] = "/app/logs"
+            logger.info(f"Setting index_root environment variable to: /app/logs")
+        
+        if not os.getenv("weight_root"):
+            os.environ["weight_root"] = "/app/weights"
+            logger.info(f"Setting weight_root environment variable to: /app/weights")
+
+        if not os.getenv("rmvpe_root"):
+            os.environ["rmvpe_root"] = "/app/assets/rmvpe"
+            logger.info(f"Setting rmvpe_root environment variable to: /app/assets/rmvpe")
+
         # Construct RVC command
         rvc_command = [
             "python", "tools/infer_cli.py",
