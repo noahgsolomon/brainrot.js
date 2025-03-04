@@ -52,8 +52,14 @@ docker pull "$RVC_IMAGE"
 echo "Creating shared directories..."
 mkdir -p shared_data
 
-# Set permissions
-chmod -R 777 shared_data
+# Clean up any existing files that might cause permission issues
+echo "Cleaning up existing files in shared_data..."
+sudo rm -f shared_data/instrumental.flac shared_data/vocal.flac
+
+# Set permissions with sudo to ensure it works
+echo "Setting permissions on shared_data directory..."
+sudo chown -R $(whoami):$(whoami) shared_data
+sudo chmod -R 777 shared_data
 
 # Create docker-compose.yml file
 echo "Creating docker-compose.yml file..."
