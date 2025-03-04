@@ -1,10 +1,4 @@
-import getAudioDuration from '../../audioDuration';
-import { generateCleanSrt } from '../../cleanSrt';
 import { query } from '../../dbClient';
-import { secondsToSrtTime, srtTimeToSeconds } from '../../transcribeAudio';
-import { transcribeAudio } from '../../transcribeAudio';
-import { generateFillerContext } from '../../fillerContext';
-import { writeFile } from 'fs/promises';
 import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
@@ -12,6 +6,13 @@ import fs from 'fs';
 const RVC_SERVICE_URL = process.env.RVC_SERVICE_URL || 'http://127.0.0.1:5555';
 
 function adjustPath(filePath: string): string {
+	if (!filePath) {
+		console.error(
+			'Error: filePath is undefined or null in adjustPath function'
+		);
+		return '';
+	}
+
 	if (filePath.startsWith('/app/shared_data/')) {
 		return filePath.replace('/app/shared_data/', '/app/brainrot/shared_data/');
 	} else if (filePath.startsWith('shared_data/')) {
@@ -43,16 +44,35 @@ export default async function generateRap({
 		);
 	}
 
-	const { instrumentalPath, vocalPath } = await fetch(
-		`${RVC_SERVICE_URL}/audio-separator`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ url: audioUrl }),
-		}
-	).then((res) => res.json());
+	const response = await fetch(`${RVC_SERVICE_URL}/audio-separator`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ url: audioUrl }),
+	});
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({}));
+		console.error('Audio separator API error:', errorData);
+		throw new Error(
+			`Audio separator API returned status ${response.status}: ${
+				errorData.error || 'Unknown error'
+			}`
+		);
+	}
+
+	const separatorData = await response.json();
+
+	if (!separatorData.instrumentalPath || !separatorData.vocalPath) {
+		console.error(
+			'Audio separator API returned incomplete data:',
+			separatorData
+		);
+		throw new Error('Audio separator API did not return required paths');
+	}
+
+	const { instrumentalPath, vocalPath } = separatorData;
 
 	const adjustedInstrumentalPath = adjustPath(instrumentalPath);
 	const adjustedVocalPath = adjustPath(vocalPath);
@@ -70,7 +90,7 @@ export default async function generateRap({
 		);
 	}
 
-	const { finalAudioPath } = await fetch(`${RVC_SERVICE_URL}/rvc`, {
+	const rvcResponse = await fetch(`${RVC_SERVICE_URL}/rvc`, {
 		method: 'POST',
 		body: JSON.stringify({
 			instrumentalPath,
@@ -80,7 +100,26 @@ export default async function generateRap({
 		headers: {
 			'Content-Type': 'application/json',
 		},
-	}).then((res) => res.json());
+	});
+
+	if (!rvcResponse.ok) {
+		const errorData = await rvcResponse.json().catch(() => ({}));
+		console.error('RVC API error:', errorData);
+		throw new Error(
+			`RVC API returned status ${rvcResponse.status}: ${
+				errorData.error || 'Unknown error'
+			}`
+		);
+	}
+
+	const rvcData = await rvcResponse.json();
+
+	if (!rvcData.finalAudioPath) {
+		console.error('RVC API returned incomplete data:', rvcData);
+		throw new Error('RVC API did not return required finalAudioPath');
+	}
+
+	const { finalAudioPath } = rvcData;
 
 	// Adjust the final audio path for the brainrot container
 	const adjustedFinalAudioPath = adjustPath(finalAudioPath);
