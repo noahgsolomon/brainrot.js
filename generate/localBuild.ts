@@ -4,21 +4,41 @@ import { exec } from 'child_process';
 import { rm, mkdir, unlink, rename } from 'fs/promises';
 import generateRap from './modes/rap/generate';
 import { FAMILY_MATTERS_LYRICS } from './lyrics';
+import fs from 'fs';
 
 async function cleanupResources() {
 	try {
+		// Clean up directories
 		await rm(path.join('public', 'srt'), { recursive: true, force: true });
 		await rm(path.join('public', 'voice'), { recursive: true, force: true });
-		await unlink(path.join('public', `audio.mp3`)).catch((e) =>
-			console.error(e)
-		);
-		await unlink(path.join('src', 'tmp', 'context.tsx')).catch((e) =>
-			console.error(e)
-		);
+
+		// Check if files exist before attempting to delete them
+		const audioPath = path.join('public', `audio.mp3`);
+		const contextPath = path.join('src', 'tmp', 'context.tsx');
+
+		if (await fileExists(audioPath)) {
+			await unlink(audioPath);
+		}
+
+		if (await fileExists(contextPath)) {
+			await unlink(contextPath);
+		}
+
+		// Recreate directories
 		await mkdir(path.join('public', 'srt'), { recursive: true });
 		await mkdir(path.join('public', 'voice'), { recursive: true });
 	} catch (err) {
 		console.error(`Error during cleanup: ${err}`);
+	}
+}
+
+// Helper function to check if a file exists
+async function fileExists(filePath: string): Promise<boolean> {
+	try {
+		await fs.promises.access(filePath, fs.constants.F_OK);
+		return true;
+	} catch {
+		return false;
 	}
 }
 
