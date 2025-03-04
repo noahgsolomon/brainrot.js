@@ -4,11 +4,11 @@ import os
 import sys
 import time
 import traceback
-from audio_separator import Separator
 import subprocess
 import tempfile
 import requests
 from pathlib import Path
+import shutil
 
 # Ensure log directory exists
 log_dir = "/app/server/logs"
@@ -61,6 +61,7 @@ def health_check():
 def separate_audio():
     logger.info("Audio separator endpoint called")
     try:
+            
         data = request.json
         logger.debug(f"Request data: {data}")
         
@@ -70,6 +71,21 @@ def separate_audio():
         if not audio_url:
             logger.warning("No audio URL provided")
             return jsonify({"error": "No audio URL provided"}), 400
+
+        # Create output directory if it doesn't exist
+        output_dir = os.path.join(os.getcwd(), "output")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Clear output directory at the start
+        logger.info(f"Clearing output directory: {output_dir}")
+        for file in os.listdir(output_dir):
+            file_path = os.path.join(output_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                    logger.debug(f"Removed file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error removing file {file_path}: {str(e)}")
 
         # Create temporary directory for files
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -96,69 +112,95 @@ def separate_audio():
             except Exception as e:
                 logger.error(f"Error downloading file: {str(e)}", exc_info=True)
                 return jsonify({"error": f"Error downloading file: {str(e)}"}), 500
-
-            # Initialize the separator with the input file path
-            logger.info(f"Initializing Separator with {input_path}")
-            try:
-                # Add logging message about processing time
-                logger.info("Initializing separator - this may take a few minutes for large files")
-                separator = Separator(
-                    input_path,
-                    use_cuda=True,
-                )
-                logger.debug("Separator initialized successfully")
-            except Exception as e:
-                logger.error(f"Error initializing Separator: {str(e)}", exc_info=True)
-                return jsonify({"error": f"Error initializing Separator: {str(e)}"}), 500
             
-            # Create output paths
-            output_dir = os.path.join(os.getcwd(), "output")
-            os.makedirs(output_dir, exist_ok=True)
-            logger.debug(f"Output directory: {output_dir}")
-            
-            final_instrumental = os.path.join(output_dir, f"instrumental_{Path(input_path).stem}.wav")
-            final_vocal = os.path.join(output_dir, f"vocal_{Path(input_path).stem}.wav")
-            logger.debug(f"Output files: instrumental={final_instrumental}, vocal={final_vocal}")
-            
-            # Separate the audio - using the correct API
-            logger.info(f"Separating audio from {input_path}")
+            # Use audio-separator CLI instead of the Python SDK
+            logger.info(f"Separating audio from {input_path} using audio-separator CLI")
             try:
                 # Add warning about processing time
                 logger.warning("STARTING AUDIO SEPARATION - this can take several minutes for large files")
 
                 start_time = time.time()
-                # The separate method returns primary and secondary stem paths
-                instrumental_path, vocal_path = separator.separate()
+                
+                # Run audio-separator command
+                separator_cmd = [
+                    "audio-separator",
+                    input_path,
+                    "-d", 
+                    "--output_dir", output_dir
+                ]
+                
+                logger.info(f"Running command: {' '.join(separator_cmd)}")
+                process = subprocess.run(separator_cmd, capture_output=True, text=True, timeout=600)
+                
+                if process.returncode != 0:
+                    logger.error(f"Audio separation failed: {process.stderr}")
+                    return jsonify({"error": "Audio separation failed", "details": process.stderr}), 500
+                
+                logger.debug(f"Audio separation stdout: {process.stdout}")
+                logger.debug(f"Audio separation stderr: {process.stderr}")
+                
                 end_time = time.time()
                 processing_time = end_time - start_time
-                logger.info(f"Separation complete in {processing_time:.2f} seconds: instrumental={instrumental_path}, vocal={vocal_path}")
+                logger.info(f"Separation complete in {processing_time:.2f} seconds")
+                
+                # Find the instrumental and vocal files in the output directory
+                instrumental_file = None
+                vocal_file = None
+                
+                logger.info(f"Looking for output files in {output_dir}")
+                for file in os.listdir(output_dir):
+                    logger.debug(f"Found file in output directory: {file}")
+                    if os.path.isfile(os.path.join(output_dir, file)):
+                        if "instrumental" in file.lower():
+                            instrumental_file = os.path.join(output_dir, file)
+                            logger.info(f"Found instrumental file: {instrumental_file}")
+                        elif "vocals" in file.lower():
+                            vocal_file = os.path.join(output_dir, file)
+                            logger.info(f"Found vocal file: {vocal_file}")
+                
+                if not instrumental_file or not vocal_file:
+                    logger.error(f"Could not find output files in {output_dir}")
+                    return jsonify({"error": "Could not find output files"}), 500
+                
+                # Move files to shared directory with consistent names
+                os.makedirs(SHARED_DIR, exist_ok=True)
+                final_instrumental = os.path.join(SHARED_DIR, "instrumental.flac")
+                final_vocal = os.path.join(SHARED_DIR, "vocal.flac")
+                
+                logger.info(f"Copying {instrumental_file} to {final_instrumental}")
+                shutil.copy2(instrumental_file, final_instrumental)
+                
+                logger.info(f"Copying {vocal_file} to {final_vocal}")
+                shutil.copy2(vocal_file, final_vocal)
+                
+                # Clear output directory after successful processing
+                logger.info(f"Clearing output directory after processing: {output_dir}")
+                for file in os.listdir(output_dir):
+                    file_path = os.path.join(output_dir, file)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                            logger.debug(f"Removed file: {file_path}")
+                    except Exception as e:
+                        logger.error(f"Error removing file {file_path}: {str(e)}")
+                
+            except subprocess.TimeoutExpired:
+                logger.error("Audio separation timed out after 10 minutes")
+                return jsonify({"error": "Audio separation timed out"}), 500
             except Exception as e:
                 logger.error(f"Error in audio separation process: {str(e)}", exc_info=True)
                 return jsonify({"error": f"Error in audio separation process: {str(e)}"}), 500
-            
-            # Move or copy the output files if needed
-            try:
-                if instrumental_path != final_instrumental:
-                    logger.debug(f"Moving instrumental from {instrumental_path} to {final_instrumental}")
-                    os.rename(instrumental_path, final_instrumental)
-                if vocal_path != final_vocal:
-                    logger.debug(f"Moving vocal from {vocal_path} to {final_vocal}")
-                    os.rename(vocal_path, final_vocal)
-            except Exception as e:
-                logger.error(f"Error moving output files: {str(e)}", exc_info=True)
-                return jsonify({"error": f"Error moving output files: {str(e)}"}), 500
 
             logger.info("Audio separation completed successfully")
             return jsonify({
-                "instrumentalPath": final_instrumental,
-                "vocalPath": final_vocal
+                "instrumentalPath": "shared_data/instrumental.flac",
+                "vocalPath": "shared_data/vocal.flac"
             })
 
     except Exception as e:
         logger.error(f"Unexpected error in audio separation: {str(e)}", exc_info=True)
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/rvc', methods=['POST'])
 def process_rvc():
@@ -177,9 +219,10 @@ def process_rvc():
             logger.warning("Missing required parameters")
             return jsonify({"error": "Missing required parameters"}), 400
 
-        if instrumental_path.startswith('public/'):
+        # Adjust paths if they're relative
+        if instrumental_path.startswith('shared_data/'):
             instrumental_path = os.path.join('/app', instrumental_path)
-        if vocal_path.startswith('public/'):
+        if vocal_path.startswith('shared_data/'):
             vocal_path = os.path.join('/app', vocal_path)
             
         for path in [instrumental_path, vocal_path]:
@@ -190,7 +233,7 @@ def process_rvc():
 
         output_dir = SHARED_DIR
         os.makedirs(output_dir, exist_ok=True)
-        output_filename = f"rvc_output_{Path(vocal_path).stem}.wav"
+        output_filename = f"rvc_output_vocal.wav"
         output_path = os.path.join(output_dir, output_filename)
         public_output_path = os.path.join(PUBLIC_DIR, output_filename)
         logger.debug(f"Output path: {output_path}")
@@ -249,21 +292,16 @@ def process_rvc():
             logger.error(f"RVC output file was not created: {output_path}")
             return jsonify({"error": f"RVC output file was not created: {output_path}"}), 500
             
+        # Copy the output file to the public directory for easier access
+        try:
+            shutil.copy2(output_path, public_output_path)
+            logger.info(f"Copied output to public directory: {public_output_path}")
+        except Exception as e:
+            logger.error(f"Error copying to public directory: {str(e)}")
+
+        # Return relative path instead of absolute path
         logger.info(f"RVC processing completed successfully, output file: {output_path}, size: {os.path.getsize(output_path)} bytes")
-
-        if os.path.exists(output_path):
-            try:
-                import shutil
-                shutil.copy2(output_path, public_output_path)
-                logger.info(f"Copied output to public directory: {public_output_path}")
-            except Exception as e:
-                logger.warning(f"Failed to copy to public directory: {str(e)}")
-
-        relative_path = os.path.join('shared_data', output_filename)
-        
-        return jsonify({
-            "finalAudioPath": relative_path
-        })
+        return jsonify({"finalAudioPath": "shared_data/rvc_output_vocal.wav"})
 
     except Exception as e:
         logger.error(f"Unexpected error in RVC processing: {str(e)}", exc_info=True)
