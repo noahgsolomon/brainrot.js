@@ -304,6 +304,14 @@ jobs:
             # Make sure Docker is running
             sudo systemctl start docker
 
+            # Clean up problematic files in shared_data directory
+            echo "Cleaning up shared_data directory..."
+            sudo rm -f shared_data/instrumental.flac shared_data/vocal.flac
+            # Ensure the shared_data directory has the right permissions
+            mkdir -p shared_data
+            sudo chown -R ec2-user:ec2-user shared_data
+            sudo chmod -R 777 shared_data
+
             # Aggressive disk cleanup before deployment
             echo "Cleaning up disk space..."
             # Remove unused Docker data
