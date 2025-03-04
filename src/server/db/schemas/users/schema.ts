@@ -57,6 +57,23 @@ export const videos = mysqlTable(
   }),
 );
 
+export const rapAudio = mysqlTable(
+  "rap_audio",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    user_id: int("user_id").notNull(),
+    rapper: varchar("rapper", { length: 100 }).notNull(),
+    song_name: varchar("song_name", { length: 100 }).notNull(),
+    artist_name: varchar("artist_name", { length: 100 }).notNull(),
+    url: varchar("url", { length: 1000 }).notNull(),
+    video_id: varchar("video_id", { length: 100 }).unique().notNull(),
+  },
+  (t) => ({
+    userIdx: index("user_idx").on(t.user_id),
+    videoIdx: uniqueIndex("video_idx").on(t.video_id),
+  }),
+);
+
 export const videosRelations = relations(videos, ({ one }) => ({
   brainrotusers: one(brainrotusers, {
     fields: [videos.user_id],

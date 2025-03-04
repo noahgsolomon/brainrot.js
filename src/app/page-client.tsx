@@ -80,57 +80,6 @@ export default function PageClient({
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
 
-  useEffect(() => {
-    if (
-      searchParams.agent1Id &&
-      searchParams.agent2Id &&
-      searchParams.agent1Name &&
-      searchParams.agent2Name &&
-      searchParams.title &&
-      searchParams.credits &&
-      searchParams.fps
-    ) {
-      setVideoDetails({
-        mode: "brainrot",
-        title: searchParams.title,
-        agents: [
-          {
-            id: parseInt(searchParams.agent1Id),
-            name: searchParams.agent1Name as
-              | "JORDAN_PETERSON"
-              | "ANDREW_TATE"
-              | "BEN_SHAPIRO"
-              | "JOE_ROGAN"
-              | "BARACK_OBAMA"
-              | "DONALD_TRUMP"
-              | "KAMALA_HARRIS"
-              | "JOE_BIDEN",
-          },
-          {
-            id: parseInt(searchParams.agent2Id),
-            name: searchParams.agent2Name as
-              | "JORDAN_PETERSON"
-              | "BEN_SHAPIRO"
-              | "JOE_ROGAN"
-              | "BARACK_OBAMA"
-              | "DONALD_TRUMP"
-              | "KAMALA_HARRIS"
-              | "JOE_BIDEN"
-              | "ANDREW_TATE",
-          },
-        ],
-        assetType: searchParams.assetType ?? "GOOGLE",
-        background: searchParams?.background ?? "MINECRAFT",
-        cost: parseInt(searchParams.credits),
-        duration: searchParams?.duration ? parseInt(searchParams?.duration) : 1,
-        fps: parseInt(searchParams.fps),
-        music: searchParams.music ?? "NONE",
-        remainingCredits: 0,
-      });
-      setIsGenerationTypeOpen(true);
-    }
-  }, [searchParams]);
-
   const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
   const [placeInQueue, setPlaceInQueue] = useState(0);
   const [pendingVideoTitle, setPendingVideoTitle] = useState("");
@@ -183,7 +132,7 @@ export default function PageClient({
         setProgress(videoStatus.data.videos.progress);
         setStatus(videoStatus.data.videos.status);
         if (videoStatus.data.videos.status === "COMPLETED") {
-          toast.success("Your video has been generated!", { icon: "🎉" });
+          toast.success("Your media has been generated!", { icon: "🎉" });
           setRefetchVideos(true);
           deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
           setIsYourVideosOpen(true);
@@ -323,18 +272,16 @@ export default function PageClient({
             className="flex w-full flex-col gap-4"
           >
             <Credits />
-            {(userVideosQuery.data?.videos?.length ?? 0) > 0 && (
-              <motion.div variants={buttonVariantsAnimated} className="w-full">
-                <Button
-                  variant={"outline"}
-                  className="flex w-full flex-row items-center justify-center gap-2 text-lg"
-                  onClick={() => setIsYourVideosOpen(true)}
-                >
-                  <Folder className="h-5 w-5" />
-                  Your videos
-                </Button>
-              </motion.div>
-            )}
+            <motion.div variants={buttonVariantsAnimated} className="w-full">
+              <Button
+                variant={"outline"}
+                className="flex w-full flex-row items-center justify-center gap-2 text-lg"
+                onClick={() => setIsYourVideosOpen(true)}
+              >
+                <Folder className="h-5 w-5" />
+                Your videos
+              </Button>
+            </motion.div>
           </motion.div>
         )}
       </motion.div>
