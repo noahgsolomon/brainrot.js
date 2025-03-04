@@ -11,6 +11,15 @@ import fs from 'fs';
 
 const RVC_SERVICE_URL = process.env.RVC_SERVICE_URL || 'http://127.0.0.1:5555';
 
+function adjustPath(filePath: string): string {
+	if (filePath.startsWith('/app/shared_data/')) {
+		return filePath.replace('/app/shared_data/', '/app/brainrot/shared_data/');
+	} else if (filePath.startsWith('shared_data/')) {
+		return `/app/brainrot/${filePath}`;
+	}
+	return filePath;
+}
+
 export default async function generateRap({
 	local,
 	rapper,
@@ -26,28 +35,70 @@ export default async function generateRap({
 	videoId?: string;
 	outputType: 'audio' | 'video';
 }) {
+	// Update status: Starting audio separation
+	if (!local && videoId) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Separating audio tracks', progress = 10 WHERE video_id = ?",
+			[videoId]
+		);
+	}
+
 	const { instrumentalPath, vocalPath } = await fetch(
-		'http://127.0.0.1:5555/audio-separator',
+		`${RVC_SERVICE_URL}/audio-separator`,
 		{
 			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
 			body: JSON.stringify({ url: audioUrl }),
 		}
 	).then((res) => res.json());
 
+	const adjustedInstrumentalPath = adjustPath(instrumentalPath);
+	const adjustedVocalPath = adjustPath(vocalPath);
+
+	console.log(`Original instrumental path: ${instrumentalPath}`);
+	console.log(`Adjusted instrumental path: ${adjustedInstrumentalPath}`);
+	console.log(`Original vocal path: ${vocalPath}`);
+	console.log(`Adjusted vocal path: ${adjustedVocalPath}`);
+
+	// Update status: Starting voice conversion
+	if (!local && videoId) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Converting vocals with RVC', progress = 60 WHERE video_id = ?",
+			[videoId]
+		);
+	}
+
 	const { finalAudioPath } = await fetch(`${RVC_SERVICE_URL}/rvc`, {
 		method: 'POST',
-		body: JSON.stringify({ instrumentalPath, vocalPath, rapper }),
+		body: JSON.stringify({
+			instrumentalPath,
+			vocalPath,
+			rapper,
+		}),
 		headers: {
 			'Content-Type': 'application/json',
 		},
 	}).then((res) => res.json());
 
-	// Ensure the finalAudioPath is correctly resolved
-	const resolvedFinalAudioPath = finalAudioPath.startsWith('/')
-		? finalAudioPath
-		: path.join(process.cwd(), finalAudioPath);
+	// Adjust the final audio path for the brainrot container
+	const adjustedFinalAudioPath = adjustPath(finalAudioPath);
+	console.log(`Original final audio path: ${finalAudioPath}`);
+	console.log(`Adjusted final audio path: ${adjustedFinalAudioPath}`);
 
-	let startingTime = 0;
+	// Ensure the finalAudioPath is correctly resolved
+	const resolvedFinalAudioPath = adjustedFinalAudioPath.startsWith('/')
+		? adjustedFinalAudioPath
+		: path.join(process.cwd(), adjustedFinalAudioPath);
+
+	// Update status: Combining audio tracks
+	if (!local && videoId) {
+		await query(
+			"UPDATE `pending-videos` SET status = 'Combining audio tracks', progress = 70 WHERE video_id = ?",
+			[videoId]
+		);
+	}
 
 	// combine the instrumental and final vocal files into a single file audio.mp3
 	const combinedAudioPath = path.join('public', 'audio.mp3');
@@ -56,11 +107,21 @@ export default async function generateRap({
 		fs.mkdirSync('tmp/');
 	}
 
+	// Verify files exist before combining
+	console.log(
+		`Checking if instrumental file exists: ${adjustedInstrumentalPath}`
+	);
+	console.log(
+		`Instrumental file exists: ${fs.existsSync(adjustedInstrumentalPath)}`
+	);
+	console.log(`Checking if vocal file exists: ${resolvedFinalAudioPath}`);
+	console.log(`Vocal file exists: ${fs.existsSync(resolvedFinalAudioPath)}`);
+
 	// Combine instrumental and vocals using ffmpeg
 	await new Promise<void>((resolve, reject) => {
 		const command = ffmpeg();
 
-		command.input(instrumentalPath);
+		command.input(adjustedInstrumentalPath);
 		command.input(resolvedFinalAudioPath);
 
 		command
@@ -82,92 +143,11 @@ export default async function generateRap({
 			.save(combinedAudioPath);
 	});
 
-	if (!local) {
+	// Update status: Audio processing completed
+	if (!local && videoId) {
 		await query(
-			"UPDATE `pending-videos` SET status = 'Transcribing audio.mp3', progress = 20 WHERE video_id = ?",
+			"UPDATE `pending-videos` SET status = 'Audio processing completed', progress = 90 WHERE video_id = ?",
 			[videoId]
 		);
-	}
-
-	if (outputType === 'video') {
-		const transcriptionResults = await transcribeAudio([vocalPath]);
-
-		const uncleanSrtContentArr = [];
-
-		for (let i = 0; i < (transcriptionResults ?? []).length; i++) {
-			const transcription = transcriptionResults![i][0];
-			let srtIndex = 1;
-
-			let srtContent = '';
-
-			const words = transcription.segments.flatMap(
-				(segment: any) => segment.words
-			);
-			for (let j = 0; j < words.length; j++) {
-				const word = words[j];
-				const nextWord = words[j + 1];
-
-				const startTime = secondsToSrtTime(word.start);
-
-				const endTime = nextWord
-					? secondsToSrtTime(nextWord.start)
-					: secondsToSrtTime(word.end);
-
-				srtContent += `${srtIndex}\n${startTime} --> ${endTime}\n${word.text}\n\n`;
-				srtIndex++;
-			}
-
-			const lines = srtContent.split('\n');
-
-			const incrementedSrtLines = lines.map((line) => {
-				const timeMatch = line.match(
-					/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/
-				);
-				if (timeMatch) {
-					const startTime = srtTimeToSeconds(timeMatch[1]) + startingTime;
-					const endTime = srtTimeToSeconds(timeMatch[2]) + startingTime;
-					const incrementedStartTime = secondsToSrtTime(startTime);
-					const incrementedEndTime = secondsToSrtTime(endTime);
-					return `${incrementedStartTime} --> ${incrementedEndTime}`;
-				}
-				return line;
-			});
-
-			const incrementedSrtContent = incrementedSrtLines.join('\n');
-
-			const srtFileName = finalAudioPath
-				.replace('voice', 'srt')
-				.replace('.mp3', '.srt');
-
-			uncleanSrtContentArr.push({
-				content: incrementedSrtContent,
-				fileName: srtFileName,
-			});
-
-			const duration = await getAudioDuration(finalAudioPath);
-			startingTime += duration + 0.2;
-		}
-		if (!local) {
-			await query(
-				"UPDATE `pending-videos` SET status = 'Cleaning subtitle srt files', progress = 35 WHERE video_id = ?",
-				[videoId]
-			);
-		}
-
-		if (lyrics) {
-			await generateCleanSrt([lyrics], uncleanSrtContentArr);
-		}
-
-		let contextContent = `
-import { staticFile } from 'remotion';
-
-export const rapper: string = '${rapper}';
-export const videoMode = 'rap';
-export const imageBackground: string = '/rap/${rapper}.png'
-`;
-
-		contextContent += generateFillerContext('rap');
-
-		await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 	}
 }
