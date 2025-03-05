@@ -1,5 +1,8 @@
 ## How to run locally 👇
 
+(note: neets ai is now sunsetted, so you will need to use elevenlabs or speechify in order to run brainrot mode)
+(additional note: you can run rap mode, but I don't yet cover in this readme how to. You can dig in yourself but i will be adding documentation on how to in this readme later)
+
 0. You must have docker installed on your computer (https://www.docker.com/get-started/)
 1. create `generate/.env` file with the following values:
 
