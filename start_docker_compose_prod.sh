@@ -50,6 +50,7 @@ docker pull "$RVC_IMAGE"
 
 # Create necessary directories
 echo "Creating shared directories..."
+
 mkdir -p shared_data
 
 # Clean up any existing files that might cause permission issues
