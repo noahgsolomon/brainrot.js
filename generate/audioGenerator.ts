@@ -3,24 +3,26 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const API_BASE_URL = 'https://api.sws.speechify.com';
+
 export async function generateAudio(
 	voice_id: string,
 	person: string,
 	line: string,
 	index: number
 ) {
-	const response = await fetch('https://api.neets.ai/v1/tts', {
+	const response = await fetch(`${API_BASE_URL}/v1/tts`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'X-API-Key': process.env.NEETS_API_KEY ?? '',
+			'Authorization': `Bearer ${process.env.SPEECHIFY_API_KEY}`,
 		},
 		body: JSON.stringify({
 			text: line,
 			voice_id: voice_id,
-			params: {
-				model: 'ar-diff-50k',
-			},
+			output_format: 'mp3',
+			sample_rate: 24000,
+			speed: 1.0
 		}),
 	});
 
@@ -28,16 +30,11 @@ export async function generateAudio(
 		throw new Error(`Server responded with status code ${response.status}`);
 	}
 
-	const audioStream = fs.createWriteStream(
-		`public/voice/${person}-${index}.mp3`
-	);
+	// Get the audio buffer from the response
+	const audioBuffer = await response.buffer();
 
-	response.body.pipe(audioStream);
+	// Write the buffer to a file
+	fs.writeFileSync(`public/voice/${person}-${index}.mp3`, audioBuffer);
 
-	return new Promise((resolve, reject) => {
-		audioStream.on('finish', () => {
-			resolve('Audio file saved as output.mp3');
-		});
-		audioStream.on('error', reject);
-	});
+	return Promise.resolve('Audio file saved successfully');
 }
