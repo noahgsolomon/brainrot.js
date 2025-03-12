@@ -3,7 +3,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const API_BASE_URL = 'https://api.sws.speechify.com';
+const SPEECHIFY_API_URL = 'https://api.sws.speechify.com/v1/audio/speech';
 
 export async function generateAudio(
 	voice_id: string,
@@ -11,18 +11,16 @@ export async function generateAudio(
 	line: string,
 	index: number
 ) {
-	const response = await fetch(`${API_BASE_URL}/v1/tts`, {
+	const response = await fetch(`${SPEECHIFY_API_URL}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${process.env.SPEECHIFY_API_KEY}`,
+			Authorization: `Bearer ${process.env.SPEECHIFY_API_KEY}`,
 		},
 		body: JSON.stringify({
-			text: line,
+			input: `<speak>${line}</speak>`,
 			voice_id: voice_id,
-			output_format: 'mp3',
-			sample_rate: 24000,
-			speed: 1.0
+			audio_format: 'mp3',
 		}),
 	});
 
@@ -30,8 +28,13 @@ export async function generateAudio(
 		throw new Error(`Server responded with status code ${response.status}`);
 	}
 
-	// Get the audio buffer from the response
-	const audioBuffer = await response.buffer();
+	const data = await response.json();
+	if (!data.audio_data) {
+		throw new Error('No audio data received from Speechify');
+	}
+
+	// Convert base64 audio data to buffer
+	const audioBuffer = Buffer.from(data.audio_data, 'base64');
 
 	// Write the buffer to a file
 	fs.writeFileSync(`public/voice/${person}-${index}.mp3`, audioBuffer);
