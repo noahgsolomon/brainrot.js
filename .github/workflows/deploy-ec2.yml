@@ -111,6 +111,8 @@ jobs:
 
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+          SPEECHIFY_API_KEY=${{ secrets.SPEECHIFY_API_KEY }}
           EOF
 
       # Step 7: Build and push the Docker image
