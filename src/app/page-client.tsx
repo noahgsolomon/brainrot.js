@@ -285,20 +285,6 @@ export default function PageClient({
           </motion.div>
         )}
       </motion.div>
-      <div className="flex flex-wrap justify-center gap-4 py-36 ">
-        <ClientTweetCard
-          className=" bg-card/60 text-sm"
-          id="1898573817431101539"
-        />
-        <ClientTweetCard
-          className=" bg-card/60 text-sm"
-          id="1893536210284372317"
-        />
-        <ClientTweetCard
-          className=" bg-card/60 text-sm"
-          id="1889493561390792813"
-        />
-      </div>
     </>
   );
 }

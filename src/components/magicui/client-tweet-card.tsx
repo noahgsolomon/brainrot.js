@@ -14,8 +14,10 @@ const ClientTweetCard = ({
   components,
   fetchOptions,
   onError,
+  video,
+  pfp,
   ...props
-}: TweetProps & { className?: string }) => {
+}: TweetProps & { className?: string; video?: string; pfp?: string }) => {
   const { data, error, isLoading } = useTweet(id, apiUrl, fetchOptions);
 
   if (isLoading) return fallback;
@@ -24,7 +26,15 @@ const ClientTweetCard = ({
     return <NotFound error={onError ? onError(error) : error} />;
   }
 
-  return <MagicTweet tweet={data} components={components} {...props} />;
+  return (
+    <MagicTweet
+      tweet={data}
+      components={components}
+      video={video}
+      pfp={pfp}
+      {...props}
+    />
+  );
 };
 
 export default ClientTweetCard;

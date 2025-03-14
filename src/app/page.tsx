@@ -1,15 +1,10 @@
 import Image from "next/image";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Crown } from "lucide-react";
-import ProButton from "./ProButton";
 import NumberTicker from "@/components/magicui/number-ticker";
-import { Card, CardContent } from "@/components/ui/card";
-import BuyCreditsDialog from "./buy-credits-dialog";
 import { api } from "@/trpc/server";
 import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
+import Tweets from "./tweets";
 
 export default async function Home({
   searchParams,
@@ -58,7 +53,7 @@ export default async function Home({
   return (
     <>
       <main className="relative flex flex-col items-center justify-center gap-4">
-        <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 pb-8 text-4xl lg:w-[80%] xl:w-[75%]">
+        <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
           <div className="flex flex-col items-center justify-center gap-8 pb-8">
             {/* <div className="coarse:hidden">
             <FlyingGifs gifs={gifs} />
@@ -202,6 +197,7 @@ export default async function Home({
           </div>
         </div>
       </footer> */}
+      <Tweets />
     </>
   );
 }
