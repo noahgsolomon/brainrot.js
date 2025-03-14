@@ -101,7 +101,13 @@ export const TweetNotFound = ({
   </div>
 );
 
-export const TweetHeader = ({ tweet }: { tweet: EnrichedTweet }) => (
+export const TweetHeader = ({
+  tweet,
+  pfp,
+}: {
+  tweet: EnrichedTweet;
+  pfp?: string;
+}) => (
   <div className="flex flex-row justify-between tracking-tight">
     <div className="flex items-center space-x-2">
       <a href={tweet.user.url} target="_blank" rel="noreferrer">
@@ -110,7 +116,7 @@ export const TweetHeader = ({ tweet }: { tweet: EnrichedTweet }) => (
           alt={tweet.user.screen_name}
           height={48}
           width={48}
-          src={tweet.user.profile_image_url_https}
+          src={pfp || tweet.user.profile_image_url_https}
           className="overflow-hidden rounded-full border border-transparent"
         />
       </a>
@@ -119,7 +125,7 @@ export const TweetHeader = ({ tweet }: { tweet: EnrichedTweet }) => (
           href={tweet.user.url}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center whitespace-nowrap font-semibold"
+          className="flex items-center whitespace-nowrap text-lg font-semibold"
         >
           {truncate(tweet.user.name, 20)}
           {tweet.user.verified ||
@@ -132,7 +138,7 @@ export const TweetHeader = ({ tweet }: { tweet: EnrichedTweet }) => (
             href={tweet.user.url}
             target="_blank"
             rel="noreferrer"
-            className="text-sm text-gray-500 transition-all duration-75"
+            className="text-base text-gray-500 transition-all duration-75"
           >
             @{truncate(tweet.user.screen_name, 16)}
           </a>
@@ -160,7 +166,7 @@ export const TweetBody = ({ tweet }: { tweet: EnrichedTweet }) => (
               href={entity.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-normal text-gray-500"
+              className="text-lg font-normal text-gray-500"
             >
               <span>{entity.text}</span>
             </a>
@@ -169,7 +175,7 @@ export const TweetBody = ({ tweet }: { tweet: EnrichedTweet }) => (
           return (
             <span
               key={idx}
-              className="text-sm font-normal"
+              className="text-lg font-normal"
               dangerouslySetInnerHTML={{ __html: entity.text }}
             />
           );
@@ -178,7 +184,13 @@ export const TweetBody = ({ tweet }: { tweet: EnrichedTweet }) => (
   </div>
 );
 
-export const TweetMedia = ({ tweet }: { tweet: EnrichedTweet }) => (
+export const TweetMedia = ({
+  tweet,
+  video,
+}: {
+  tweet: EnrichedTweet;
+  video?: string;
+}) => (
   <div className="flex flex-1 items-center justify-center">
     {tweet.video &&
       (() => {
@@ -189,7 +201,7 @@ export const TweetMedia = ({ tweet }: { tweet: EnrichedTweet }) => (
             playsInline
             controls
             className="max-h-[36rem] w-auto rounded-lg border shadow-sm"
-            src={tweet.video.variants[4]?.src}
+            src={video || tweet.video.variants[4]?.src}
           ></video>
         );
       })()}
@@ -226,11 +238,15 @@ export const MagicTweet = ({
   tweet,
   components,
   className,
+  video,
+  pfp,
   ...props
 }: {
   tweet: Tweet;
+  video?: string;
   components?: TwitterComponents;
   className?: string;
+  pfp?: string;
 }) => {
   const enrichedTweet = enrichTweet(tweet);
   return (
@@ -241,9 +257,9 @@ export const MagicTweet = ({
       )}
       {...props}
     >
-      <TweetHeader tweet={enrichedTweet} />
+      <TweetHeader tweet={enrichedTweet} pfp={pfp} />
       <TweetBody tweet={enrichedTweet} />
-      <TweetMedia tweet={enrichedTweet} />
+      <TweetMedia tweet={enrichedTweet} video={video} />
     </div>
   );
 };
