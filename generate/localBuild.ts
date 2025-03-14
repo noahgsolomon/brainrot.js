@@ -51,7 +51,9 @@ async function main() {
 	console.log('Starting local build');
 	console.log('MODE:', process.env.MODE);
 
-	const videoMode = 'rap' as VideoMode;
+	const videoMode = 'brainrot' as VideoMode;
+	const agentA = 'BARACK_OBAMA';
+	const agentB = 'JORDAN_PETERSON';
 	const outputType = 'audio' as 'audio' | 'video';
 	const songName = 'Family Matters';
 	const artistName = 'Drake';
@@ -67,7 +69,7 @@ async function main() {
 			break;
 		case 'monologue':
 			videoTopic =
-				'Jordan Peterson gives a lecture about the importance of cleaning your room';
+				'obama wants to talk about waifu titties but jordan peterson wants to talk about how he does not support indian immigration into america. obama calls jordan a racist but jordan calls obama out for marrying michelle, or as jordan calls him michael because he thinks michelle obama is a born male. and obama claps back saying how he "did" mikhaila';
 			break;
 		case 'rap':
 			const lyrics = FAMILY_MATTERS_LYRICS;
@@ -83,9 +85,7 @@ async function main() {
 			break;
 		case 'brainrot':
 			videoTopic =
-				'Jordan Peterson is being eaten by a bear and joe rogan is trying to kiss the bear';
-			const agentA = agents[0];
-			const agentB = agents[1];
+				'obama wants to talk about waifu titties but jordan peterson wants to talk about how he does not support indian immigration into america. obama calls jordan a racist but jordan calls obama out for marrying michelle, or as jordan calls him michael because he thinks michelle obama is a born male. and obama claps back saying how he "did" mikhaila';
 			const music = 'WII_SHOP_CHANNEL_TRAP';
 			await generateBrainrot({
 				local,
