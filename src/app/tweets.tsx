@@ -9,19 +9,19 @@ export default function Tweets() {
       <ClientTweetCard
         className=" bg-card/60 text-sm"
         id="1900398732023099470"
-        video="/jordan.mp4"
+        video="https://images.codefoli.com/jordan.mp4"
         pfp="/pfp/brainrotpfp.jpg"
       />
       <ClientTweetCard
         className=" bg-card/60 text-sm"
         id="1893536210284372317"
-        video="/squid.mp4"
+        video="https://images.codefoli.com/squid.mp4"
         pfp="/pfp/noahpfp.jpg"
       />
       <ClientTweetCard
         className=" bg-card/60 text-sm"
         id="1889493561390792813"
-        video="/jp.mp4"
+        video="https://images.codefoli.com/jp.mp4"
         pfp="/pfp/noahpfp.jpg"
       />
     </div>
