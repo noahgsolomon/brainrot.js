@@ -26,7 +26,7 @@ SPEECHIFY_API_KEY=YOUR SPEECHIFY API KEY HERE
 
 - https://speechify.com/text-to-speech-api/
 
-from above, get api access by signing up, and then get audio from trump, joe, etc. on youtube (we'll compile a list of audio files here soon)
+from above, get api access by signing up, and then get audio from trump, joe, etc. from the training_audio/ folder to train your own voices for these characters on your speechify account
 
 #### how to get open ai credentials:
 
