@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+if [ -f "$(dirname "$0")/../.env" ]; then
+    set -a
+    source "$(dirname "$0")/../.env"
+    set +a
+else
+    echo "ERROR: .env file not found"
+    exit 1
+fi
+
 if [ -z "$AWS_ACCOUNT_ID" ]; then
   echo "ERROR: AWS_ACCOUNT_ID environment variable is not set"
   echo "Please run: export AWS_ACCOUNT_ID=your_aws_account_id"
@@ -17,21 +26,32 @@ ECR_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com"
 BRAINROT_IMAGE="$ECR_URL/brainrot:latest"
 RVC_IMAGE="$ECR_URL/rvc:latest"
 
-echo "ECR URL: $ECR_URL"
-echo "Brainrot Image: $BRAINROT_IMAGE"
-echo "RVC Image: $RVC_IMAGE"
+echo "Checking local images against ECR..."
 
-echo "Logging into ECR..."
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$ECR_URL"
+check_and_pull_image() {
+    local image_name=$1
+    local local_digest
+    local remote_digest
+    
+    echo "Checking $image_name..."
+    
+    local_digest=$(docker images --no-trunc --quiet "$image_name" 2>/dev/null)
+    
+    if aws ecr describe-images --repository-name=$(echo $image_name | cut -d'/' -f2) --image-ids imageTag=latest --region us-east-1 &>/dev/null; then
+        echo "Found image in ECR, checking if update needed..."
+        if docker pull "$image_name" &>/dev/null; then
+            echo "Successfully pulled updated image from ECR"
+        else
+            echo "Failed to pull from ECR, using local image"
+        fi
+    else
+        echo "Image not found in ECR or access denied, using local image"
+    fi
+}
 
-echo "Stopping any existing containers..."
-docker-compose down || true
-
-echo "Creating shared directories..."
-mkdir -p shared_data
-
-echo "Setting permissions on shared_data directory..."
-chmod -R 777 shared_data
+# Check both images
+check_and_pull_image "$BRAINROT_IMAGE"
+check_and_pull_image "$RVC_IMAGE"
 
 echo "Creating docker-compose.yml file..."
 cat > docker-compose.yml << EOL
@@ -77,10 +97,6 @@ EOL
 else
   echo "WARNING: NVIDIA GPU not detected. RVC service may not work properly without GPU acceleration."
 fi
-
-echo "Pulling latest images from ECR..."
-docker pull "$BRAINROT_IMAGE"
-docker pull "$RVC_IMAGE"
 
 echo "Starting containers with docker-compose..."
 docker-compose up -d

@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  brainrot:
+    image: 604711046876.dkr.ecr.us-east-1.amazonaws.com/brainrot:latest
+    container_name: brainrot-container
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./shared_data:/app/brainrot/shared_data
+    environment:
+      - MODE=production
+      - RVC_SERVICE_URL=http://rvc:5555
+    depends_on:
+      - rvc
+
+  rvc:
+    image: 604711046876.dkr.ecr.us-east-1.amazonaws.com/rvc:latest
+    container_name: rvc-container
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./shared_data:/app/shared_data
+    environment:
+      - MODE=production
+      - SHARED_DIR=/app/shared_data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
