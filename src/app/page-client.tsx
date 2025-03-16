@@ -226,6 +226,7 @@ export default function PageClient({
         </motion.div>
 
         <motion.div variants={buttonVariantsAnimated} className="w-full">
+
           <Link
             href={"https://github.com/noahgsolomon/brainrot.js"}
             target="_blank"
@@ -237,7 +238,7 @@ export default function PageClient({
             })}
           >
             <Star className="h-5 w-5" />
-            <p className="text-lg">Star on GitHub</p>
+            <p className="text-lg">Run Locally (free)</p>
           </Link>
         </motion.div>
 
