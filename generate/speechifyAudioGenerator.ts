@@ -1,11 +1,10 @@
 import fs from 'fs';
 
 const SPEECHIFY_API_URL = 'https://api.sws.speechify.com/v1/audio/speech';
-const SPEECHIFY_API_KEY = 'bcBnuV79sIs3NJZ_TEUI0R3FOxPnu-3YoCBRCodvFKY=';
 
 async function generateSpeechifyAudio(text: string): Promise<Buffer> {
 	console.log('Generating Speechify audio...');
-	const response = await fetch(SPEECHIFY_API_URL, {
+	const response = await fetch(process.env.SPEECHIFY_API_URL, {
 		method: 'POST',
 		headers: {
 			Authorization: `Bearer ${SPEECHIFY_API_KEY}`,
