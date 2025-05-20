@@ -104,7 +104,31 @@ export default async function Home({
                   <NumberTicker value={29521} /> videos generated 💀
                 </p>
               </div>
-              {/* Add the following block */}
+              {/* Deep Fish Promo Bar */}
+              <Link
+                href="https://deepfi.sh?utm_source=brainrot&utm_medium=referral"
+                target="_blank"
+                className="group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3 rounded-lg bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-4 py-3 text-white shadow-lg transition hover:scale-[1.02] active:scale-100"
+              >
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Image
+                    src="/deepfish.png"
+                    width={24}
+                    height={24}
+                    alt="Deep Fish logo"
+                    className="animate-bounce"
+                  />
+                  <span>
+                    Hook bigger audiences with
+                    <span className="pl-1 underline decoration-white/60 underline-offset-4">
+                      Deep Fish
+                    </span>
+                  </span>
+                </div>
+                <span className="rounded-md bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur transition-colors group-hover:bg-white/30">
+                  Catch Deep Fish →
+                </span>
+              </Link>
             </div>
 
             {/* {userDB && userDB?.user ? (
