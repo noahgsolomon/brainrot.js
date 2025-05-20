@@ -129,7 +129,7 @@ export default async function Home({
                       className="animate-bounce rounded-full"
                     />
                     <span>
-                      Hook ur audience w/
+                      Build AI flows w/
                       <span className="pl-1 underline decoration-primary/30 underline-offset-4">
                         Deep Fish
                       </span>
