@@ -5,6 +5,8 @@ import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import Tweets from "./tweets";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default async function Home({
   searchParams,
@@ -108,16 +110,28 @@ export default async function Home({
               <Link
                 href="https://deepfi.sh"
                 target="_blank"
-                className="group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/10 active:scale-100"
+                className={cn(
+                  buttonVariants({
+                    variant: "outline",
+                    size: "lg",
+                    className:
+                      "group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3",
+                  }),
+                )}
               >
                 <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Image
-                    src="/deepfish.png"
-                    width={24}
-                    height={24}
-                    alt="Deep Fish logo"
-                    className="animate-bounce rounded-full"
-                  />
+                  <div className="relative">
+                    <Image
+                      src="/deepfish.png"
+                      width={24}
+                      height={24}
+                      alt="Deep Fish logo"
+                      className="animate-bounce rounded-full"
+                    />
+                    <span className="absolute -right-2 -top-2 flex h-4 w-8 items-center justify-center rounded-full bg-pink-500 text-[9px] font-bold text-white">
+                      NEW
+                    </span>
+                  </div>
                   <span>
                     Hook bigger audiences with
                     <span className="pl-1 underline decoration-white/60 underline-offset-4">
@@ -125,8 +139,8 @@ export default async function Home({
                     </span>
                   </span>
                 </div>
-                <span className="rounded-md border border-primary/30 bg-transparent px-3 py-1 text-xs font-medium text-primary-foreground transition-colors group-hover:bg-primary/10">
-                  Catch Deep Fish →
+                <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
+                  Join →
                 </span>
               </Link>
             </div>
