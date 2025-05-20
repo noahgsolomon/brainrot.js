@@ -106,9 +106,9 @@ export default async function Home({
               </div>
               {/* Deep Fish Promo Bar */}
               <Link
-                href="https://deepfi.sh?utm_source=brainrot&utm_medium=referral"
+                href="https://deepfi.sh"
                 target="_blank"
-                className="group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3 rounded-lg bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-4 py-3 text-white shadow-lg transition hover:scale-[1.02] active:scale-100"
+                className="group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-primary-foreground transition-colors hover:bg-primary/10 active:scale-100"
               >
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Image
@@ -116,7 +116,7 @@ export default async function Home({
                     width={24}
                     height={24}
                     alt="Deep Fish logo"
-                    className="animate-bounce"
+                    className="animate-bounce rounded-full"
                   />
                   <span>
                     Hook bigger audiences with
@@ -125,7 +125,7 @@ export default async function Home({
                     </span>
                   </span>
                 </div>
-                <span className="rounded-md bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur transition-colors group-hover:bg-white/30">
+                <span className="rounded-md border border-primary/30 bg-transparent px-3 py-1 text-xs font-medium text-primary-foreground transition-colors group-hover:bg-primary/10">
                   Catch Deep Fish →
                 </span>
               </Link>
