@@ -108,9 +108,6 @@ export default async function Home({
               </div>
               {/* Deep Fish Promo Bar */}
               <div className="relative mt-2 w-full max-w-xs">
-                <span className="absolute -top-2 left-4 z-10 flex h-5 w-11 items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm">
-                  NEW
-                </span>
                 <Link
                   href="https://deepfi.sh"
                   target="_blank"
@@ -129,10 +126,10 @@ export default async function Home({
                       width={24}
                       height={24}
                       alt="Deep Fish logo"
-                      className="rounded-full"
+                      className="animate-bounce rounded-full"
                     />
                     <span>
-                      Hook bigger audiences with
+                      Hook ur audience w/
                       <span className="pl-1 underline decoration-primary/30 underline-offset-4">
                         Deep Fish
                       </span>
