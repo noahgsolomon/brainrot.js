@@ -19,6 +19,7 @@ import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 const buttonVariantsAnimated = {
   initial: { opacity: 0, y: 20 },
@@ -226,7 +227,6 @@ export default function PageClient({
         </motion.div>
 
         <motion.div variants={buttonVariantsAnimated} className="w-full">
-
           <Link
             href={"https://github.com/noahgsolomon/brainrot.js"}
             target="_blank"
@@ -241,6 +241,23 @@ export default function PageClient({
             <p className="text-lg">Run Locally (free)</p>
           </Link>
         </motion.div>
+        {/* 
+        <motion.div variants={buttonVariantsAnimated} className="w-full">
+          <Link
+            href={"https://deepfi.sh?utm_source=brainrot&utm_medium=referral"}
+            target="_blank"
+            className="group flex w-full flex-row items-center justify-center gap-2 rounded-md bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-6 py-3 text-lg font-semibold text-white shadow-lg transition hover:scale-105 active:scale-95"
+          >
+            <Image
+              src="/deepfish.png"
+              width={20}
+              height={20}
+              alt="Deep Fish logo"
+              className="h-5 w-5"
+            />
+            Try Deep Fish
+          </Link>
+        </motion.div> */}
 
         <AnimatePresence>
           {pendingVideo && (
