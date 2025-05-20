@@ -107,42 +107,42 @@ export default async function Home({
                 </p>
               </div>
               {/* Deep Fish Promo Bar */}
-              <Link
-                href="https://deepfi.sh"
-                target="_blank"
-                className={cn(
-                  buttonVariants({
-                    variant: "outline",
-                    size: "lg",
-                    className:
-                      "group mt-2 inline-flex w-full max-w-xs items-center justify-between gap-3",
-                  }),
-                )}
-              >
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <div className="relative">
+              <div className="relative mt-2 w-full max-w-xs">
+                <span className="absolute -top-2 left-4 z-10 flex h-5 w-11 items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm">
+                  NEW
+                </span>
+                <Link
+                  href="https://deepfi.sh"
+                  target="_blank"
+                  className={cn(
+                    buttonVariants({
+                      variant: "outline",
+                      size: "lg",
+                      className:
+                        "group inline-flex w-full items-center justify-between gap-3 pl-5",
+                    }),
+                  )}
+                >
+                  <div className="flex items-center gap-2 text-sm font-semibold">
                     <Image
                       src="/deepfish.png"
                       width={24}
                       height={24}
                       alt="Deep Fish logo"
-                      className="animate-bounce rounded-full"
+                      className="rounded-full"
                     />
-                    <span className="absolute -right-2 -top-2 flex h-4 w-8 items-center justify-center rounded-full bg-pink-500 text-[9px] font-bold text-white">
-                      NEW
+                    <span>
+                      Hook bigger audiences with
+                      <span className="pl-1 underline decoration-primary/30 underline-offset-4">
+                        Deep Fish
+                      </span>
                     </span>
                   </div>
-                  <span>
-                    Hook bigger audiences with
-                    <span className="pl-1 underline decoration-white/60 underline-offset-4">
-                      Deep Fish
-                    </span>
+                  <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
+                    →
                   </span>
-                </div>
-                <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
-                  Join →
-                </span>
-              </Link>
+                </Link>
+              </div>
             </div>
 
             {/* {userDB && userDB?.user ? (
