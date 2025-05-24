@@ -213,11 +213,15 @@ export default function PageClient({
         className="flex w-full flex-col gap-4"
       >
         <motion.div variants={buttonVariantsAnimated} className="w-full">
+          <p className="text-sm text-muted-foreground">
+            Disabled for the time being. Run locally for now.
+          </p>
           <Button
             className="flex w-full flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
             variant={"pink"}
             size={"lg"}
-            disabled={pendingVideo}
+            // disabled={pendingVideo}
+            disabled={true}
             onClick={() => {
               setIsGenerationTypeOpen(true);
             }}
