@@ -254,12 +254,7 @@ export default function PageClient({
                   alt="Deep Fish logo"
                   className="rounded-full"
                 />
-                <span className="text-lg">
-                  Build AI workflows w/
-                  <span className="pl-1 underline decoration-primary/30 underline-offset-4">
-                    Deep Fish
-                  </span>
-                </span>
+                <span className="text-lg">Run AI workflows</span>
               </div>
               <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
                 →
