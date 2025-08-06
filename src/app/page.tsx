@@ -91,8 +91,9 @@ export default async function Home({
               </AnimatedGradientText>
             </Link> */}
 
-            <Link href={"https://x.com/brainrotjs"}>
+            <Link href={"https://x.com/brainrotjs"} target="_blank">
               <Image
+                title="Brainrot"
                 src={"/brainrot_new2.png"}
                 width={200}
                 height={200}
