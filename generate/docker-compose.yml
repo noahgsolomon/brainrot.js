@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   brainrot:
     image: 604711046876.dkr.ecr.us-east-1.amazonaws.com/brainrot:latest
+    platform: linux/amd64
     container_name: brainrot-container
     ports:
       - "3000:3000"
@@ -16,6 +15,7 @@ services:
 
   rvc:
     image: 604711046876.dkr.ecr.us-east-1.amazonaws.com/rvc:latest
+    platform: linux/amd64
     container_name: rvc-container
     ports:
       - "5555:5555"
