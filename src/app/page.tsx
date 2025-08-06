@@ -5,8 +5,12 @@ import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import Tweets from "./tweets";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import ProButton from "./ProButton";
+import { Crown } from "lucide-react";
+import BuyCreditsDialog from "./buy-credits-dialog";
 
 export default async function Home({
   searchParams,
@@ -103,46 +107,12 @@ export default async function Home({
                   BRAINROT
                 </h1>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
-                  <NumberTicker value={29521} /> videos generated 💀
+                  <NumberTicker value={59324} /> videos generated 💀
                 </p>
-              </div>
-              {/* Deep Fish Promo Bar */}
-              <div className="relative mt-2 w-full max-w-xs">
-                <Link
-                  href="https://deepfi.sh"
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({
-                      variant: "outline",
-                      size: "lg",
-                      className:
-                        "group inline-flex w-full items-center justify-between gap-3 pl-5",
-                    }),
-                  )}
-                >
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <Image
-                      src="/deepfish.png"
-                      width={24}
-                      height={24}
-                      alt="Deep Fish logo"
-                      className="animate-bounce rounded-full"
-                    />
-                    <span>
-                      Build AI flows w/
-                      <span className="pl-1 underline decoration-primary/30 underline-offset-4">
-                        Deep Fish
-                      </span>
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
-                    →
-                  </span>
-                </Link>
               </div>
             </div>
 
-            {/* {userDB && userDB?.user ? (
+            {userDB && userDB?.user ? (
               <Card
                 className={` ${
                   !userDB?.user?.subscribed
@@ -193,7 +163,7 @@ export default async function Home({
                   </div>
                 </CardContent>
               </Card>
-            ) : null} */}
+            ) : null}
             <PageClient
               searchParams={searchParams}
               initialPendingVideo={pendingVideo}
