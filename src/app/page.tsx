@@ -150,7 +150,7 @@ export default async function Home({
                       </div>
                     )}
 
-                    {/* <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+                    <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
                       <h3 className="text-lg font-semibold text-secondary-foreground">
                         Buy Credits
                       </h3>
@@ -160,7 +160,7 @@ export default async function Home({
                         </p>
                       </div>
                       <BuyCreditsDialog />
-                    </div> */}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

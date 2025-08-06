@@ -33,7 +33,7 @@ export default function Credits() {
       <DialogTrigger asChild>
         <Button
           variant={"outline"}
-          className="flex flex-row items-center gap-2 text-lg"
+          className="flex w-80 flex-row items-center justify-center gap-2 text-lg"
         >
           <Coins className="h-5 w-5" />
           Credits
