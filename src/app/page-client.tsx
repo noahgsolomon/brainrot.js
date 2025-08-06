@@ -213,9 +213,12 @@ export default function PageClient({
         animate="animate"
         className="flex w-full flex-col gap-4"
       >
-        <motion.div variants={buttonVariantsAnimated} className="w-full">
+        <motion.div
+          variants={buttonVariantsAnimated}
+          className="flex justify-center"
+        >
           <Button
-            className="flex w-full flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
+            className="flex w-80 flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
             variant={"pink"}
             size={"lg"}
             disabled={pendingVideo}
@@ -232,35 +235,36 @@ export default function PageClient({
         </div>
 
         {/* Deep Fish Promo Bar */}
-        <motion.div variants={buttonVariantsAnimated} className="w-full">
-          <div className="relative w-full">
-            <Link
-              href="https://deepfi.sh"
-              target="_blank"
-              className={cn(
-                buttonVariants({
-                  variant: "outline",
-                  size: "lg",
-                  className:
-                    "group inline-flex w-full items-center justify-between gap-3",
-                }),
-              )}
-            >
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Image
-                  src="/deepfish.png"
-                  width={24}
-                  height={24}
-                  alt="Deep Fish logo"
-                  className="rounded-full"
-                />
-                <span className="text-lg">Build AI workflows</span>
-              </div>
-              <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
-                →
-              </span>
-            </Link>
-          </div>
+        <motion.div
+          variants={buttonVariantsAnimated}
+          className="flex justify-center"
+        >
+          <Link
+            href="https://deepfi.sh"
+            target="_blank"
+            className={cn(
+              buttonVariants({
+                variant: "outline",
+                size: "lg",
+                className:
+                  "group inline-flex w-80 items-center justify-center gap-3",
+              }),
+            )}
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Image
+                src="/deepfish.png"
+                width={24}
+                height={24}
+                alt="Deep Fish logo"
+                className="rounded-full"
+              />
+              <span className="text-lg">Build AI workflows</span>
+            </div>
+            <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
+              →
+            </span>
+          </Link>
         </motion.div>
 
         {/* <motion.div variants={buttonVariantsAnimated} className="w-full"> */}
@@ -303,10 +307,10 @@ export default function PageClient({
               initial="initial"
               animate="animate"
               exit={{ opacity: 0, y: -10 }}
-              className="w-full"
+              className="flex justify-center"
             >
               <Button
-                className="flex w-full flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
+                className="flex w-80 flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
                 variant={"outline"}
                 onClick={() => {
                   cancelPendingVideoMutation.mutate({
@@ -324,13 +328,13 @@ export default function PageClient({
         {clerkUser?.id && (
           <motion.div
             variants={buttonVariantsAnimated}
-            className="flex w-full flex-col gap-4"
+            className="flex flex-col items-center gap-4"
           >
             <Credits />
-            <motion.div variants={buttonVariantsAnimated} className="w-full">
+            <motion.div variants={buttonVariantsAnimated}>
               <Button
                 variant={"outline"}
-                className="flex w-full flex-row items-center justify-center gap-2 text-lg"
+                className="flex w-80 flex-row items-center justify-center gap-2 text-lg"
                 onClick={() => setIsYourVideosOpen(true)}
               >
                 <Folder className="h-5 w-5" />

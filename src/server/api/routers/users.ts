@@ -22,7 +22,7 @@ const openai = new OpenAI({
 });
 
 let accessToken: string | null = null;
-let tokenExpiration: number = 0;
+let tokenExpiration = 0;
 
 async function getSpotifyToken() {
   if (accessToken && tokenExpiration > Date.now()) {
@@ -209,7 +209,7 @@ export const userRouter = createTRPCRouter({
     const userVideosDb = await ctx.db.query.videos.findMany({
       where: eq(videos.user_id, ctx.user_id),
       orderBy: (videos, { desc }) => [desc(videos.id)],
-      limit: 3,
+      limit: 10,
     });
 
     return { videos: userVideosDb };
