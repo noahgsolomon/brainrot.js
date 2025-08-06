@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const buttonVariantsAnimated = {
   initial: { opacity: 0, y: 20 },
@@ -213,15 +214,11 @@ export default function PageClient({
         className="flex w-full flex-col gap-4"
       >
         <motion.div variants={buttonVariantsAnimated} className="w-full">
-          <p className="text-sm text-muted-foreground">
-            Disabled for the time being. Run locally for now.
-          </p>
           <Button
             className="flex w-full flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
             variant={"pink"}
             size={"lg"}
-            // disabled={pendingVideo}
-            disabled={true}
+            disabled={pendingVideo}
             onClick={() => {
               setIsGenerationTypeOpen(true);
             }}
@@ -230,8 +227,49 @@ export default function PageClient({
           </Button>
         </motion.div>
 
+        <div className="flex w-full items-center justify-center">
+          <span className="text-lg text-muted-foreground">or</span>
+        </div>
+
+        {/* Deep Fish Promo Bar */}
         <motion.div variants={buttonVariantsAnimated} className="w-full">
-          <Link
+          <div className="relative w-full">
+            <Link
+              href="https://deepfi.sh"
+              target="_blank"
+              className={cn(
+                buttonVariants({
+                  variant: "outline",
+                  size: "lg",
+                  className:
+                    "group inline-flex w-full items-center justify-between gap-3",
+                }),
+              )}
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Image
+                  src="/deepfish.png"
+                  width={24}
+                  height={24}
+                  alt="Deep Fish logo"
+                  className="rounded-full"
+                />
+                <span className="text-lg">
+                  Build AI workflows w/
+                  <span className="pl-1 underline decoration-primary/30 underline-offset-4">
+                    Deep Fish
+                  </span>
+                </span>
+              </div>
+              <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
+                →
+              </span>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* <motion.div variants={buttonVariantsAnimated} className="w-full"> */}
+        {/* <Link
             href={"https://github.com/noahgsolomon/brainrot.js"}
             target="_blank"
             className={buttonVariants({
@@ -243,8 +281,8 @@ export default function PageClient({
           >
             <Star className="h-5 w-5" />
             <p className="text-lg">Run Locally (free)</p>
-          </Link>
-        </motion.div>
+          </Link> */}
+        {/* </motion.div> */}
         {/* 
         <motion.div variants={buttonVariantsAnimated} className="w-full">
           <Link
