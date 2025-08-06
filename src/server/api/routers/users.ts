@@ -394,27 +394,62 @@ export const userRouter = createTRPCRouter({
 
               if (trackResponse.ok) {
                 const trackData = await trackResponse.json();
-                const downloadResponse = await fetch(
-                  `${
-                    process.env.MODE === "LOCAL"
-                      ? "http://localhost:3000"
-                      : `https://${process.env.WEBSITE}`
-                  }/api/spotify/download`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      url: trackData.external_urls.spotify,
-                    }),
-                  },
+                console.log(
+                  "Track data:",
+                  trackData.name,
+                  "by",
+                  trackData.artists?.[0]?.name,
                 );
+
+                const spotifyUrl = trackData.external_urls.spotify;
+                const downloadApiUrl = `${
+                  process.env.MODE === "LOCAL"
+                    ? "http://localhost:3000"
+                    : `https://${process.env.WEBSITE}`
+                }/api/spotify/download?url=${encodeURIComponent(spotifyUrl)}`;
+
+                console.log("Calling download API:", downloadApiUrl);
+
+                const downloadResponse = await fetch(downloadApiUrl, {
+                  method: "GET",
+                  headers: {
+                    Accept: "application/json",
+                  },
+                });
+
+                console.log("Download API status:", downloadResponse.status);
 
                 if (downloadResponse.ok) {
                   const downloadData = await downloadResponse.json();
-                  downloadUrl = downloadData.medias[0].url || null;
+                  console.log(
+                    "Download API response:",
+                    JSON.stringify(downloadData, null, 2),
+                  );
+
+                  // The API returns the download URL in data.downloadLink
+                  downloadUrl =
+                    downloadData?.data?.downloadLink ||
+                    downloadData?.medias?.[0]?.url ||
+                    null;
+
+                  if (!downloadUrl) {
+                    console.error("No download URL found in response");
+                  } else {
+                    console.log("Got download URL:", downloadUrl);
+                  }
+                } else {
+                  const errorText = await downloadResponse.text();
+                  console.error(
+                    "Download API failed with status:",
+                    downloadResponse.status,
+                  );
+                  console.error("Error response:", errorText);
                 }
+              } else {
+                console.error(
+                  "Spotify track API failed with status:",
+                  trackResponse.status,
+                );
               }
             } catch (error) {
               console.error("Error fetching lyrics or download URL:", error);
