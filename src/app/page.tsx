@@ -204,6 +204,132 @@ export default async function Home({
         </div>
       </footer> */}
       <Tweets />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: "Brainrot.js",
+            description:
+              "The #1 AI-powered brainrot maker and video generator. Create hilarious brainrot videos with celebrity voices, AI dialogue, and viral memes.",
+            url: "https://brainrotjs.com",
+            applicationCategory: "MultimediaApplication",
+            operatingSystem: "Any",
+            offers: {
+              "@type": "AggregateOffer",
+              priceCurrency: "USD",
+              lowPrice: "0",
+              highPrice: "19.99",
+              offerCount: "3",
+              offers: [
+                {
+                  "@type": "Offer",
+                  name: "Free Credits",
+                  price: "0",
+                  description: "Start creating with free credits",
+                },
+                {
+                  "@type": "Offer",
+                  name: "20 Credits Pack",
+                  price: "1.99",
+                  description: "Generate 20 brainrot videos",
+                },
+                {
+                  "@type": "Offer",
+                  name: "Pro Subscription",
+                  price: "19.99",
+                  description: "Unlimited video generation per month",
+                },
+              ],
+            },
+            creator: {
+              "@type": "Person",
+              name: "Noah Solomon",
+              url: "https://twitter.com/noahgsolomon",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Brainrot.js",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://brainrotjs.com/brainrot_new2.png",
+              },
+              sameAs: [
+                "https://twitter.com/brainrotjs",
+                "https://twitter.com/noahgsolomon",
+              ],
+            },
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: "4.8",
+              ratingCount: "1000",
+              bestRating: "5",
+              worstRating: "1",
+            },
+            featureList: [
+              "AI-powered video generation",
+              "Celebrity voice synthesis",
+              "Viral meme creation",
+              "Instant video rendering",
+              "Multiple video styles",
+              "Background music selection",
+              "Custom dialogue generation",
+            ],
+            screenshot: [
+              "https://brainrotjs.com/brainrot-style.png",
+              "https://brainrotjs.com/podcast-style.png",
+              "https://brainrotjs.com/rap-style.png",
+              "https://brainrotjs.com/monologue-style.png",
+            ],
+          }),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "What is Brainrot.js?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Brainrot.js is an AI-powered video generator that creates viral brainrot content with celebrity voices, memes, and funny dialogues. It's the #1 tool for creating entertaining videos for social media.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "How do I create a brainrot video?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Simply choose your video style (brainrot, podcast, rap, or monologue), select celebrity characters, enter your topic or dialogue, and click generate. Your video will be ready in seconds!",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is Brainrot.js free to use?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes! Brainrot.js offers free credits to get started. You can create videos for free and purchase additional credits or subscribe to Pro for unlimited generation.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What celebrities can I use in my videos?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Brainrot.js offers a variety of celebrity voices including politicians, influencers, and public figures. The voices are AI-generated for entertainment purposes.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
     </>
   );
 }

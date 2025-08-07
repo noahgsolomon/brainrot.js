@@ -1,0 +1,27 @@
+# Robots.txt for brainrotjs.com
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Specific rules for Googlebot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Allow search engine image crawlers
+User-agent: Googlebot-Image
+Allow: /
+
+# Block access to API routes
+User-agent: *
+Disallow: /api/
+
+# Block access to private routes
+User-agent: *
+Disallow: /settings/
+Disallow: /_next/
+Disallow: /generate/
+
+# Sitemap location
+Sitemap: https://brainrotjs.com/sitemap.xml
