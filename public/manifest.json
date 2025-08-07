@@ -1,0 +1,68 @@
+{
+  "name": "Brainrot.js - AI Brainrot Video Generator",
+  "short_name": "Brainrot.js",
+  "description": "The #1 AI-powered brainrot maker and video generator. Create hilarious brainrot videos with celebrity voices, AI dialogue, and viral memes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/brainrot_new2.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "productivity", "social"],
+  "screenshots": [
+    {
+      "src": "/brainrot-style.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "label": "Brainrot style videos"
+    },
+    {
+      "src": "/podcast-style.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "label": "Podcast style conversations"
+    },
+    {
+      "src": "/rap-style.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "label": "Rap battle videos"
+    },
+    {
+      "src": "/monologue-style.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "label": "Monologue videos"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create Video",
+      "short_name": "Create",
+      "description": "Start creating a new brainrot video",
+      "url": "/",
+      "icons": [{ "src": "/favicon.ico", "sizes": "96x96" }]
+    },
+    {
+      "name": "Your Videos",
+      "short_name": "Videos",
+      "description": "View your generated videos",
+      "url": "/?section=videos",
+      "icons": [{ "src": "/favicon.ico", "sizes": "96x96" }]
+    }
+  ],
+  "lang": "en-US",
+  "dir": "ltr"
+}
