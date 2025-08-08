@@ -8,8 +8,8 @@ export default function Tweets() {
       <p className="text-2xl font-bold">Here's what you can make with our AI</p>
       <ClientTweetCard
         className=" bg-card/60 text-sm"
-        id="1900398732023099470"
-        video="https://images.codefoli.com/jordan.mp4"
+        id="1900595207172661360"
+        video="https://cwp8pb7l7rzz6iyv.public.blob.vercel-storage.com/Etd5PUlku7lKa3zL.mp4"
         pfp="/pfp/brainrotpfp.jpg"
       />
       <ClientTweetCard

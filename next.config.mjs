@@ -35,6 +35,11 @@ const nextConfig = {
         hostname: "images.smart.wtf",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "cwp8pb7l7rzz6iyv.public.blob.vercel-storage.com",
+        pathname: "**",
+      },
     ],
   },
 };
