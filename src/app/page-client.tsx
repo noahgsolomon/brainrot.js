@@ -326,17 +326,17 @@ export default function PageClient({
         <h2 className="text-xl font-bold">How it works</h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/idea.png" alt="Pick a topic" width={48} height={48} />
+            <Image src="/idea.png" alt="Pick a topic" width={80} height={80} className="rounded-full border border-border" />
             <p className="text-sm font-semibold">Pick a topic</p>
             <p className="text-xs text-muted-foreground">Choose any topic and your favorite characters</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/ai.png" alt="AI generates" width={48} height={48} />
+            <Image src="/ai.png" alt="AI generates" width={80} height={80} className="rounded-full border border-border" />
             <p className="text-sm font-semibold">AI generates</p>
             <p className="text-xs text-muted-foreground">Our AI writes the script and creates your video</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/share.png" alt="Download & share" width={48} height={48} />
+            <Image src="/share.png" alt="Download & share" width={80} height={80} className="rounded-full border border-border" />
             <p className="text-sm font-semibold">Download & share</p>
             <p className="text-xs text-muted-foreground">Get your video and post it everywhere</p>
           </div>
