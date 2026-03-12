@@ -54,6 +54,9 @@ public/workbox-e34f44db.js.map
 public/sw.js
 
 generate/venv/*
+fal/remotion_proxy_spike/.venv/*
+fal/remotion_proxy_spike/.venv312/*
+fal/remotion_proxy_spike/__pycache__/*
 
 generate/hidden/*
 generate/src/tmp/*
