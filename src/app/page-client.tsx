@@ -10,7 +10,7 @@ import {
   GraduationCap, Rocket, Landmark, Globe, Atom, Church, Zap, Home, FlaskConical,
   Castle, Anchor,
 } from "lucide-react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Credits from "./credits";
@@ -85,7 +85,6 @@ export default function PageClient({
 
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
-  const { openSignIn } = useClerk();
 
   const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
   const [placeInQueue, setPlaceInQueue] = useState(0);
@@ -228,14 +227,10 @@ export default function PageClient({
             size={"lg"}
             disabled={pendingVideo}
             onClick={() => {
-              if (!clerkUser?.id) {
-                openSignIn({ redirectUrl: "/" });
-              } else {
-                setIsGenerationTypeOpen(true);
-              }
+              setIsGenerationTypeOpen(true);
             }}
           >
-            <Wand className="h-5 w-5" /> {clerkUser?.id ? "Create Video" : "Try it Free"}
+            <Wand className="h-5 w-5" /> Create Video
           </Button>
         </motion.div>
 
