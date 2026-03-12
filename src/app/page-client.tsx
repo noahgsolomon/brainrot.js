@@ -6,7 +6,7 @@ import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Crown, Folder, Loader2, Sparkles, Star, Wand, X, Download, MessageSquare,
+  Crown, Folder, Loader2, Star, Wand, X,
   GraduationCap, Rocket, Landmark, Globe, Atom, Church, Zap, Home, FlaskConical,
   Castle, Anchor,
 } from "lucide-react";
@@ -326,23 +326,17 @@ export default function PageClient({
         <h2 className="text-xl font-bold">How it works</h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
-              <MessageSquare className="h-5 w-5 text-pink-500" />
-            </div>
+            <Image src="/idea.png" alt="Pick a topic" width={48} height={48} />
             <p className="text-sm font-semibold">Pick a topic</p>
             <p className="text-xs text-muted-foreground">Choose any topic and your favorite characters</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
-              <Sparkles className="h-5 w-5 text-pink-500" />
-            </div>
+            <Image src="/ai.png" alt="AI generates" width={48} height={48} />
             <p className="text-sm font-semibold">AI generates</p>
             <p className="text-xs text-muted-foreground">Our AI writes the script and creates your video</p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
-              <Download className="h-5 w-5 text-pink-500" />
-            </div>
+            <Image src="/share.png" alt="Download & share" width={48} height={48} />
             <p className="text-sm font-semibold">Download & share</p>
             <p className="text-xs text-muted-foreground">Get your video and post it everywhere</p>
           </div>
