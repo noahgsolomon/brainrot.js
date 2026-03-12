@@ -5,8 +5,8 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Crown, Folder, Loader2, Star, Wand, X } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { Crown, Folder, Loader2, Sparkles, Star, Wand, X, Download, MessageSquare } from "lucide-react";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
 import Credits from "./credits";
@@ -81,6 +81,7 @@ export default function PageClient({
 
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
+  const { openSignIn } = useClerk();
 
   const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
   const [placeInQueue, setPlaceInQueue] = useState(0);
@@ -223,10 +224,14 @@ export default function PageClient({
             size={"lg"}
             disabled={pendingVideo}
             onClick={() => {
-              setIsGenerationTypeOpen(true);
+              if (!clerkUser?.id) {
+                openSignIn({ redirectUrl: "/" });
+              } else {
+                setIsGenerationTypeOpen(true);
+              }
             }}
           >
-            <Wand className="h-5 w-5" /> Create Video
+            <Wand className="h-5 w-5" /> {clerkUser?.id ? "Create Video" : "Try it Free"}
           </Button>
         </motion.div>
 
@@ -308,6 +313,118 @@ export default function PageClient({
           </motion.div>
         )}
       </motion.div>
+
+      {/* Live Queue Activity */}
+      <LiveQueueActivity />
+
+      {/* How it works */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6"
+      >
+        <h2 className="text-xl font-bold">How it works</h2>
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
+              <MessageSquare className="h-5 w-5 text-pink-500" />
+            </div>
+            <p className="text-sm font-semibold">Pick a topic</p>
+            <p className="text-xs text-muted-foreground">Choose any topic and your favorite characters</p>
+          </div>
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
+              <Sparkles className="h-5 w-5 text-pink-500" />
+            </div>
+            <p className="text-sm font-semibold">AI generates</p>
+            <p className="text-xs text-muted-foreground">Our AI writes the script and creates your video</p>
+          </div>
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-500/10">
+              <Download className="h-5 w-5 text-pink-500" />
+            </div>
+            <p className="text-sm font-semibold">Download & share</p>
+            <p className="text-xs text-muted-foreground">Get your video and post it everywhere</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Not Trusted By marquee */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3 overflow-hidden"
+      >
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Definitely Not Trusted By
+        </p>
+        <div
+          className="relative flex w-full overflow-hidden"
+          style={{ "--duration": "25s", "--gap": "3rem" } as React.CSSProperties}
+        >
+          <div className="flex shrink-0 animate-marquee items-center gap-[--gap]">
+            {FAKE_COMPANIES.map((company, i) => (
+              <span
+                key={i}
+                className="whitespace-nowrap text-lg font-bold text-muted-foreground/40 select-none"
+              >
+                {company}
+              </span>
+            ))}
+          </div>
+          <div className="flex shrink-0 animate-marquee items-center gap-[--gap]" aria-hidden>
+            {FAKE_COMPANIES.map((company, i) => (
+              <span
+                key={i}
+                className="whitespace-nowrap text-lg font-bold text-muted-foreground/40 select-none"
+              >
+                {company}
+              </span>
+            ))}
+          </div>
+        </div>
+      </motion.div>
     </>
+  );
+}
+
+const FAKE_COMPANIES = [
+  "Harvard University",
+  "NASA",
+  "The White House",
+  "United Nations",
+  "MIT",
+  "Oxford University",
+  "The Vatican",
+  "Tesla",
+  "Your Mom's House",
+  "Area 51",
+  "Hogwarts",
+  "The Krusty Krab",
+];
+
+function LiveQueueActivity() {
+  const activeQueue = trpc.user.activeQueueCount.useQuery(undefined, {
+    refetchInterval: 10000,
+  });
+
+  const count = activeQueue.data?.count ?? 0;
+
+  if (count === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="mt-4 flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-2 text-sm text-muted-foreground"
+    >
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+      </span>
+      {count} video{count !== 1 ? "s" : ""} being generated right now
+    </motion.div>
   );
 }
