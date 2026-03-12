@@ -230,42 +230,6 @@ export default function PageClient({
           </Button>
         </motion.div>
 
-        <div className="flex w-full items-center justify-center">
-          <span className="text-lg text-muted-foreground">or</span>
-        </div>
-
-        {/* Deep Fish Promo Bar */}
-        <motion.div
-          variants={buttonVariantsAnimated}
-          className="flex justify-center"
-        >
-          <Link
-            href="https://deepfi.sh"
-            target="_blank"
-            className={cn(
-              buttonVariants({
-                variant: "outline",
-                size: "lg",
-                className:
-                  "group inline-flex w-80 items-center justify-center gap-3",
-              }),
-            )}
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Image
-                src="/deepfish.png"
-                width={24}
-                height={24}
-                alt="Deep Fish logo"
-                className="rounded-full"
-              />
-              <span className="text-lg">Build AI workflows</span>
-            </div>
-            <span className="text-sm font-medium transition-colors group-hover:text-accent-foreground">
-              →
-            </span>
-          </Link>
-        </motion.div>
 
         {/* <motion.div variants={buttonVariantsAnimated} className="w-full"> */}
         {/* <Link
