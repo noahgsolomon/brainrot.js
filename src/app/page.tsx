@@ -107,9 +107,6 @@ export default async function Home({
                 <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
                   BRAINROT
                 </h1>
-                <p className="mt-2 max-w-[300px] text-center text-lg text-muted-foreground">
-                  Turn any topic into a viral short-form video in seconds
-                </p>
                 <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
                   <NumberTicker value={59324} /> videos generated 💀
                 </p>
