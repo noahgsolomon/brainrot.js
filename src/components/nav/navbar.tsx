@@ -41,26 +41,29 @@ const NavBar = () => {
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
         } `}
       >
-        <div className="flex items-center justify-end px-[5%] py-3">
-          {/* <div>
+        <div className="flex items-center justify-between px-[5%] py-3">
+          <div>
             <Link href={"/"}>
               <Image
-                src={"https://images.smart.wtf/brain.gif"}
-                width={64}
-                height={64}
-                alt="brain"
-                className={cn(
-                  buttonVariants({ variant: "ghost" }),
-                  "h-14 w-14 cursor-pointer p-0 text-4xl opacity-80 transition-all hover:opacity-70",
-                )}
+                src={"/brainrot_new2.png"}
+                width={40}
+                height={40}
+                alt="Brainrot.js logo"
+                className="cursor-pointer opacity-90 transition-all hover:opacity-70"
               />
             </Link>
-          </div> */}
+          </div>
           <div className="flex items-center justify-end gap-4">
             <div className="coarse:hidden">
               <ThemeButton />
             </div>
 
+            <Link
+              href={"/blog"}
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Blog
+            </Link>
             {userId ? (
               <>
                 <UserButton />

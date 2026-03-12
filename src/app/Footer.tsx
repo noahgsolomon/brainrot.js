@@ -1,8 +1,9 @@
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TwitterLogoIcon } from "@radix-ui/react-icons";
+import { TwitterLogoIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const footerNavs = [
   {
@@ -10,11 +11,24 @@ const footerNavs = [
     items: [
       {
         href: "/",
-        name: "Home",
+        name: "Create Video",
       },
+      {
+        href: "/credits",
+        name: "Credits",
+      },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
       {
         href: "/blog",
         name: "Blog",
+      },
+      {
+        href: "https://github.com/noahgsolomon/brainrot.js",
+        name: "GitHub",
       },
     ],
   },
@@ -35,7 +49,12 @@ const footerNavs = [
 
 const footerSocials = [
   {
-    href: "https://twitter.com/brainrotjs",
+    href: "https://github.com/noahgsolomon/brainrot.js",
+    name: "GitHub",
+    icon: <GitHubLogoIcon className="size-4" />,
+  },
+  {
+    href: "https://twitter.com/noahgsolomon",
     name: "Twitter",
     icon: <TwitterLogoIcon className="size-4" />,
   },
@@ -47,37 +66,38 @@ export function Footer() {
       <div className="mx-auto w-full max-w-screen-xl px-4">
         <div className="gap-4 p-4 py-16 sm:pb-16 md:flex md:justify-between">
           <div className="mb-12 flex flex-col gap-4">
-            <a href="/" className="flex items-center gap-2">
-              <Image src="/brain.png" alt="brainrot.js" width={32} height={32} />
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/brainrot_new2.png"
+                width={32}
+                height={32}
+                alt="Brainrot.js logo"
+              />
               <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
-                brainrot.js
+                Brainrot.js
               </span>
-            </a>
+            </Link>
             <div className="max-w-sm">
-              <div className="z-10 mt-4 flex w-full flex-col items-start text-left">
-                <h1 className="text-3xl font-bold lg:text-2xl">
-                  Get started today.
-                </h1>
-                <p className="mt-2">
-                  Turn any topic into a brainrot video in seconds.
-                </p>
-                <a
-                  href="/signup"
-                  className={cn(
-                    buttonVariants({
-                      size: "lg",
-                      variant: "default",
-                    }),
-                    "group mt-4 w-full whitespace-nowrap rounded-[2rem] px-6",
-                  )}
-                >
-                  Sign Up Free
-                  <ChevronRight className="ml-1 size-4 transition-all duration-300 ease-out group-hover:translate-x-1" />
-                </a>
-              </div>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                AI-powered brainrot video generator. Create viral content with
+                celebrity voices and AI dialogue.
+              </p>
+              <Link
+                href="/signup"
+                className={cn(
+                  buttonVariants({
+                    size: "lg",
+                    variant: "default",
+                  }),
+                  "group mt-4 w-full whitespace-nowrap rounded-[2rem] px-6",
+                )}
+              >
+                Get Started
+                <ChevronRight className="ml-1 size-4 transition-all duration-300 ease-out group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
             {footerNavs.map((nav) => (
               <div key={nav.label}>
                 <h2 className="mb-6 text-sm font-semibold uppercase text-gray-900 dark:text-white">
@@ -119,7 +139,7 @@ export function Footer() {
           <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-center">
             Copyright © {new Date().getFullYear()}{" "}
             <a href="/" className="cursor-pointer">
-              brainrot.js
+              Brainrot.js
             </a>
             . All Rights Reserved.
           </span>
