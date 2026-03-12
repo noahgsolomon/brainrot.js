@@ -1,6 +1,7 @@
 import sys
 import time
 from pathlib import Path
+from urllib import request
 
 import fal
 from fal.container import ContainerImage
@@ -41,6 +42,13 @@ class HealthResponse(BaseModel):
     node: dict
 
 
+class EgressResponse(BaseModel):
+    ok: bool
+    url: str
+    status_code: int
+    checked_at: str
+
+
 class RemotionProxySpike(fal.App):
     app_name = "remotion-proxy-spike"
     local_python_modules = ["bridge"]
@@ -78,6 +86,23 @@ class RemotionProxySpike(fal.App):
     )
     def health(self) -> HealthResponse:
         return HealthResponse(ok=True, node=self.bridge.health())
+
+    @fal.endpoint("/egress")
+    def egress(self) -> EgressResponse:
+        url = "https://www.google.com/generate_204"
+        req = request.Request(
+            url=url,
+            headers={"User-Agent": "remotion-proxy-spike/1.0"},
+            method="GET",
+        )
+
+        with request.urlopen(req, timeout=10) as response:
+            return EgressResponse(
+                ok=True,
+                url=url,
+                status_code=response.status,
+                checked_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            )
 
     @fal.endpoint("/")
     def render(self, input: SpikeRequest) -> SpikeResponse:

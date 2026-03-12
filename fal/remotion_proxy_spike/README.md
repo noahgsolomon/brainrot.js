@@ -80,3 +80,7 @@ Once this is confirmed on fal, the next change is to replace the stub Node serve
 3. Run `selectComposition()` and `renderMedia()` in Node.
 4. Upload the result to S3.
 5. Return the S3 URL and metrics back through the fal response.
+
+## Extra endpoint
+
+- `/egress`: verifies outbound internet access from the fal runner by requesting `https://www.google.com/generate_204`
