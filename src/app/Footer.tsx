@@ -1,65 +1,20 @@
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LinkedInLogoIcon, TwitterLogoIcon } from "@radix-ui/react-icons";
-import { ChevronRight, HeartHandshake } from "lucide-react";
+import { TwitterLogoIcon } from "@radix-ui/react-icons";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 const footerNavs = [
   {
     label: "Product",
     items: [
       {
-        href: "/features",
-        name: "Features",
-      },
-      {
-        href: "/pricing",
-        name: "Pricing",
-      },
-      {
-        href: "/faq",
-        name: "FAQ",
-      },
-      {
-        href: "mailto:support@example.com",
-        name: "Support",
-      },
-    ],
-  },
-  {
-    label: "Company",
-    items: [
-      {
-        href: "/about",
-        name: "About Us",
+        href: "/",
+        name: "Home",
       },
       {
         href: "/blog",
         name: "Blog",
-      },
-      {
-        href: "/careers",
-        name: "Careers",
-      },
-      {
-        href: "/contact",
-        name: "Contact",
-      },
-    ],
-  },
-  {
-    label: "Resources",
-    items: [
-      {
-        href: "/docs",
-        name: "Documentation",
-      },
-      {
-        href: "/api",
-        name: "API Reference",
-      },
-      {
-        href: "/community",
-        name: "Community",
       },
     ],
   },
@@ -80,12 +35,7 @@ const footerNavs = [
 
 const footerSocials = [
   {
-    href: "/",
-    name: "Linkedin",
-    icon: <LinkedInLogoIcon className="size-4" />,
-  },
-  {
-    href: "/",
+    href: "https://twitter.com/brainrotjs",
     name: "Twitter",
     icon: <TwitterLogoIcon className="size-4" />,
   },
@@ -94,13 +44,13 @@ const footerSocials = [
 export function Footer() {
   return (
     <footer className="mt-32 border-t bg-card">
-      <div className="mx-auto w-full max-w-screen-xl   px-4">
+      <div className="mx-auto w-full max-w-screen-xl px-4">
         <div className="gap-4 p-4 py-16 sm:pb-16 md:flex md:justify-between">
           <div className="mb-12 flex flex-col gap-4">
             <a href="/" className="flex items-center gap-2">
-              <HeartHandshake className="size-8 text-black dark:text-white" />
+              <Image src="/brain.png" alt="brainrot.js" width={32} height={32} />
               <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
-                Magic UI
+                brainrot.js
               </span>
             </a>
             <div className="max-w-sm">
@@ -109,7 +59,7 @@ export function Footer() {
                   Get started today.
                 </h1>
                 <p className="mt-2">
-                  Start your 7-day free trial. No credit card required.
+                  Turn any topic into a brainrot video in seconds.
                 </p>
                 <a
                   href="/signup"
@@ -127,7 +77,7 @@ export function Footer() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6">
             {footerNavs.map((nav) => (
               <div key={nav.label}>
                 <h2 className="mb-6 text-sm font-semibold uppercase text-gray-900 dark:text-white">
@@ -157,6 +107,8 @@ export function Footer() {
               <a
                 key={social.name}
                 href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="fill-gray-500 text-gray-500 hover:fill-gray-900 hover:text-gray-900 dark:hover:fill-gray-600 dark:hover:text-gray-600"
               >
                 {social.icon}
@@ -167,7 +119,7 @@ export function Footer() {
           <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-center">
             Copyright © {new Date().getFullYear()}{" "}
             <a href="/" className="cursor-pointer">
-              Magic UI
+              brainrot.js
             </a>
             . All Rights Reserved.
           </span>
