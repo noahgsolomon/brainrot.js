@@ -148,6 +148,11 @@ export const userRouter = createTRPCRouter({
     return { user: user };
   }),
 
+  activeQueueCount: publicProcedure.query(async ({ ctx }) => {
+    const active = await ctx.db.query.pendingVideos.findMany();
+    return { count: active.length };
+  }),
+
   videoStatus: protectedProcedure.query(async ({ ctx }) => {
     const videos = await ctx.db.query.pendingVideos.findFirst({
       where: eq(pendingVideos.user_id, ctx.user_id),
