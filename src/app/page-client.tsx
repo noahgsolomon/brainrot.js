@@ -5,7 +5,11 @@ import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Crown, Folder, Loader2, Sparkles, Star, Wand, X, Download, MessageSquare } from "lucide-react";
+import {
+  Crown, Folder, Loader2, Sparkles, Star, Wand, X, Download, MessageSquare,
+  GraduationCap, Rocket, Landmark, Globe, Atom, Church, Zap, Home, FlaskConical,
+  Castle, Anchor,
+} from "lucide-react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/trpc/client";
@@ -355,33 +359,29 @@ export default function PageClient({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3 overflow-hidden"
+        className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3"
       >
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Definitely Not Trusted By
         </p>
         <div
-          className="relative flex w-full overflow-hidden"
-          style={{ "--duration": "25s", "--gap": "3rem" } as React.CSSProperties}
+          className="relative flex w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]"
+          style={{ "--duration": "30s", "--gap": "2.5rem" } as React.CSSProperties}
         >
           <div className="flex shrink-0 animate-marquee items-center gap-[--gap]">
             {FAKE_COMPANIES.map((company, i) => (
-              <span
-                key={i}
-                className="whitespace-nowrap text-lg font-bold text-muted-foreground/40 select-none"
-              >
-                {company}
-              </span>
+              <div key={i} className="flex items-center gap-2 text-muted-foreground/30 select-none">
+                <company.icon className="h-6 w-6 shrink-0" />
+                <span className="whitespace-nowrap text-sm font-semibold">{company.name}</span>
+              </div>
             ))}
           </div>
           <div className="flex shrink-0 animate-marquee items-center gap-[--gap]" aria-hidden>
             {FAKE_COMPANIES.map((company, i) => (
-              <span
-                key={i}
-                className="whitespace-nowrap text-lg font-bold text-muted-foreground/40 select-none"
-              >
-                {company}
-              </span>
+              <div key={i} className="flex items-center gap-2 text-muted-foreground/30 select-none">
+                <company.icon className="h-6 w-6 shrink-0" />
+                <span className="whitespace-nowrap text-sm font-semibold">{company.name}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -391,18 +391,17 @@ export default function PageClient({
 }
 
 const FAKE_COMPANIES = [
-  "Harvard University",
-  "NASA",
-  "The White House",
-  "United Nations",
-  "MIT",
-  "Oxford University",
-  "The Vatican",
-  "Tesla",
-  "Your Mom's House",
-  "Area 51",
-  "Hogwarts",
-  "The Krusty Krab",
+  { name: "Harvard", icon: GraduationCap },
+  { name: "NASA", icon: Rocket },
+  { name: "The White House", icon: Landmark },
+  { name: "United Nations", icon: Globe },
+  { name: "MIT", icon: Atom },
+  { name: "The Vatican", icon: Church },
+  { name: "Tesla", icon: Zap },
+  { name: "Your Mom's House", icon: Home },
+  { name: "Area 51", icon: FlaskConical },
+  { name: "Hogwarts", icon: Castle },
+  { name: "The Krusty Krab", icon: Anchor },
 ];
 
 function LiveQueueActivity() {
