@@ -28,10 +28,12 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
   const audioStore = useAudioStore();
 
   const userVideosQuery = trpc.user.userVideos.useQuery();
+  const userRapAudioQuery = trpc.user.userRapAudio.useQuery();
 
   useEffect(() => {
     if (refetchVideos) {
       userVideosQuery.refetch();
+      userRapAudioQuery.refetch();
       setRefetchVideos(false);
     }
   }, [refetchVideos]);
@@ -48,7 +50,6 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
     }[]
   >(userVideosQuery.data?.videos ?? []);
 
-  const userRapAudioQuery = trpc.user.userRapAudio.useQuery();
   const [rapAudio, setRapAudio] = useState<
     {
       id: number;

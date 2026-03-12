@@ -3,15 +3,25 @@ import http from "node:http";
 const port = Number(process.env.REMOTION_PROXY_PORT || "8765");
 const startedAt = Date.now();
 
+/**
+ * @param {import("node:http").ServerResponse} res
+ * @param {number} statusCode
+ * @param {unknown} payload
+ */
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { "Content-Type": "application/json" });
   res.end(JSON.stringify(payload));
 }
 
+/**
+ * @param {import("node:http").IncomingMessage} req
+ * @returns {Promise<Record<string, unknown>>}
+ */
 function readJsonBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
 
+    /** @param {Buffer | string} chunk */
     req.on("data", (chunk) => {
       body += chunk;
     });
@@ -33,6 +43,10 @@ function readJsonBody(req) {
   });
 }
 
+/**
+ * @param {import("node:http").IncomingMessage} req
+ * @param {import("node:http").ServerResponse} res
+ */
 const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/healthz") {
     sendJson(res, 200, {

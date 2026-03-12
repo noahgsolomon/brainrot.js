@@ -1,31 +1,26 @@
 import { db } from "@/server/db";
-import { pendingVideos, brainrotusers } from "@/server/db/schemas/users/schema";
+import { brainrotusers } from "@/server/db/schemas/users/schema";
+import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-async function insertRecordToDB(body: any, userId: number) {
-  await db.insert(pendingVideos).values({
-    user_id: userId,
-    agent1: body.agent1,
-    agent2: body.agent2,
-    title: body.topic,
-    videoId: body.videoId,
-    url: "",
-    timestamp: new Date(),
-    music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
-    credits: body.credits,
-    status: "Waiting in Queue",
-    videoMode: body.videoMode,
-    // rap mode stuff
-    outputType: body.outputType,
-    lyrics: body.lyrics,
-    audioUrl: body.audioUrl,
-    songName: body.songName,
-    artistName: body.artistName,
-    rapper: body.rapper,
-  });
-}
+const createRequestSchema = z.object({
+  topic: z.string().min(1).max(1000),
+  agent1: z.string().max(100).optional(),
+  agent2: z.string().max(100).optional(),
+  videoId: z.string().min(1).max(100),
+  music: z.string().max(100).optional(),
+  credits: z.number().int().nonnegative(),
+  videoMode: z.string().min(1).max(20),
+  outputType: z.string().max(20).optional(),
+  lyrics: z.string().optional(),
+  audioUrl: z.string().max(1000).optional(),
+  songName: z.string().max(255).optional(),
+  artistName: z.string().max(255).optional(),
+  rapper: z.string().max(255).optional(),
+});
 
 export async function POST(request: Request) {
   try {
@@ -53,13 +48,41 @@ export async function POST(request: Request) {
       return new Response("Unauthorized - Invalid API key", { status: 401 });
     }
 
-    const body = JSON.parse(await request.text());
+    const body = createRequestSchema.parse(await request.json());
 
     // Insert record into the database using the user_id from the API key lookup
-    await insertRecordToDB(body, user.id);
+    const pendingVideo = await createPendingVideoJob({
+      userId: user.id,
+      agent1: body.agent1,
+      agent2: body.agent2,
+      title: body.topic,
+      videoId: body.videoId,
+      music: body.music,
+      credits: body.credits,
+      videoMode: body.videoMode,
+      outputType: body.outputType,
+      lyrics: body.lyrics,
+      audioUrl: body.audioUrl,
+      songName: body.songName,
+      artistName: body.artistName,
+      rapper: body.rapper,
+    });
 
-    return new Response(null, { status: 200 });
+    return Response.json(
+      {
+        ok: true,
+        videoId: pendingVideo.videoId,
+      },
+      { status: 200 },
+    );
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json(
+        { ok: false, error: "Invalid create payload", issues: error.issues },
+        { status: 400 },
+      );
+    }
+
     console.error("Error processing POST request:", error);
     return new Response("Internal Server Error", { status: 500 });
   }
