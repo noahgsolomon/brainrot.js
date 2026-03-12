@@ -110,10 +110,15 @@ export const pendingVideos = mysqlTable(
     songName: varchar("song_name", { length: 255 }),
     artistName: varchar("artist_name", { length: 255 }),
     rapper: varchar("rapper", { length: 255 }),
+    falRequestId: varchar("fal_request_id", { length: 255 }),
+    falWebhookKeyHash: varchar("fal_webhook_key_hash", { length: 64 }),
+    falLastWebhookAt: datetime("fal_last_webhook_at", { mode: "date" }),
+    falError: text("fal_error"),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
     videoIdx: uniqueIndex("video_idx").on(t.videoId),
+    falRequestIdx: index("fal_request_idx").on(t.falRequestId),
     userIdxVideoIdx: uniqueIndex("user_idx_video_idx").on(t.user_id, t.videoId),
   }),
 );

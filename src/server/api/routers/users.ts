@@ -154,18 +154,36 @@ export const userRouter = createTRPCRouter({
   }),
 
   videoStatus: protectedProcedure.query(async ({ ctx }) => {
-    const videos = await ctx.db.query.pendingVideos.findFirst({
+    const pendingVideo = await ctx.db.query.pendingVideos.findFirst({
       where: eq(pendingVideos.user_id, ctx.user_id),
+      columns: {
+        id: true,
+        title: true,
+        status: true,
+        progress: true,
+        credits: true,
+        timestamp: true,
+        processId: true,
+      },
     });
 
-    if (videos) {
+    if (pendingVideo) {
       const allVideos = await ctx.db.query.pendingVideos.findMany({
         orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
       });
       const queueLength = allVideos.filter(
-        (v) => v.timestamp! < videos.timestamp! && v.processId === -1,
+        (v) => v.timestamp! < pendingVideo.timestamp! && v.processId === -1,
       ).length;
-      return { videos: videos, queueLength };
+      return {
+        videos: {
+          id: pendingVideo.id,
+          title: pendingVideo.title,
+          status: pendingVideo.status,
+          progress: pendingVideo.progress,
+          credits: pendingVideo.credits,
+        },
+        queueLength,
+      };
     } else return { videos: null };
   }),
   // Mutation to update the current user's username
