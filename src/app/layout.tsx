@@ -10,6 +10,7 @@ import { Background } from "@/components/ui/background";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { gaegu } from "../lib/fonts";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { Footer } from "./Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://brainrotjs.com"),
@@ -113,6 +114,7 @@ export default function RootLayout({
                   <NavBar />
                   <Background />
                   {children}
+                  <Footer />
                   <AudioPlayer />
                 </ProgressBarProvider>
               </Providers>
