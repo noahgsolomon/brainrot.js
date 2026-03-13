@@ -6,6 +6,7 @@ import {
   resolveBundledMusicPath,
   synthesizeMiniMaxSpeech,
 } from "./minimax_voice_registry.mjs";
+import { runPythonSrtPipeline } from "./python_srt_pipeline.mjs";
 
 const FAL_OPENROUTER_API_URL = "https://fal.run/openrouter/router";
 const DEFAULT_TRANSCRIPT_MODEL = "x-ai/grok-4.20-beta";
@@ -385,6 +386,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
       person: entry.agentId,
       index,
       path: outputPath,
+      text: entry.text,
     });
 
     const progress = 12 + Math.round(((index + 1) / transcript.length) * 6);
@@ -397,6 +399,13 @@ export async function runBrainrotTranscriptAudioJob(input) {
     );
   }
 
+  const subtitlePipelineResult = await runPythonSrtPipeline({
+    workDir,
+    audioFiles,
+    reportProgress: input.reportProgress,
+    useMockServices,
+  });
+
   await fs.writeFile(
     manifestPath,
     JSON.stringify(
@@ -407,6 +416,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
         agentB,
         music,
         audioFiles,
+        outputAudioPath: subtitlePipelineResult.outputAudioPath,
+        srtFiles: subtitlePipelineResult.srtFiles,
       },
       null,
       2,
@@ -437,6 +448,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
     contextPath,
     manifestPath,
     audioFiles,
+    outputAudioPath: subtitlePipelineResult.outputAudioPath,
+    srtFiles: subtitlePipelineResult.srtFiles,
     usedMockServices: useMockServices,
   };
 }
