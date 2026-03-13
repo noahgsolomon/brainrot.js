@@ -22,6 +22,8 @@ interface TimingSample {
   phaseTimings: string;
 }
 
+const QUEUE_STARTUP_BUFFER_MS = 15_000;
+
 export function normalizePhaseKey(status: string) {
   return status
     .trim()
@@ -314,6 +316,10 @@ export function estimateRemainingTime(input: {
         : input.samples.length >= 5
           ? "medium"
           : "low";
+  }
+
+  if (input.currentPhaseKey === "queued") {
+    estimatedMsRemaining += QUEUE_STARTUP_BUFFER_MS;
   }
 
   return {
