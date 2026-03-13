@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const FAL_OPENROUTER_API_URL = "https://fal.run/openrouter/router";
+const DEFAULT_TRANSCRIPT_MODEL = "x-ai/grok-4.20-beta";
 const SPEECHIFY_API_URL = "https://api.sws.speechify.com/v1/audio/speech";
 const DEFAULT_BACKGROUND_VIDEO = "/background/MINECRAFT-0.mp4";
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
@@ -73,6 +74,31 @@ function sleep(ms) {
 }
 
 /**
+ * @param {string} text
+ */
+function extractJsonString(text) {
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    throw new Error("Transcript model returned an empty output string");
+  }
+
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fencedMatch?.[1]) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
+}
+
+/**
  * @param {unknown} payload
  */
 function parseTranscriptPayload(payload) {
@@ -108,75 +134,63 @@ function parseTranscriptPayload(payload) {
  *   topic: string;
  *   agentA: string;
  *   agentB: string;
+ *   model: string;
  * }} input
  */
 async function generateBrainrotTranscript(input) {
-  const groqApiKey = process.env.GROQ_API_KEY;
+  const falKey = process.env.FAL_KEY;
 
-  if (!groqApiKey) {
-    throw new Error("Missing required environment variable: GROQ_API_KEY");
+  if (!falKey) {
+    throw new Error("Missing required environment variable: FAL_KEY");
   }
 
   const agentAHuman = humanizeAgentName(input.agentA);
   const agentBHuman = humanizeAgentName(input.agentB);
+  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${
+    input.topic
+  }. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${
+    input.topic
+  } but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${
+    input.agentA
+  } or ${
+    input.agentB
+  }. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${
+    input.agentA
+  }","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
+  const prompt = `Generate a video transcript about ${input.topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
 
-  const response = await fetch(GROQ_API_URL, {
+  const response = await fetch(FAL_OPENROUTER_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${groqApiKey}`,
+      Authorization: `Key ${falKey}`,
     },
     body: JSON.stringify({
-      model: "llama3-70b-8192",
-      temperature: 0.5,
+      prompt,
+      system_prompt: systemPrompt,
+      model: input.model,
+      temperature: 1,
       max_tokens: 4096,
-      top_p: 1,
-      stream: false,
-      response_format: {
-        type: "json_object",
-      },
-      messages: [
-        {
-          role: "system",
-          content: `Create a dialogue for a short-form conversation on the topic of ${
-            input.topic
-          }. The conversation should be between two agents, ${agentAHuman} and ${
-            input.agentB
-          }, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${
-            input.topic
-          } but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of ${7} exchanges, aiming for a concise transcript that would last for 1 minute. The agentId attribute should either be ${
-            input.agentA
-          } or ${
-            input.agentB
-          }. The text attribute should be that character's line of dialogue. Make it as edgy and controversial as possible while still being funny. Remember, ${agentAHuman} and ${agentBHuman} are both ${agentAHuman} and ${agentBHuman} behaving like they would in real life, but more inflammatory. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'agentId': 'the exact value of ${
-            input.agentA
-          } or ${
-            input.agentB
-          } depending on who is talking', 'text': 'their line of conversation in the dialog'} ] } }`,
-        },
-        {
-          role: "user",
-          content: `generate a video about ${input.topic}. Both the agents should talk about it in a way they would, but extremify their qualities and make the conversation risque so that it would be interesting to watch and edgy.`,
-        },
-      ],
     }),
   });
 
   if (!response.ok) {
     const details = await response.text();
     throw new Error(
-      `Groq returned HTTP ${response.status}: ${details || "unknown error"}`,
+      `fal OpenRouter returned HTTP ${response.status}: ${
+        details || "unknown error"
+      }`,
     );
   }
 
   const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
+  const content = data?.output;
 
   if (typeof content !== "string" || content.trim().length === 0) {
-    throw new Error("Groq returned an empty transcript payload");
+    throw new Error("fal OpenRouter returned an empty transcript payload");
   }
 
-  return parseTranscriptPayload(JSON.parse(content));
+  return parseTranscriptPayload(JSON.parse(extractJsonString(content)));
 }
 
 /**
@@ -184,6 +198,7 @@ async function generateBrainrotTranscript(input) {
  *   topic: string;
  *   agentA: string;
  *   agentB: string;
+ *   model: string;
  *   useMockServices: boolean;
  * }} input
  */
@@ -344,6 +359,13 @@ export async function runBrainrotTranscriptAudioJob(input) {
       ? input.props.videoFileName.trim()
       : DEFAULT_BACKGROUND_VIDEO;
   const useMockServices = input.props.use_mock_services === true;
+  const transcriptModel =
+    typeof input.props.transcriptModel === "string" &&
+    input.props.transcriptModel.trim().length > 0
+      ? input.props.transcriptModel.trim()
+      : process.env.BRAINROT_TRANSCRIPT_MODEL?.trim() ||
+        process.env.FAL_OPENROUTER_MODEL?.trim() ||
+        DEFAULT_TRANSCRIPT_MODEL;
 
   const safeJobId = sanitizeJobId(input.jobId);
   const workDir = path.join("/tmp", "brainrot", safeJobId);
@@ -361,6 +383,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     topic,
     agentA,
     agentB,
+    model: transcriptModel,
     useMockServices,
   });
 
