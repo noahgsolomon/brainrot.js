@@ -145,7 +145,9 @@ function parseTranscriptPayload(payload) {
   const transcript = candidatePayload.transcript;
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
-    throw new Error("Transcript model response did not include a transcript array");
+    throw new Error(
+      "Transcript model response did not include a transcript array",
+    );
   }
 
   return transcript.map((entry, index) => {
@@ -182,17 +184,7 @@ async function generateBrainrotTranscript(input) {
 
   const agentAHuman = humanizeAgentName(input.agentA);
   const agentBHuman = humanizeAgentName(input.agentB);
-  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${
-    input.topic
-  }. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${
-    input.topic
-  } but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${
-    input.agentA
-  } or ${
-    input.agentB
-  }. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${
-    input.agentA
-  }","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
+  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${input.topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${input.topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${input.agentA} or ${input.agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${input.agentA}","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
   const prompt = `Generate a video transcript about ${input.topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
 
   const response = await fetch(FAL_OPENROUTER_API_URL, {
@@ -272,7 +264,9 @@ async function getTranscriptWithRetry(input) {
     } catch (error) {
       lastError = error;
       console.error(
-        `[transcript] Primary model ${input.model} attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS} failed: ${
+        `[transcript] Primary model ${
+          input.model
+        } attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS} failed: ${
           error instanceof Error ? error.message : "unknown error"
         }`,
       );
@@ -290,14 +284,19 @@ async function getTranscriptWithRetry(input) {
 
   for (let wave = 1; wave <= FALLBACK_MODEL_MAX_WAVES; wave += 1) {
     console.log(
-      `[transcript] Starting fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} with models: ${fallbackModels.join(", ")}`,
+      `[transcript] Starting fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} with models: ${fallbackModels.join(
+        ", ",
+      )}`,
     );
 
     try {
       const winner = await Promise.any(
         fallbackModels.map(async (model) => {
           try {
-            const transcript = await generateBrainrotTranscript({ ...input, model });
+            const transcript = await generateBrainrotTranscript({
+              ...input,
+              model,
+            });
             return { model, transcript };
           } catch (error) {
             console.error(
@@ -330,7 +329,9 @@ async function getTranscriptWithRetry(input) {
   }
 
   throw new Error(
-    `Failed to generate valid transcript after trying primary model ${input.model} and fallback models (${fallbackModels.join(", ")}): ${
+    `Failed to generate valid transcript after trying primary model ${
+      input.model
+    } and fallback models (${fallbackModels.join(", ")}): ${
       lastError instanceof Error ? lastError.message : "unknown error"
     }`,
   );
