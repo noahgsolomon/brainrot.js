@@ -31,6 +31,27 @@ function isTerminalStatus(status: string | undefined) {
   return normalizedStatus === "COMPLETED" || normalizedStatus === "ERROR";
 }
 
+function formatEta(ms: number | null | undefined) {
+  if (ms === null || ms === undefined) {
+    return "Calculating...";
+  }
+
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${seconds}s`;
+}
+
 export default function TestPageClient() {
   const [lastStartedVideoId, setLastStartedVideoId] = useState<string | null>(
     null,
@@ -293,6 +314,19 @@ export default function TestPageClient() {
                     {currentPendingVideo && currentPendingVideo.progress > 0
                       ? 0
                       : videoStatusQuery.data?.queueLength ?? 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Est. time remaining</p>
+                  <p className="font-medium">
+                    {formatEta(currentPendingVideo?.estimatedMsRemaining)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">ETA confidence</p>
+                  <p className="font-medium">
+                    {currentPendingVideo?.etaConfidence ?? "none"} (
+                    {currentPendingVideo?.etaSampleSize ?? 0} samples)
                   </p>
                 </div>
                 <div>

@@ -142,8 +142,9 @@ export async function runPythonSrtPipeline({
   reportProgress,
   useMockServices,
 }) {
-  await reportProgress("Generating subtitle files", 20, {
+  await reportProgress("Generating subtitle files", 24, {
     phase: "brainrot_transcript_audio",
+    phaseKey: "subtitle_generation_start",
   });
 
   if (useMockServices) {
@@ -154,6 +155,7 @@ export async function runPythonSrtPipeline({
 
     await reportProgress("Subtitle files ready", 35, {
       phase: "brainrot_transcript_audio",
+      phaseKey: "subtitle_generation_complete",
       subtitleFileCount: mockResult.srtFiles.length,
     });
     return mockResult;
@@ -184,6 +186,7 @@ export async function runPythonSrtPipeline({
 
   await reportProgress("Subtitle files ready", 35, {
     phase: "brainrot_transcript_audio",
+    phaseKey: "subtitle_generation_complete",
     subtitleFileCount: Array.isArray(result.srtFiles) ? result.srtFiles.length : 0,
   });
 

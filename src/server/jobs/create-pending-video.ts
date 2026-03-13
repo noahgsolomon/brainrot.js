@@ -7,6 +7,10 @@ import {
   createFalWebhookKey,
   hashFalWebhookKey,
 } from "@/lib/fal-jobs";
+import {
+  createInitialTimingState,
+  serializeTimingState,
+} from "@/server/jobs/generation-timing";
 import { db } from "@/server/db";
 import { pendingVideos } from "@/server/db/schemas/users/schema";
 
@@ -34,6 +38,8 @@ export type CreatePendingVideoJobInput = z.infer<
 export async function createPendingVideoJob(input: CreatePendingVideoJobInput) {
   const job = createPendingVideoJobSchema.parse(input);
   const falWebhookKey = createFalWebhookKey();
+  const createdAt = new Date();
+  const initialTimingState = createInitialTimingState(createdAt);
 
   await db.insert(pendingVideos).values({
     user_id: job.userId,
@@ -42,7 +48,7 @@ export async function createPendingVideoJob(input: CreatePendingVideoJobInput) {
     title: job.title,
     videoId: job.videoId,
     url: "",
-    timestamp: new Date(),
+    timestamp: createdAt,
     music: job.music ?? "WII_SHOP_CHANNEL_TRAP",
     credits: job.credits,
     status: "Waiting in Queue",
@@ -54,6 +60,9 @@ export async function createPendingVideoJob(input: CreatePendingVideoJobInput) {
     artistName: job.artistName ?? null,
     rapper: job.rapper ?? null,
     falWebhookKeyHash: hashFalWebhookKey(falWebhookKey),
+    phaseKey: initialTimingState.currentPhaseKey,
+    phaseStartedAt: createdAt,
+    timingState: serializeTimingState(initialTimingState),
   });
 
   return {

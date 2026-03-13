@@ -114,11 +114,37 @@ export const pendingVideos = mysqlTable(
     falWebhookKeyHash: varchar("fal_webhook_key_hash", { length: 64 }),
     falLastWebhookAt: datetime("fal_last_webhook_at", { mode: "date" }),
     falError: text("fal_error"),
+    phaseKey: varchar("phase_key", { length: 100 }),
+    phaseStartedAt: datetime("phase_started_at", { mode: "date" }),
+    timingState: text("timing_state"),
   },
   (t) => ({
     userIdx: index("user_idx").on(t.user_id),
     videoIdx: uniqueIndex("video_idx").on(t.videoId),
     falRequestIdx: index("fal_request_idx").on(t.falRequestId),
     userIdxVideoIdx: uniqueIndex("user_idx_video_idx").on(t.user_id, t.videoId),
+  }),
+);
+
+export const generationTimingSamples = mysqlTable(
+  "generation-timing-samples",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    user_id: int("user_id").notNull(),
+    videoId: varchar("video_id", { length: 100 }).unique().notNull(),
+    videoMode: varchar("video_mode", { length: 20 }).notNull(),
+    outputType: varchar("output_type", { length: 20 }),
+    startedAt: datetime("started_at", { mode: "date" }).notNull(),
+    completedAt: datetime("completed_at", { mode: "date" }).notNull(),
+    success: boolean("success").notNull().default(true),
+    totalDurationMs: int("total_duration_ms").notNull(),
+    queueDurationMs: int("queue_duration_ms").notNull().default(0),
+    phaseTimings: text("phase_timings").notNull(),
+  },
+  (t) => ({
+    userIdx: index("user_idx").on(t.user_id),
+    videoIdx: uniqueIndex("video_idx").on(t.videoId),
+    completedIdx: index("completed_idx").on(t.completedAt),
+    modeIdx: index("mode_idx").on(t.videoMode, t.outputType),
   }),
 );

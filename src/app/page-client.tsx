@@ -54,6 +54,27 @@ const containerVariants = {
   },
 };
 
+function formatEta(ms: number | null | undefined) {
+  if (ms === null || ms === undefined) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${seconds}s`;
+}
+
 export default function PageClient({
   searchParams,
   initialPendingVideo,
@@ -192,11 +213,11 @@ export default function PageClient({
             </div>
             <div>
               <span className="font-bold">Est. time remaining: </span>{" "}
-              {(
-                (progress > 0 ? 0 : placeInQueue * 4) +
-                ((100 - progress) / 100) * 4
-              ).toFixed(2)}{" "}
-              mins
+              {formatEta(videoStatus.data?.videos?.estimatedMsRemaining) ??
+                `${(
+                  (progress > 0 ? 0 : placeInQueue * 4) +
+                  ((100 - progress) / 100) * 4
+                ).toFixed(2)} mins`}
             </div>
 
             <motion.div
