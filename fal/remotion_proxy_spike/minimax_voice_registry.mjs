@@ -24,6 +24,7 @@ const TRAINING_AUDIO_FILE_MAP = {
   DONALD_TRUMP: "trumpaudio.mp3",
   JOE_BIDEN: "joebidenaudio.mp3",
   JOE_ROGAN: "jreaudio.mp3",
+  JORDAN_PETERSON: "jordanpeterson.mp3",
   KAMALA_HARRIS: "kamala.mp3",
 };
 
