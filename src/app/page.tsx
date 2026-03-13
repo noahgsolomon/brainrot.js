@@ -5,9 +5,7 @@ import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import Tweets from "./tweets";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ProButton from "./ProButton";
 import { Crown } from "lucide-react";
 import BuyCreditsDialog from "./buy-credits-dialog";
@@ -91,88 +89,68 @@ export default async function Home({
               </AnimatedGradientText>
             </Link> */}
 
-            <Link href={"https://x.com/brainrotjs"} target="_blank">
-              <Image
-                title="Brainrot"
-                src={"/brainrot_new2.png"}
-                width={200}
-                height={200}
-                alt="brainrot"
-                className="h-[200px] w-[200px] cursor-pointer rounded-full border-card bg-background shadow-lg transition-all hover:scale-[101%] active:scale-[99%] dark:border-primary coarse:h-[150px] coarse:w-[150px] coarse:border-[5px]"
-              />
-            </Link>
-
-            <div className=" flex flex-col items-center gap-2">
-              <div>
-                <h1 className="relative max-w-[10ch] text-center text-5xl font-bold lg:text-6xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-row items-center justify-center gap-3">
+                <Link href={"https://x.com/brainrotjs"} target="_blank">
+                  <Image
+                    title="Brainrot"
+                    src={"/brainrot_new2.png"}
+                    width={48}
+                    height={48}
+                    alt="brainrot"
+                    className="h-[48px] w-[48px] cursor-pointer rounded-full border-card bg-background shadow-lg transition-all hover:scale-[105%] active:scale-[95%] dark:border-primary"
+                  />
+                </Link>
+                <h1 className="relative text-center text-5xl font-bold lg:text-6xl">
                   BRAINROT
                 </h1>
-                <p className="mt-2 max-w-[300px] text-center text-lg text-muted-foreground">
-                  Turn any topic into a viral short-form video in seconds
-                </p>
-                <p className="flex w-full flex-row items-center justify-center gap-1 p-2 text-base font-normal italic">
-                  <NumberTicker value={59324} /> videos generated 💀
-                </p>
               </div>
+              <p className="mt-1 max-w-[300px] text-center text-lg text-muted-foreground">
+                Turn any topic into a viral short-form video in seconds
+              </p>
+              <p className="flex w-full flex-row items-center justify-center gap-1 text-base font-normal italic">
+                <NumberTicker value={59324} /> videos generated 💀
+              </p>
             </div>
 
-            {userDB && userDB?.user ? (
-              <Card
-                className={` ${
-                  !userDB?.user?.subscribed
-                    ? "max-w-xl"
-                    : "flex flex-col items-center justify-center"
-                } border-none bg-transparent shadow-none`}
-              >
-                <CardContent>
-                  <div
-                    className={`grid w-full gap-6 pt-4 ${
-                      !userDB?.user?.subscribed ? "sm:grid-cols-2" : ""
-                    }`}
-                  >
-                    {userDB?.user?.subscribed ? null : (
-                      <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
-                        <h3 className="text-lg font-semibold text-secondary-foreground">
-                          Go Pro
-                        </h3>
-                        <div className="flex flex-col items-start gap-2">
-                          <p className="text-sm text-secondary-foreground/80">
-                            Generate 25 videos, 60 FPS, all agents, perfect
-                            subtitles
-                          </p>
-                        </div>
-                        <ProButton>
-                          <Button
-                            data-action="subscribe"
-                            className="mt-2 flex w-full flex-row items-center justify-center gap-2"
-                            size="lg"
-                          >
-                            GO PRO <Crown className="size-4" />
-                          </Button>
-                        </ProButton>
-                      </div>
-                    )}
-
-                    <div className="flex flex-col justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
-                      <h3 className="text-lg font-semibold text-secondary-foreground">
-                        Buy Credits
-                      </h3>
-                      <div className="flex flex-col items-start gap-2">
-                        <p className="text-sm text-secondary-foreground/80">
-                          Purchase credits for individual videos
-                        </p>
-                      </div>
-                      <BuyCreditsDialog />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
             <PageClient
               searchParams={searchParams}
               initialPendingVideo={pendingVideo}
               clerkUser={safeUserData}
             />
+            {userDB && userDB?.user ? (
+              <div className="flex w-80 flex-col gap-3">
+                {userDB?.user?.subscribed ? null : (
+                  <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+                    <h3 className="text-base font-semibold text-secondary-foreground">
+                      Go Pro
+                    </h3>
+                    <p className="text-sm text-secondary-foreground/80">
+                      Generate 25 videos, 60 FPS, all agents, perfect
+                      subtitles
+                    </p>
+                    <ProButton>
+                      <Button
+                        data-action="subscribe"
+                        className="mt-1 flex w-full flex-row items-center justify-center gap-2"
+                        size="lg"
+                      >
+                        GO PRO <Crown className="size-4" />
+                      </Button>
+                    </ProButton>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+                  <h3 className="text-base font-semibold text-secondary-foreground">
+                    Buy Credits
+                  </h3>
+                  <p className="text-sm text-secondary-foreground/80">
+                    Purchase credits for individual videos
+                  </p>
+                  <BuyCreditsDialog />
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
         {/* <p className="max-w-[300px] pt-12 text-center italic">
