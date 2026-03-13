@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/trpc/client";
+import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
 
 function isTerminalStatus(status: string | undefined) {
   if (!status) {
@@ -29,27 +30,6 @@ function isTerminalStatus(status: string | undefined) {
 
   const normalizedStatus = status.toUpperCase();
   return normalizedStatus === "COMPLETED" || normalizedStatus === "ERROR";
-}
-
-function formatEta(ms: number | null | undefined) {
-  if (ms === null || ms === undefined) {
-    return "Calculating...";
-  }
-
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-
-  return `${seconds}s`;
 }
 
 export default function TestPageClient() {
@@ -156,6 +136,10 @@ export default function TestPageClient() {
   const currentPendingStatus = currentPendingVideo?.status?.toUpperCase();
   const hasActivePendingJob =
     !!currentPendingVideo && !isTerminalStatus(currentPendingVideo.status);
+  const liveEstimatedMsRemaining = useLiveEta(
+    currentPendingVideo?.estimatedMsRemaining,
+    hasActivePendingJob,
+  );
 
   const matchingCompletedVideo = useMemo(() => {
     if (!userVideosQuery.data?.videos?.length) {
@@ -319,7 +303,7 @@ export default function TestPageClient() {
                 <div>
                   <p className="text-muted-foreground">Est. time remaining</p>
                   <p className="font-medium">
-                    {formatEta(currentPendingVideo?.estimatedMsRemaining)}
+                    {formatEtaSeconds(liveEstimatedMsRemaining) ?? "Calculating..."}
                   </p>
                 </div>
                 <div>

@@ -25,6 +25,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
 
 const buttonVariantsAnimated = {
   initial: { opacity: 0, y: 20 },
@@ -53,27 +54,6 @@ const containerVariants = {
     },
   },
 };
-
-function formatEta(ms: number | null | undefined) {
-  if (ms === null || ms === undefined) {
-    return null;
-  }
-
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-
-  return `${seconds}s`;
-}
 
 export default function PageClient({
   searchParams,
@@ -117,6 +97,16 @@ export default function PageClient({
   const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("Waiting in Queue");
+  const fallbackEstimatedMs =
+    pendingVideo && status !== "COMPLETED" && status !== "ERROR"
+      ? ((progress > 0 ? 0 : placeInQueue * 4) +
+          ((100 - progress) / 100) * 4) *
+        60_000
+      : null;
+  const liveEstimatedMsRemaining = useLiveEta(
+    videoStatus.data?.videos?.estimatedMsRemaining ?? fallbackEstimatedMs,
+    pendingVideo && status !== "COMPLETED" && status !== "ERROR",
+  );
 
   const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
     onSuccess: () => {
@@ -213,11 +203,7 @@ export default function PageClient({
             </div>
             <div>
               <span className="font-bold">Est. time remaining: </span>{" "}
-              {formatEta(videoStatus.data?.videos?.estimatedMsRemaining) ??
-                `${(
-                  (progress > 0 ? 0 : placeInQueue * 4) +
-                  ((100 - progress) / 100) * 4
-                ).toFixed(2)} mins`}
+              {formatEtaSeconds(liveEstimatedMsRemaining) ?? "Estimating..."}
             </div>
 
             <motion.div
