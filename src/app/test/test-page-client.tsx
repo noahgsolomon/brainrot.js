@@ -131,6 +131,9 @@ export default function TestPageClient() {
         (video) => video.videoId === lastStartedVideoId,
       ) ??
       userVideosQuery.data.videos.find(
+        (video) => video.title === "fal remotion render test",
+      ) ??
+      userVideosQuery.data.videos.find(
         (video) => video.title === "fal webhook smoke test",
       ) ??
       null
@@ -398,20 +401,39 @@ export default function TestPageClient() {
             <p className="font-medium">Final video row</p>
             <p className="mt-1 text-muted-foreground">
               Once the webhook sends `COMPLETED`, the app inserts a new row into
-              `videos` with a sample MP4 URL.
+              `videos` and the finished asset should appear right here.
             </p>
+            {lastTerminalStatus === "COMPLETED" && !matchingCompletedVideo ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Completion landed, waiting for the new `videos` row to refresh.
+              </p>
+            ) : null}
             {matchingCompletedVideo ? (
-              <Link
-                href={matchingCompletedVideo.url}
-                target="_blank"
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "mt-3 w-full gap-2",
-                })}
-              >
-                Open completed sample video
-                <ExternalLink className="h-4 w-4" />
-              </Link>
+              <div className="mt-3 space-y-3">
+                <div className="overflow-hidden rounded-xl border bg-black">
+                  <video
+                    key={matchingCompletedVideo.url}
+                    src={matchingCompletedVideo.url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="aspect-[9/16] w-full bg-black object-contain"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <Link
+                  href={matchingCompletedVideo.url}
+                  target="_blank"
+                  className={buttonVariants({
+                    variant: "outline",
+                    className: "w-full gap-2",
+                  })}
+                >
+                  Open completed video
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              </div>
             ) : null}
           </div>
 
