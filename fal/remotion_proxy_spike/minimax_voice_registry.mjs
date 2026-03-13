@@ -14,7 +14,7 @@ const TRAINING_AUDIO_DIR_CANDIDATES = [
 ];
 const MUSIC_DIR_CANDIDATES = [
   path.resolve(__dirname, "../../generate/public/music"),
-  "/app/remotion_runtime/public/music",
+  "/app/generate/public/music",
 ];
 
 const TRAINING_AUDIO_FILE_MAP = {

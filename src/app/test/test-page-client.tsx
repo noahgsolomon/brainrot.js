@@ -87,21 +87,6 @@ export default function TestPageClient() {
       },
     },
   );
-  const startFalRemotionRenderTestMutation =
-    trpc.user.startFalRemotionRenderTest.useMutation({
-      onSuccess: (data) => {
-        setLastStartedVideoId(data.videoId);
-        setLastRequestId(data.requestId);
-        setLastTerminalStatus(null);
-        setHandledTerminalPendingId(null);
-        toast.success("Submitted fal Remotion render test.");
-        void videoStatusQuery.refetch();
-      },
-      onError: (error) => {
-        toast.error(error.message);
-        void videoStatusQuery.refetch();
-      },
-    });
   const startFalBrainrotRenderTestMutation =
     trpc.user.startFalBrainrotRenderTest.useMutation({
       onSuccess: (data) => {
@@ -340,29 +325,7 @@ export default function TestPageClient() {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="flex flex-wrap gap-3">
-              <Button
-                className="gap-2"
-                disabled={
-                  hasActivePendingJob ||
-                  startFalRemotionRenderTestMutation.isLoading
-                }
-                onClick={() => startFalRemotionRenderTestMutation.mutate()}
-              >
-                {startFalRemotionRenderTestMutation.isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                Start fal Remotion render test
-              </Button>
-            </div>
-
-            <div className="rounded-xl border bg-background/80 p-4 text-sm text-muted-foreground">
-              Expect a very short vertical black video with centered white text.
-              If it works, the webhook will mark the pending row
-              `COMPLETED` and the finished MP4 will show up in your normal
-              `videos` list.
-            </div>
+              </div>
           </CardContent>
         </Card>
         <Card>
