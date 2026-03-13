@@ -181,8 +181,9 @@ export async function runBrainrotLambdaRenderJob(input) {
     reportProgress: input.reportProgress,
   });
 
-  await input.reportProgress("Preparing Remotion Lambda project", 24, {
+  await input.reportProgress("Preparing Remotion Lambda project", 42, {
     phase: "brainrot_lambda_render",
+    phaseKey: "lambda_project_prepare",
   });
 
   const templateDir = await findGenerateTemplateDir();
@@ -192,6 +193,11 @@ export async function runBrainrotLambdaRenderJob(input) {
     prepResult,
   });
 
+  await input.reportProgress("Remotion Lambda project ready", 48, {
+    phase: "brainrot_lambda_render",
+    phaseKey: "lambda_project_ready",
+  });
+
   const remotionBinary = path.join(
     templateDir,
     "node_modules",
@@ -199,8 +205,9 @@ export async function runBrainrotLambdaRenderJob(input) {
     "remotion",
   );
 
-  await input.reportProgress("Uploading Lambda render site", 42, {
+  await input.reportProgress("Uploading Lambda render site", 56, {
     phase: "brainrot_lambda_render",
+    phaseKey: "lambda_site_upload_start",
     siteName,
   });
 
@@ -225,8 +232,16 @@ export async function runBrainrotLambdaRenderJob(input) {
     }),
   );
 
-  await input.reportProgress("Rendering on Remotion Lambda", 68, {
+  await input.reportProgress("Lambda render site uploaded", 64, {
     phase: "brainrot_lambda_render",
+    phaseKey: "lambda_site_upload_complete",
+    siteName,
+    serveUrl,
+  });
+
+  await input.reportProgress("Rendering on Remotion Lambda", 72, {
+    phase: "brainrot_lambda_render",
+    phaseKey: "lambda_render_start",
     siteName,
     serveUrl,
   });
@@ -253,6 +268,7 @@ export async function runBrainrotLambdaRenderJob(input) {
 
   await input.reportProgress("Lambda render finished", 97, {
     phase: "brainrot_lambda_render",
+    phaseKey: "lambda_render_complete",
     outputVideoUrl,
   });
 

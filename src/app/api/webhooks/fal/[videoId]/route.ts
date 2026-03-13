@@ -2,10 +2,16 @@ import { FAL_JOB_KEY_HEADER, verifyFalWebhookKey } from "@/lib/fal-jobs";
 import { db } from "@/server/db";
 import {
   brainrotusers,
+  generationTimingSamples,
   pendingVideos,
   rapAudio,
   videos,
 } from "@/server/db/schemas/users/schema";
+import {
+  applyTimingProgressUpdate,
+  buildTimingSample,
+  serializeTimingState,
+} from "@/server/jobs/generation-timing";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -16,6 +22,7 @@ const falWebhookSchema = z.object({
   requestId: z.string().max(255).optional(),
   status: z.string().min(1).max(500),
   progress: z.number().int().min(0).max(100).optional(),
+  phaseKey: z.string().min(1).max(100).optional(),
   url: z.string().max(1000).optional(),
   error: z.string().optional(),
 });
@@ -52,12 +59,27 @@ export async function POST(
       return new Response("Invalid fal job key", { status: 401 });
     }
 
+    const now = new Date();
     await db.transaction(async (tx) => {
       const updates: Partial<typeof pendingVideos.$inferInsert> = {
         status: payload.status,
         processId: 0,
-        falLastWebhookAt: new Date(),
+        falLastWebhookAt: now,
       };
+      const createdAt = pendingVideo.timestamp ?? now;
+      const effectiveProgress = payload.progress ?? pendingVideo.progress ?? 0;
+      const timingUpdate = applyTimingProgressUpdate({
+        existingTimingState: pendingVideo.timingState,
+        createdAt,
+        now,
+        status: payload.status,
+        progress: effectiveProgress,
+        phaseKey: payload.phaseKey,
+      });
+
+      updates.phaseKey = timingUpdate.phaseKey;
+      updates.phaseStartedAt = timingUpdate.phaseStartedAt;
+      updates.timingState = serializeTimingState(timingUpdate.timingState);
 
       if (payload.requestId) {
         updates.falRequestId = payload.requestId;
@@ -82,6 +104,14 @@ export async function POST(
 
         updates.progress = 100;
         updates.status = "COMPLETED";
+        const timingSample = buildTimingSample({
+          existingTimingState: updates.timingState,
+          createdAt,
+          completedAt: now,
+        });
+        updates.phaseKey = null;
+        updates.phaseStartedAt = null;
+        updates.timingState = serializeTimingState(timingSample.finalizedState);
 
         if (
           pendingVideo.videoMode === "rap" &&
@@ -117,10 +147,38 @@ export async function POST(
             });
           }
         }
+
+        const existingTimingSample =
+          await tx.query.generationTimingSamples.findFirst({
+            where: eq(generationTimingSamples.videoId, pendingVideo.videoId),
+          });
+
+        if (!existingTimingSample) {
+          await tx.insert(generationTimingSamples).values({
+            user_id: pendingVideo.user_id,
+            videoId: pendingVideo.videoId,
+            videoMode: pendingVideo.videoMode,
+            outputType: pendingVideo.outputType ?? null,
+            startedAt: createdAt,
+            completedAt: now,
+            success: true,
+            totalDurationMs: timingSample.totalDurationMs,
+            queueDurationMs: timingSample.queueDurationMs,
+            phaseTimings: JSON.stringify(timingSample.phaseTimings),
+          });
+        }
       }
 
       if (isErrorStatus(payload.status)) {
         updates.status = "ERROR";
+        const timingSample = buildTimingSample({
+          existingTimingState: updates.timingState,
+          createdAt,
+          completedAt: now,
+        });
+        updates.phaseKey = null;
+        updates.phaseStartedAt = null;
+        updates.timingState = serializeTimingState(timingSample.finalizedState);
 
         if (pendingVideo.status !== "ERROR") {
           const user = await tx.query.brainrotusers.findFirst({
@@ -135,6 +193,26 @@ export async function POST(
               })
               .where(eq(brainrotusers.id, user.id));
           }
+        }
+
+        const existingTimingSample =
+          await tx.query.generationTimingSamples.findFirst({
+            where: eq(generationTimingSamples.videoId, pendingVideo.videoId),
+          });
+
+        if (!existingTimingSample) {
+          await tx.insert(generationTimingSamples).values({
+            user_id: pendingVideo.user_id,
+            videoId: pendingVideo.videoId,
+            videoMode: pendingVideo.videoMode,
+            outputType: pendingVideo.outputType ?? null,
+            startedAt: createdAt,
+            completedAt: now,
+            success: false,
+            totalDurationMs: timingSample.totalDurationMs,
+            queueDurationMs: timingSample.queueDurationMs,
+            phaseTimings: JSON.stringify(timingSample.phaseTimings),
+          });
         }
       }
 

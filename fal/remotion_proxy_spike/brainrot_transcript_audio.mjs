@@ -97,7 +97,8 @@ async function mapWithConcurrency(items, concurrency, mapper) {
         return;
       }
 
-      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+      const item = /** @type {T} */ (items[currentIndex]);
+      results[currentIndex] = await mapper(item, currentIndex);
     }
   }
 
@@ -443,8 +444,14 @@ export async function runBrainrotTranscriptAudioJob(input) {
     await resolveBundledMusicPath(music);
   }
 
-  await input.reportProgress("Generating transcript", 0, {
+  await input.reportProgress("Preparing transcript request", 2, {
     phase: "brainrot_transcript_audio",
+    phaseKey: "transcript_prepare",
+  });
+
+  await input.reportProgress("Generating transcript", 4, {
+    phase: "brainrot_transcript_audio",
+    phaseKey: "transcript_generation",
   });
 
   const transcript = await getTranscriptWithRetry({
@@ -467,15 +474,28 @@ export async function runBrainrotTranscriptAudioJob(input) {
     "utf8",
   );
 
+  await input.reportProgress("Transcript ready", 8, {
+    phase: "brainrot_transcript_audio",
+    phaseKey: "transcript_ready",
+    transcriptLineCount: transcript.length,
+  });
+
   if (!useMockServices) {
     await input.reportProgress("Preparing MiniMax voice assets", 10, {
       phase: "brainrot_transcript_audio",
+      phaseKey: "voice_assets_prepare",
     });
     await prepareMiniMaxAssets();
+
+    await input.reportProgress("MiniMax voice assets ready", 12, {
+      phase: "brainrot_transcript_audio",
+      phaseKey: "voice_assets_ready",
+    });
   }
 
-  await input.reportProgress("Generating audio", 12, {
+  await input.reportProgress("Generating audio", 14, {
     phase: "brainrot_transcript_audio",
+    phaseKey: "audio_generation_start",
     transcriptLineCount: transcript.length,
   });
 
@@ -501,13 +521,14 @@ export async function runBrainrotTranscriptAudioJob(input) {
       completedAudioCount += 1;
       const currentCompletedCount = completedAudioCount;
       const progress =
-        12 + Math.round((currentCompletedCount / transcript.length) * 6);
+        14 + Math.round((currentCompletedCount / transcript.length) * 8);
       audioProgressChain = audioProgressChain.then(() =>
         input.reportProgress(
           `Generating audio (${currentCompletedCount}/${transcript.length})`,
           progress,
           {
             phase: "brainrot_transcript_audio",
+            phaseKey: "audio_generation",
           },
         ),
       );
@@ -559,8 +580,9 @@ export async function runBrainrotTranscriptAudioJob(input) {
     "utf8",
   );
 
-  await input.reportProgress("Transcript and voice clips ready", 36, {
+  await input.reportProgress("Transcript and voice clips ready", 38, {
     phase: "brainrot_transcript_audio",
+    phaseKey: "brainrot_prep_complete",
   });
 
   return {
