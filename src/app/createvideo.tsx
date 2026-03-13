@@ -500,7 +500,7 @@ export default function CreateVideo({
                 <Image
                   height={30}
                   width={30}
-                  src={"https://images.smart.wtf/book.gif"}
+                  src={"/book.gif"}
                   alt="book"
                 />
               </motion.div>
@@ -548,7 +548,7 @@ export default function CreateVideo({
                 <Image
                   height={20}
                   width={20}
-                  src={"https://images.smart.wtf/fireball.gif"}
+                  src={"/fire.gif"}
                   alt="fire"
                 />
               </motion.div>
@@ -574,7 +574,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
@@ -602,7 +602,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
@@ -630,7 +630,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
@@ -659,7 +659,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
@@ -689,7 +689,7 @@ export default function CreateVideo({
                         }`}
                         height={75}
                         width={75}
-                        src={"https://images.smart.wtf/fireball.gif"}
+                        src={"/fireball.gif"}
                         alt="fire"
                       />
                       <Image
@@ -719,7 +719,7 @@ export default function CreateVideo({
                       }`}
                       height={75}
                       width={75}
-                      src={"https://images.smart.wtf/fireball.gif"}
+                      src={"/fireball.gif"}
                       alt="fire"
                     />
                     <Image
@@ -750,7 +750,7 @@ export default function CreateVideo({
                         }`}
                         height={75}
                         width={75}
-                        src={"https://images.smart.wtf/fireball.gif"}
+                        src={"/fireball.gif"}
                         alt="fire"
                       />
                       <Image
@@ -780,7 +780,7 @@ export default function CreateVideo({
                       }`}
                       height={75}
                       width={75}
-                      src={"https://images.smart.wtf/fireball.gif"}
+                      src={"/fireball.gif"}
                       alt="fire"
                     />
                     <Image
@@ -811,7 +811,7 @@ export default function CreateVideo({
                         }`}
                         height={75}
                         width={75}
-                        src={"https://images.smart.wtf/fireball.gif"}
+                        src={"/fireball.gif"}
                         alt="fire"
                       />
                       <Image
@@ -841,7 +841,7 @@ export default function CreateVideo({
                       }`}
                       height={75}
                       width={75}
-                      src={"https://images.smart.wtf/fireball.gif"}
+                      src={"/fireball.gif"}
                       alt="fire"
                     />
                     <Image
@@ -872,7 +872,7 @@ export default function CreateVideo({
                         }`}
                         height={75}
                         width={75}
-                        src={"https://images.smart.wtf/fireball.gif"}
+                        src={"/fireball.gif"}
                         alt="fire"
                       />
                       <Image
@@ -902,7 +902,7 @@ export default function CreateVideo({
                       }`}
                       height={75}
                       width={75}
-                      src={"https://images.smart.wtf/fireball.gif"}
+                      src={"/fireball.gif"}
                       alt="fire"
                     />
                     <Image
@@ -954,7 +954,7 @@ export default function CreateVideo({
                         }`}
                         height={75}
                         width={75}
-                        src={"https://images.smart.wtf/fireball.gif"}
+                        src={"/fireball.gif"}
                         alt="fire"
                       />
                       <Image
@@ -1008,7 +1008,7 @@ export default function CreateVideo({
                               }`}
                               height={75}
                               width={75}
-                              src={"https://images.smart.wtf/fireball.gif"}
+                              src={"/fireball.gif"}
                               alt="fire"
                             />
                             <Image
@@ -1196,7 +1196,7 @@ export default function CreateVideo({
                 <Image
                   height={20}
                   width={20}
-                  src={"https://images.smart.wtf/fireball.gif"}
+                  src={"/fire.gif"}
                   alt="fire"
                 />
               </motion.div>
@@ -1222,7 +1222,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
@@ -1250,7 +1250,7 @@ export default function CreateVideo({
                     }`}
                     height={75}
                     width={75}
-                    src={"https://images.smart.wtf/fireball.gif"}
+                    src={"/fireball.gif"}
                     alt="fire"
                   />
                   <Image
