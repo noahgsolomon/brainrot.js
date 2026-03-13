@@ -248,18 +248,26 @@ class RemotionProxySpike(fal.App):
                 video_url = candidate_url
                 node_response["hostedVideoUrl"] = video_url
 
+            thumbnail_url: str | None = None
+            raw_thumbnail = node_response.get("thumbnailUrl")
+            if isinstance(raw_thumbnail, str) and raw_thumbnail:
+                thumbnail_url = raw_thumbnail
+
             if video_url is not None and input.callback_url:
                 print(
-                    f"[app.py] /render sending COMPLETED callback with url={video_url}"
+                    f"[app.py] /render sending COMPLETED callback with url={video_url} thumbnail={thumbnail_url}"
                 )
+                completed_payload: dict = {
+                    "status": "COMPLETED",
+                    "progress": 100,
+                    "url": video_url,
+                }
+                if thumbnail_url:
+                    completed_payload["thumbnailUrl"] = thumbnail_url
                 self._post_callback(
                     input.callback_url,
                     input.callback_headers,
-                    {
-                        "status": "COMPLETED",
-                        "progress": 100,
-                        "url": video_url,
-                    },
+                    completed_payload,
                 )
 
             print(f"[app.py] /render done — job_id={input.job_id}")

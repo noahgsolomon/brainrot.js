@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 
+import { fal } from "@fal-ai/client";
 import { runBrainrotTranscriptAudioJob } from "./brainrot_transcript_audio.mjs";
 
 const execFileP = promisify(execFile);
@@ -266,11 +267,44 @@ export async function runBrainrotLambdaRenderJob(input) {
     }),
   );
 
-  await input.reportProgress("Lambda render finished", 97, {
+  await input.reportProgress("Lambda render finished", 95, {
     phase: "brainrot_lambda_render",
     phaseKey: "lambda_render_complete",
     outputVideoUrl,
   });
+
+  let thumbnailUrl = null;
+  try {
+    await input.reportProgress("Extracting thumbnail", 97, {
+      phase: "brainrot_lambda_render",
+      phaseKey: "thumbnail_extract",
+    });
+
+    const falKey = process.env.FAL_KEY?.trim();
+    if (falKey) {
+      fal.config({ credentials: falKey });
+    }
+
+    const frameResult = await fal.subscribe("fal-ai/ffmpeg-api/extract-frame", {
+      input: {
+        video_url: outputVideoUrl,
+        frame_type: "middle",
+      },
+    });
+
+    const images = frameResult.data?.images;
+    if (images && images.length > 0 && images[0].url) {
+      thumbnailUrl = images[0].url;
+      console.log(JSON.stringify({ type: "thumbnail_extracted", thumbnailUrl }));
+    }
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        type: "thumbnail_extract_error",
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+  }
 
   return {
     phase: "brainrot_lambda_render",
@@ -283,5 +317,6 @@ export async function runBrainrotLambdaRenderJob(input) {
     outputAudioPath: prepResult.outputAudioPath,
     srtFiles: prepResult.srtFiles,
     outputVideoUrl,
+    thumbnailUrl,
   };
 }

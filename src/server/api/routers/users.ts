@@ -505,6 +505,35 @@ export const userRouter = createTRPCRouter({
       return { videos: userVideosDb };
     }),
 
+  getLatestGenerations: publicProcedure.query(async ({ ctx }) => {
+    const results = await ctx.db
+      .select({
+        id: videos.id,
+        title: videos.title,
+        url: videos.url,
+        thumbnail: videos.thumbnail,
+        agent1: videos.agent1,
+        agent2: videos.agent2,
+      })
+      .from(videos)
+      .where(
+        sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
+      )
+      .innerJoin(
+        sql`(
+          SELECT MAX(id) as max_id
+          FROM videos
+          WHERE thumbnail IS NOT NULL AND thumbnail != ''
+          GROUP BY title
+        ) AS latest`,
+        sql`${videos.id} = latest.max_id`,
+      )
+      .orderBy(sql`${videos.id} DESC`)
+      .limit(20);
+
+    return { videos: results };
+  }),
+
   newUserVideo: protectedProcedure.query(async ({ ctx }) => {
     const userVideosDb = await ctx.db.query.videos.findMany({
       where: eq(videos.user_id, ctx.user_id),
