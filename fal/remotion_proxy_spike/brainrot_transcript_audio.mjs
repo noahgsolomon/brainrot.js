@@ -1,22 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import {
+  prepareMiniMaxAssets,
+  resolveBundledMusicPath,
+  synthesizeMiniMaxSpeech,
+} from "./minimax_voice_registry.mjs";
+
 const FAL_OPENROUTER_API_URL = "https://fal.run/openrouter/router";
 const DEFAULT_TRANSCRIPT_MODEL = "x-ai/grok-4.20-beta";
-const SPEECHIFY_API_URL = "https://api.sws.speechify.com/v1/audio/speech";
 const DEFAULT_BACKGROUND_VIDEO = "/background/MINECRAFT-0.mp4";
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
-
-const VOICE_ID_MAP = {
-  JOE_ROGAN: "JOE_ROGAN_VOICE_ID",
-  BARACK_OBAMA: "BARACK_OBAMA_VOICE_ID",
-  BEN_SHAPIRO: "BEN_SHAPIRO_VOICE_ID",
-  DONALD_TRUMP: "DONALD_TRUMP_VOICE_ID",
-  JOE_BIDEN: "JOE_BIDEN_VOICE_ID",
-  KAMALA_HARRIS: "KAMALA_HARRIS_VOICE_ID",
-  ANDREW_TATE: "ANDREW_TATE_VOICE_ID",
-  JORDAN_PETERSON: "JORDAN_PETERSON_VOICE_ID",
-};
 
 /**
  * @param {string} jobId
@@ -45,22 +39,6 @@ function resolveAgentName(props, preferredKey, fallbackKey) {
   }
 
   return value.trim();
-}
-
-/**
- * @param {keyof typeof VOICE_ID_MAP | string} agentId
- */
-function resolveVoiceId(agentId) {
-  const envName =
-    VOICE_ID_MAP[/** @type {keyof typeof VOICE_ID_MAP} */ (agentId)] ??
-    VOICE_ID_MAP.JORDAN_PETERSON;
-  const voiceId = process.env[envName];
-
-  if (!voiceId) {
-    throw new Error(`Missing required environment variable: ${envName}`);
-  }
-
-  return voiceId;
 }
 
 /**
@@ -109,7 +87,7 @@ function parseTranscriptPayload(payload) {
   const transcript = candidatePayload.transcript;
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
-    throw new Error("Groq response did not include a transcript array");
+    throw new Error("Transcript model response did not include a transcript array");
   }
 
   return transcript.map((entry, index) => {
@@ -243,7 +221,7 @@ async function getTranscriptWithRetry(input) {
 
 /**
  * @param {{
- *   voiceId: string;
+ *   agentId: string;
  *   line: string;
  *   outputPath: string;
  *   useMockServices: boolean;
@@ -258,42 +236,11 @@ async function generateVoiceClip(input) {
     await fs.writeFile(input.outputPath, placeholder);
     return;
   }
-
-  const apiKey = process.env.SPEECHIFY_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("Missing required environment variable: SPEECHIFY_API_KEY");
-  }
-
-  const response = await fetch(SPEECHIFY_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      input: `<speak>${input.line}</speak>`,
-      voice_id: input.voiceId,
-      audio_format: "mp3",
-    }),
+  await synthesizeMiniMaxSpeech({
+    agentId: input.agentId,
+    text: input.line,
+    outputPath: input.outputPath,
   });
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(
-      `Speechify returned HTTP ${response.status}: ${
-        details || "unknown error"
-      }`,
-    );
-  }
-
-  const data = await response.json();
-
-  if (!data?.audio_data) {
-    throw new Error("Speechify did not return audio_data");
-  }
-
-  await fs.writeFile(input.outputPath, Buffer.from(data.audio_data, "base64"));
 }
 
 /**
@@ -375,6 +322,11 @@ export async function runBrainrotTranscriptAudioJob(input) {
   const contextPath = path.join(workDir, "context.tsx");
 
   await fs.mkdir(voiceDir, { recursive: true });
+
+  if (music !== "NONE") {
+    await resolveBundledMusicPath(music);
+  }
+
   await input.reportProgress("Generating transcript", 0, {
     phase: "brainrot_transcript_audio",
   });
@@ -399,6 +351,13 @@ export async function runBrainrotTranscriptAudioJob(input) {
     "utf8",
   );
 
+  if (!useMockServices) {
+    await input.reportProgress("Preparing MiniMax voice assets", 10, {
+      phase: "brainrot_transcript_audio",
+    });
+    await prepareMiniMaxAssets();
+  }
+
   await input.reportProgress("Generating audio", 12, {
     phase: "brainrot_transcript_audio",
     transcriptLineCount: transcript.length,
@@ -414,12 +373,9 @@ export async function runBrainrotTranscriptAudioJob(input) {
     }
 
     const outputPath = path.join(voiceDir, `${entry.agentId}-${index}.mp3`);
-    const voiceId = useMockServices
-      ? "mock-voice-id"
-      : resolveVoiceId(entry.agentId);
 
     await generateVoiceClip({
-      voiceId,
+      agentId: entry.agentId,
       line: entry.text,
       outputPath,
       useMockServices,

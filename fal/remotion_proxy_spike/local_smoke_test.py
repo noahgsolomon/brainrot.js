@@ -26,8 +26,8 @@ def main() -> None:
             props = {
                 "pipeline": "brainrot_transcript_audio",
                 "topic": "fal spike migration",
-                "agentA": "JORDAN_PETERSON",
-                "agentB": "BEN_SHAPIRO",
+                "agentA": "JOE_ROGAN",
+                "agentB": "JOE_BIDEN",
                 "music": "WII_SHOP_CHANNEL_TRAP",
             }
 

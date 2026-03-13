@@ -1,10 +1,13 @@
 import http from "node:http";
 import { runBrainrotTranscriptAudioJob } from "./brainrot_transcript_audio.mjs";
 import { createProgressReporter, sleep } from "./job_callbacks.mjs";
+import { startMiniMaxAssetWarmup } from "./minimax_voice_registry.mjs";
 import { runRemotionBlackRenderJob } from "./remotion_black_render.mjs";
 
 const port = Number(process.env.REMOTION_PROXY_PORT || "8765");
 const startedAt = Date.now();
+
+void startMiniMaxAssetWarmup().catch(() => {});
 
 /**
  * @param {import("node:http").ServerResponse} res
