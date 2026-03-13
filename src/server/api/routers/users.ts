@@ -445,7 +445,7 @@ export const userRouter = createTRPCRouter({
       const queueLength = allVideos.filter(
         (v) => v.timestamp! < pendingVideo.timestamp! && v.processId === -1,
       ).length;
-      const recentTimingSamples = await ctx.db.query.generationTimingSamples.findMany({
+      const exactTimingSamples = await ctx.db.query.generationTimingSamples.findMany({
         where: (timingSample, { and, eq, isNull }) =>
           and(
             eq(timingSample.videoMode, pendingVideo.videoMode),
@@ -462,6 +462,36 @@ export const userRouter = createTRPCRouter({
           phaseTimings: true,
         },
       });
+      const fallbackModeSamples =
+        exactTimingSamples.length > 0
+          ? exactTimingSamples
+          : await ctx.db.query.generationTimingSamples.findMany({
+              where: (timingSample, { and, eq }) =>
+                and(
+                  eq(timingSample.videoMode, pendingVideo.videoMode),
+                  eq(timingSample.success, true),
+                ),
+              orderBy: (timingSample, { desc }) => [desc(timingSample.completedAt)],
+              limit: 20,
+              columns: {
+                totalDurationMs: true,
+                queueDurationMs: true,
+                phaseTimings: true,
+              },
+            });
+      const recentTimingSamples =
+        fallbackModeSamples.length > 0
+          ? fallbackModeSamples
+          : await ctx.db.query.generationTimingSamples.findMany({
+              where: (timingSample, { eq }) => eq(timingSample.success, true),
+              orderBy: (timingSample, { desc }) => [desc(timingSample.completedAt)],
+              limit: 20,
+              columns: {
+                totalDurationMs: true,
+                queueDurationMs: true,
+                phaseTimings: true,
+              },
+            });
       const eta = estimateRemainingTime({
         samples: recentTimingSamples,
         createdAt: pendingVideo.timestamp ?? new Date(),
