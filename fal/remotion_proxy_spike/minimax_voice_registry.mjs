@@ -34,10 +34,45 @@ let configuredFalKey = null;
 let trainingAudioDirPromise = null;
 let musicDirPromise = null;
 let startupWarmupPromise = null;
+const MINIMAX_VOICE_CLONE_TIMEOUT_MS = Number.parseInt(
+  process.env.MINIMAX_VOICE_CLONE_TIMEOUT_MS ?? "120000",
+  10,
+);
+const MINIMAX_TTS_TIMEOUT_MS = Number.parseInt(
+  process.env.MINIMAX_TTS_TIMEOUT_MS ?? "90000",
+  10,
+);
+const MINIMAX_AUDIO_DOWNLOAD_TIMEOUT_MS = Number.parseInt(
+  process.env.MINIMAX_AUDIO_DOWNLOAD_TIMEOUT_MS ?? "30000",
+  10,
+);
+const MINIMAX_TTS_MAX_ATTEMPTS = Number.parseInt(
+  process.env.MINIMAX_TTS_MAX_ATTEMPTS ?? "3",
+  10,
+);
 
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
+  });
+}
+
+function withTimeout(promise, timeoutMs, label) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
   });
 }
 
@@ -204,14 +239,18 @@ export async function getCustomVoiceId(agentId) {
             attempt,
           }),
         );
-        const result = await fal.subscribe("fal-ai/minimax/voice-clone", {
-          input: {
-            audio_url: audioUrl,
-            noise_reduction: true,
-            need_volume_normalization: true,
-            accuracy: 0.8,
-          },
-        });
+        const result = await withTimeout(
+          fal.subscribe("fal-ai/minimax/voice-clone", {
+            input: {
+              audio_url: audioUrl,
+              noise_reduction: true,
+              need_volume_normalization: true,
+              accuracy: 0.8,
+            },
+          }),
+          MINIMAX_VOICE_CLONE_TIMEOUT_MS,
+          `MiniMax voice clone for ${agentId}`,
+        );
         const customVoiceId = result.data?.custom_voice_id?.trim();
 
         if (!customVoiceId) {
@@ -261,74 +300,110 @@ export async function getCustomVoiceId(agentId) {
 export async function synthesizeMiniMaxSpeech({ agentId, text, outputPath }) {
   ensureFalClientConfigured();
   const customVoiceId = await getCustomVoiceId(agentId);
-  console.log(
-    JSON.stringify({
-      type: "minimax_tts_start",
-      agentId,
-      outputPath,
-      textLength: text.length,
-    }),
-  );
-  const result = await fal.subscribe("fal-ai/minimax/speech-02-hd", {
-    input: {
-      text,
-      output_format: "url",
-      language_boost: "English",
-      voice_setting: {
-        voice_id: customVoiceId,
-        speed: 1,
-        vol: 1,
-        emotion: "neutral",
-        english_normalization: true,
-      },
-      audio_setting: {
-        format: "mp3",
-        sample_rate: 32000,
-        bitrate: 128000,
-        channel: 1,
-      },
-    },
-  });
-  const audioUrl = result.data?.audio?.url;
+  let lastError = null;
 
-  if (!audioUrl) {
-    throw new Error(`MiniMax TTS did not return an audio URL for ${agentId}`);
+  for (let attempt = 1; attempt <= MINIMAX_TTS_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      console.log(
+        JSON.stringify({
+          type: "minimax_tts_start",
+          agentId,
+          outputPath,
+          textLength: text.length,
+          attempt,
+        }),
+      );
+      const result = await withTimeout(
+        fal.subscribe("fal-ai/minimax/speech-02-hd", {
+          input: {
+            text,
+            output_format: "url",
+            language_boost: "English",
+            voice_setting: {
+              voice_id: customVoiceId,
+              speed: 1,
+              vol: 1,
+              emotion: "neutral",
+              english_normalization: true,
+            },
+            audio_setting: {
+              format: "mp3",
+              sample_rate: 32000,
+              bitrate: 128000,
+              channel: 1,
+            },
+          },
+        }),
+        MINIMAX_TTS_TIMEOUT_MS,
+        `MiniMax TTS for ${agentId}`,
+      );
+      const audioUrl = result.data?.audio?.url;
+
+      if (!audioUrl) {
+        throw new Error(`MiniMax TTS did not return an audio URL for ${agentId}`);
+      }
+
+      console.log(
+        JSON.stringify({
+          type: "minimax_tts_done",
+          agentId,
+          audioUrl,
+          attempt,
+        }),
+      );
+
+      const response = await fetch(audioUrl, {
+        signal: AbortSignal.timeout(MINIMAX_AUDIO_DOWNLOAD_TIMEOUT_MS),
+      });
+
+      if (!response.ok) {
+        const details = await response.text();
+        throw new Error(
+          `Downloading MiniMax audio failed with HTTP ${response.status}: ${
+            details || "unknown error"
+          }`,
+        );
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      await fs.writeFile(outputPath, Buffer.from(arrayBuffer));
+
+      console.log(
+        JSON.stringify({
+          type: "minimax_tts_download_done",
+          agentId,
+          outputPath,
+          attempt,
+        }),
+      );
+
+      return {
+        audioUrl,
+        customVoiceId,
+      };
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        JSON.stringify({
+          type: "minimax_tts_retry",
+          agentId,
+          outputPath,
+          attempt,
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      );
+
+      if (attempt < MINIMAX_TTS_MAX_ATTEMPTS) {
+        await sleep(attempt * 3000);
+      }
+    }
   }
 
-  console.log(
-    JSON.stringify({
-      type: "minimax_tts_done",
-      agentId,
-      audioUrl,
-    }),
+  throw new Error(
+    `MiniMax TTS failed for ${agentId} after ${MINIMAX_TTS_MAX_ATTEMPTS} attempts: ${
+      lastError instanceof Error ? lastError.message : "unknown error"
+    }`,
   );
-
-  const response = await fetch(audioUrl);
-
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(
-      `Downloading MiniMax audio failed with HTTP ${response.status}: ${
-        details || "unknown error"
-      }`,
-    );
-  }
-
-  const arrayBuffer = await response.arrayBuffer();
-  await fs.writeFile(outputPath, Buffer.from(arrayBuffer));
-
-  console.log(
-    JSON.stringify({
-      type: "minimax_tts_download_done",
-      agentId,
-      outputPath,
-    }),
-  );
-
-  return {
-    audioUrl,
-    customVoiceId,
-  };
 }
 
 export async function prepareMiniMaxAssets() {
