@@ -232,9 +232,9 @@ export default function CreateVideo({
         });
 
         if (!createResponse.ok) {
-          const payload = (await createResponse.json().catch(() => null)) as
-            | { error?: string }
-            | null;
+          const payload = (await createResponse.json().catch(() => null)) as {
+            error?: string;
+          } | null;
 
           setGenerating(false);
           toast.error(payload?.error ?? "Unable to submit the generation job.");
@@ -513,7 +513,7 @@ export default function CreateVideo({
                     placeholder="// Random topic"
                     className="col-span-3"
                     value={videoInput}
-                    maxLength={500}
+                    maxLength={2000}
                     onChange={(e) => {
                       setVideoInput(e.target.value);
                       setRecommendedSelect(-1);

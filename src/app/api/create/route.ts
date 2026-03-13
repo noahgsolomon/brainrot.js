@@ -12,7 +12,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const createRequestSchema = z.object({
-  topic: z.string().min(1).max(1000),
+  topic: z.string().min(1).max(2000),
   agent1: z.string().max(100).optional(),
   agent2: z.string().max(100).optional(),
   videoId: z.string().min(1).max(100),

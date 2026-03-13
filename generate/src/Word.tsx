@@ -40,7 +40,7 @@ export const Word: React.FC<{
 				display: 'inline-block',
 				opacity,
 				transform: `scale(${scale}) translateY(${translateY}px)`,
-				fontSize: '6rem',
+				fontSize: '4rem',
 				transformOrigin: 'center bottom',
 				transition: 'color 0.1s ease-in-out',
 			}}

@@ -45,7 +45,7 @@ export function RemotionRoot() {
           ],
           subtitlesLinePerPage: 6,
           subtitlesZoomMeasurerSize: 10,
-          subtitlesLineHeight: 128,
+          subtitlesLineHeight: 85,
           audioOffsetInSeconds: 0,
         }}
         calculateMetadata={async ({ props }) => {

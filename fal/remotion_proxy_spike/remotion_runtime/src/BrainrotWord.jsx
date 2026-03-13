@@ -29,7 +29,7 @@ export function BrainrotWord({ item, frame, fps }) {
         display: "inline-block",
         opacity,
         transform: `scale(${scale}) translateY(${translateY}px)`,
-        fontSize: "6rem",
+        fontSize: "4rem",
         transformOrigin: "center bottom",
       }}
     >
