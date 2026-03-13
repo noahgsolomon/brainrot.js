@@ -260,7 +260,7 @@ function buildContextContent(input) {
     .map(
       (entry) => `{
     name: '${entry.person}',
-    file: 'srt/${entry.person}-${entry.index}.srt',
+    file: staticFile('srt/${entry.person}-${entry.index}.srt'),
   }`,
     )
     .join(",\n  ");
