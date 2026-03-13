@@ -15,11 +15,17 @@ class NodeBridge:
         self,
         port: int = 8765,
         startup_timeout_seconds: int = 20,
+        request_timeout_seconds: int = 300,
         node_script_path: str | None = None,
     ) -> None:
-        print(f"[bridge.py] NodeBridge.__init__(port={port}, timeout={startup_timeout_seconds})")
+        print(
+            "[bridge.py] NodeBridge.__init__("
+            f"port={port}, startup_timeout={startup_timeout_seconds}, "
+            f"request_timeout={request_timeout_seconds})"
+        )
         self.port = port
         self.startup_timeout_seconds = startup_timeout_seconds
+        self.request_timeout_seconds = request_timeout_seconds
         self.node_script_path = node_script_path or self._default_node_script_path()
         self._process: subprocess.Popen[str] | None = None
         self._lock = threading.Lock()
@@ -118,7 +124,7 @@ class NodeBridge:
         )
 
         try:
-            with request.urlopen(req, timeout=self.startup_timeout_seconds) as resp:
+            with request.urlopen(req, timeout=self.request_timeout_seconds) as resp:
                 raw = resp.read().decode("utf-8")
                 print(f"[bridge.py] _request_json({method} {path}) <- HTTP {resp.status}, body_len={len(raw)}")
                 return json.loads(raw)
