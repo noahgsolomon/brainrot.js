@@ -13,6 +13,7 @@ export const NextEnv = {
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: "/login",
   NEXT_PUBLIC_CLERK_SIGN_UP_URL: "/signup",
   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: "/auth",
+  FAL_KEY: process.env.FAL_KEY!,
   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: "/auth",
   MODE: "PROD",
   WEBSITE: "brainrotjs.com",
