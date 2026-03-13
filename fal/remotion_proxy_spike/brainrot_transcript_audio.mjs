@@ -18,6 +18,18 @@ const FALLBACK_TRANSCRIPT_MODELS = [
 ];
 const DEFAULT_BACKGROUND_VIDEO = "/background/MINECRAFT-0.mp4";
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
+const OPENROUTER_REQUEST_TIMEOUT_MS = Number.parseInt(
+  process.env.BRAINROT_OPENROUTER_TIMEOUT_MS ?? "45000",
+  10,
+);
+const PRIMARY_MODEL_MAX_ATTEMPTS = 5;
+const PRIMARY_MODEL_RETRY_DELAYS_MS = [1_000, 2_000, 4_000, 8_000];
+const FALLBACK_MODEL_MAX_WAVES = 5;
+const FALLBACK_MODEL_WAVE_DELAYS_MS = [1_000, 2_000, 4_000, 6_000];
+const AUDIO_GENERATION_CONCURRENCY = Number.parseInt(
+  process.env.BRAINROT_AUDIO_CONCURRENCY ?? "4",
+  10,
+);
 
 /**
  * @param {string} jobId
@@ -56,6 +68,44 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+/**
+ * @template T, R
+ * @param {T[]} items
+ * @param {number} concurrency
+ * @param {(item: T, index: number) => Promise<R>} mapper
+ * @returns {Promise<R[]>}
+ */
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const normalizedConcurrency = Math.max(
+    1,
+    Math.min(
+      Number.isFinite(concurrency) ? Math.floor(concurrency) : 1,
+      items.length || 1,
+    ),
+  );
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+
+      if (currentIndex >= items.length) {
+        return;
+      }
+
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: normalizedConcurrency }, () => worker()),
+  );
+
+  return results;
 }
 
 /**
@@ -150,6 +200,7 @@ async function generateBrainrotTranscript(input) {
       "Content-Type": "application/json",
       Authorization: `Key ${falKey}`,
     },
+    signal: AbortSignal.timeout(OPENROUTER_REQUEST_TIMEOUT_MS),
     body: JSON.stringify({
       prompt,
       system_prompt: systemPrompt,
@@ -205,33 +256,80 @@ async function getTranscriptWithRetry(input) {
     ];
   }
 
-  const modelsToTry = [input.model, ...FALLBACK_TRANSCRIPT_MODELS];
+  const fallbackModels = FALLBACK_TRANSCRIPT_MODELS.filter(
+    (model, index, models) =>
+      model !== input.model && models.indexOf(model) === index,
+  );
   let lastError = null;
 
-  for (const model of modelsToTry) {
-    for (let attempt = 1; attempt <= 5; attempt += 1) {
-      try {
-        console.log(`[transcript] Trying model ${model} (attempt ${attempt}/5)`);
-        return await generateBrainrotTranscript({ ...input, model });
-      } catch (error) {
-        lastError = error;
-        console.error(
-          `[transcript] Model ${model} attempt ${attempt}/5 failed: ${
-            error instanceof Error ? error.message : "unknown error"
-          }`,
-        );
+  for (let attempt = 1; attempt <= PRIMARY_MODEL_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      console.log(
+        `[transcript] Trying primary model ${input.model} (attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS})`,
+      );
+      return await generateBrainrotTranscript({ ...input, model: input.model });
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[transcript] Primary model ${input.model} attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS} failed: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
 
-        if (attempt < 5) {
-          await sleep(15_000);
-        }
+      const retryDelay = PRIMARY_MODEL_RETRY_DELAYS_MS[attempt - 1];
+      if (retryDelay) {
+        await sleep(retryDelay);
       }
     }
+  }
 
-    console.error(`[transcript] Model ${model} exhausted all 5 attempts, trying next model...`);
+  console.error(
+    `[transcript] Primary model ${input.model} exhausted ${PRIMARY_MODEL_MAX_ATTEMPTS} attempts, switching to concurrent fallback waves...`,
+  );
+
+  for (let wave = 1; wave <= FALLBACK_MODEL_MAX_WAVES; wave += 1) {
+    console.log(
+      `[transcript] Starting fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} with models: ${fallbackModels.join(", ")}`,
+    );
+
+    try {
+      const winner = await Promise.any(
+        fallbackModels.map(async (model) => {
+          try {
+            const transcript = await generateBrainrotTranscript({ ...input, model });
+            return { model, transcript };
+          } catch (error) {
+            console.error(
+              `[transcript] Fallback model ${model} failed in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}: ${
+                error instanceof Error ? error.message : "unknown error"
+              }`,
+            );
+            throw error;
+          }
+        }),
+      );
+
+      console.log(
+        `[transcript] Fallback model ${winner.model} succeeded in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}`,
+      );
+      return winner.transcript;
+    } catch (error) {
+      const aggregateError =
+        error instanceof AggregateError ? error : new AggregateError([error]);
+      lastError = aggregateError.errors.at(-1) ?? error;
+      console.error(
+        `[transcript] Fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} fully failed`,
+      );
+    }
+
+    const retryDelay = FALLBACK_MODEL_WAVE_DELAYS_MS[wave - 1];
+    if (retryDelay) {
+      await sleep(retryDelay);
+    }
   }
 
   throw new Error(
-    `Failed to generate valid transcript after trying all models (${modelsToTry.join(", ")}): ${
+    `Failed to generate valid transcript after trying primary model ${input.model} and fallback models (${fallbackModels.join(", ")}): ${
       lastError instanceof Error ? lastError.message : "unknown error"
     }`,
   );
@@ -381,40 +479,48 @@ export async function runBrainrotTranscriptAudioJob(input) {
     transcriptLineCount: transcript.length,
   });
 
-  const audioFiles = [];
+  let completedAudioCount = 0;
+  let audioProgressChain = Promise.resolve();
+  const audioFiles = await mapWithConcurrency(
+    transcript,
+    AUDIO_GENERATION_CONCURRENCY,
+    async (entry, index) => {
+      if (!entry) {
+        throw new Error(`Missing transcript entry at index ${index}`);
+      }
 
-  for (let index = 0; index < transcript.length; index += 1) {
-    const entry = transcript[index];
+      const outputPath = path.join(voiceDir, `${entry.agentId}-${index}.mp3`);
 
-    if (!entry) {
-      throw new Error(`Missing transcript entry at index ${index}`);
-    }
+      await generateVoiceClip({
+        agentId: entry.agentId,
+        line: entry.text,
+        outputPath,
+        useMockServices,
+      });
 
-    const outputPath = path.join(voiceDir, `${entry.agentId}-${index}.mp3`);
+      completedAudioCount += 1;
+      const currentCompletedCount = completedAudioCount;
+      const progress =
+        12 + Math.round((currentCompletedCount / transcript.length) * 6);
+      audioProgressChain = audioProgressChain.then(() =>
+        input.reportProgress(
+          `Generating audio (${currentCompletedCount}/${transcript.length})`,
+          progress,
+          {
+            phase: "brainrot_transcript_audio",
+          },
+        ),
+      );
+      await audioProgressChain;
 
-    await generateVoiceClip({
-      agentId: entry.agentId,
-      line: entry.text,
-      outputPath,
-      useMockServices,
-    });
-
-    audioFiles.push({
-      person: entry.agentId,
-      index,
-      path: outputPath,
-      text: entry.text,
-    });
-
-    const progress = 12 + Math.round(((index + 1) / transcript.length) * 6);
-    await input.reportProgress(
-      `Generating audio (${index + 1}/${transcript.length})`,
-      progress,
-      {
-        phase: "brainrot_transcript_audio",
-      },
-    );
-  }
+      return {
+        person: entry.agentId,
+        index,
+        path: outputPath,
+        text: entry.text,
+      };
+    },
+  );
 
   const subtitlePipelineResult = await runPythonSrtPipeline({
     workDir,
@@ -453,7 +559,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     "utf8",
   );
 
-  await input.reportProgress("Transcript and voice clips ready", 18, {
+  await input.reportProgress("Transcript and voice clips ready", 36, {
     phase: "brainrot_transcript_audio",
   });
 
