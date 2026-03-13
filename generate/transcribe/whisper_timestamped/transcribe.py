@@ -3146,16 +3146,9 @@ def cli():
             json.dump(filtered_keys(result), sys.stdout, indent=2, ensure_ascii=False)
 
 
-def filtered_keys(result, keys = [
-    "text",
-    "segments", "words",
-    "language",
-    "start",
-    "end",
-    "confidence",
-    "language_probs",
-    "speech_activity",
-]):
+def filtered_keys(result, keys = None):
+    if keys is None:
+        keys = []
     if isinstance(result, dict):
         return {k: (filtered_keys(v, keys) if k not in ["language_probs"] else v) for k, v in result.items() if k in keys}
     if isinstance(result, list):
