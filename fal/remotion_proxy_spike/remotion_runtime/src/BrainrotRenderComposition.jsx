@@ -39,7 +39,7 @@ export function BrainrotRenderComposition({
   subtitlesFileName,
   subtitlesLinePerPage = 6,
   subtitlesZoomMeasurerSize = 10,
-  subtitlesLineHeight = 128,
+  subtitlesLineHeight = 85,
   audioOffsetInSeconds = 0,
 }) {
   const frame = useCurrentFrame();
@@ -139,16 +139,16 @@ export function BrainrotRenderComposition({
           <div
             style={{
               position: "absolute",
-              right: 48,
-              bottom: 48,
+              right: 32,
+              bottom: 32,
               zIndex: 30,
               color: "white",
-              fontSize: 72,
+              fontSize: 48,
               fontWeight: 700,
               lineHeight: 1,
               opacity: 0.65,
-              textShadow: "4px 4px 0px #000000",
-              WebkitTextStroke: "2px black",
+              textShadow: "3px 3px 0px #000000",
+              WebkitTextStroke: "1.5px black",
             }}
           >
             brainrotjs
@@ -161,20 +161,20 @@ export function BrainrotRenderComposition({
               position: "absolute",
               left: 0,
               right: 0,
-              bottom: currentSubtitle ? -112 : -1000,
+              bottom: currentSubtitle ? -75 : -1000,
               zIndex: 30,
               display: "flex",
               justifyContent: activeSide === "right" ? "flex-end" : "flex-start",
-              padding: 32,
+              padding: 21,
               transition: "bottom 0.5s ease-in-out",
             }}
           >
             <Img
               src={staticFile(`pose/${activeSide}/${currentAgentName || initialAgentName}.png`)}
-              width={600}
-              height={600}
+              width={400}
+              height={400}
               style={{
-                transform: `translateY(${-amplitude * 25}px)`,
+                transform: `translateY(${-amplitude * 17}px)`,
                 borderRadius: "999px",
               }}
             />
@@ -188,13 +188,13 @@ export function BrainrotRenderComposition({
               right: 0,
               transform: "translateY(-50%)",
               zIndex: 10,
-              margin: "0 96px",
+              margin: "0 64px",
               color: "white",
-              fontSize: 72,
+              fontSize: 48,
               lineHeight: `${subtitlesLineHeight}px`,
               textAlign: "center",
-              textShadow: "4px 4px 0px #000000",
-              WebkitTextStroke: "2px black",
+              textShadow: "3px 3px 0px #000000",
+              WebkitTextStroke: "1.5px black",
             }}
           >
             <BrainrotSubtitles

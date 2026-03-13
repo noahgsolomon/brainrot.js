@@ -14,7 +14,7 @@ export const createPendingVideoJobSchema = z.object({
   userId: z.number().int().positive(),
   agent1: z.string().max(100).optional().nullable(),
   agent2: z.string().max(100).optional().nullable(),
-  title: z.string().max(1000),
+  title: z.string().max(2000),
   videoId: z.string().min(1).max(100),
   music: z.string().max(100).optional().nullable(),
   credits: z.number().int().nonnegative(),

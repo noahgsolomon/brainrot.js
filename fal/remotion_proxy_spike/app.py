@@ -91,7 +91,7 @@ class RemotionProxySpike(fal.App):
         (APP_DIR / "Dockerfile").read_text(),
         context_dir=REPO_ROOT,
     )
-    machine_type = "GPU-L40"
+    machine_type = "M"
     keep_alive = 300
     startup_timeout = 300
     request_timeout = 1800
