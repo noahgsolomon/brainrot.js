@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 
 APP_DIR = Path(__file__).resolve().parent
+REPO_ROOT = APP_DIR.parent.parent
 for candidate in (APP_DIR, Path("/app")):
     candidate_str = str(candidate)
     if candidate_str not in sys.path:
@@ -82,10 +83,13 @@ class RemotionProxySpike(fal.App):
         r"\.git/",
         r"\.DS_Store$",
         r"\.venv/",
+        r"node_modules/",
+        r"\.next/",
+        r"\.turbo/",
     ]
     image = ContainerImage.from_dockerfile_str(
         (APP_DIR / "Dockerfile").read_text(),
-        context_dir=APP_DIR,
+        context_dir=REPO_ROOT,
     )
     machine_type = "S"
     keep_alive = 300
