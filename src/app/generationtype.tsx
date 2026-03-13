@@ -121,10 +121,11 @@ export default function GenerationType() {
         </DialogHeader>
         <div className="relative grid grid-cols-1 gap-4 p-2 sm:grid-cols-2 sm:p-4">
           {!user.userId ? (
-            <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-60 text-secondary dark:text-primary">
+            <div className="absolute bottom-0 left-0 right-0 top-0 z-30 flex items-center justify-center rounded-lg bg-black bg-opacity-30 text-secondary dark:text-primary">
               <div className="flex flex-col items-center gap-2">
-                <p className="mx-10 text-center text-2xl font-bold">
-                  You need to be logged in to create a video!
+                <p className="mx-10 text-center text-3xl font-bold">
+                  You need to be logged in
+                  <br /> to create a video!
                 </p>
                 <div className="flex flex-row items-center gap-2">
                   <Button
@@ -198,12 +199,14 @@ export default function GenerationType() {
                 Podcast Style
               </p>
             </div>
-            <Badge
-              variant={"math"}
-              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
-            >
-              Coming Soon
-            </Badge>
+            {user.userId && (
+              <Badge
+                variant={"math"}
+                className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+              >
+                Coming Soon
+              </Badge>
+            )}
           </div>
 
           <div className="relative md:flex-1">
@@ -265,12 +268,14 @@ export default function GenerationType() {
                 Monologue Style
               </p>
             </div>
-            <Badge
-              variant={"math"}
-              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
-            >
-              Coming Soon
-            </Badge>
+            {user.userId && (
+              <Badge
+                variant={"math"}
+                className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+              >
+                Coming Soon
+              </Badge>
+            )}
           </div>
 
           <div className="relative md:flex-1">
@@ -293,12 +298,14 @@ export default function GenerationType() {
                 Rap Style
               </p>
             </div>
-            <Badge
-              variant={"math"}
-              className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
-            >
-              Coming Soon
-            </Badge>
+            {user.userId && (
+              <Badge
+                variant={"math"}
+                className="absolute -right-2 -top-2 z-20 rounded-full px-3 py-1"
+              >
+                Coming Soon
+              </Badge>
+            )}
           </div>
         </div>
       </DialogContent>

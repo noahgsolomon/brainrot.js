@@ -611,6 +611,11 @@ mtext {
   animation: shimmer 3s ease-in-out infinite;
 }
 
+.ocean {
+  background: hsl(var(--blue));
+  border-bottom: 1px solid hsl(var(--blue));
+}
+
 .font-gaegu {
   font-family: var(--font-gaegu);
 }

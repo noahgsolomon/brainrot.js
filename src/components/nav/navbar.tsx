@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import GenerationType from "@/app/generationtype";
 
 const NavBar = () => {
@@ -20,6 +20,7 @@ const NavBar = () => {
   const path = usePathname();
 
   const [isTop, setIsTop] = useState(true);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     const checkScroll = () => {
@@ -34,8 +35,30 @@ const NavBar = () => {
 
   return (
     <>
+      {showBanner && (
+        <div className="ocean fixed left-0 right-0 top-0 z-30 text-white">
+          <div className="text-md relative flex items-center justify-center px-10 py-2 text-center font-medium">
+            <span>
+              Use code{" "}
+              <span className="rounded bg-foreground/10 px-1.5 py-0.5 font-bold tracking-wide">
+                CIAGUY
+              </span>{" "}
+              for a free $5 credit pack!
+            </span>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="absolute right-3 rounded-full p-0.5 transition-colors hover:bg-foreground/10"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
       <header
-        className={`border-sm fixed left-0 right-0 top-0 z-20 transition-all coarse:border-b coarse:bg-card/80 coarse:backdrop-blur-3xl ${
+        className={`border-sm fixed left-0 right-0 z-20 transition-all coarse:border-b coarse:bg-card/80 coarse:backdrop-blur-3xl ${
+          showBanner ? "top-[36px]" : "top-0"
+        } ${
           isTop
             ? ""
             : "fine:border-sm fine:border-b fine:bg-card/80 fine:backdrop-blur-3xl"
