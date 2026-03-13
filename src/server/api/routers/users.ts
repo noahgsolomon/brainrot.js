@@ -20,6 +20,8 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { buildFalWebhookUrl, isLocalWebhookUrl } from "@/lib/fal-jobs";
 import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
+import { runFalOpenRouterCompatibilityTest } from "@/server/fal/openrouter-compat-test";
+import { submitFalRemotionRenderTest } from "@/server/fal/remotion-render-test";
 import { submitFalSmokeTest } from "@/server/fal/smoke-test";
 
 const openai = new OpenAI({
@@ -202,6 +204,94 @@ export const userRouter = createTRPCRouter({
 
     try {
       const queuedJob = await submitFalSmokeTest({
+        videoId,
+        webhookUrl: pendingJob.falWebhookUrl,
+        webhookKey: pendingJob.falWebhookKey,
+      });
+
+      await ctx.db
+        .update(pendingVideos)
+        .set({
+          status: "Submitted to fal queue",
+          progress: 1,
+          processId: 0,
+          falRequestId: queuedJob.request_id,
+        })
+        .where(eq(pendingVideos.videoId, videoId));
+
+      return {
+        ok: true,
+        videoId,
+        requestId: queuedJob.request_id,
+        status: queuedJob.status,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown fal queue error";
+
+      await ctx.db
+        .update(pendingVideos)
+        .set({
+          status: "ERROR",
+          falError: errorMessage,
+        })
+        .where(eq(pendingVideos.videoId, videoId));
+
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: errorMessage,
+      });
+    }
+  }),
+
+  testFalOpenRouterCompatibility: protectedProcedure.mutation(async () => {
+    return runFalOpenRouterCompatibilityTest();
+  }),
+
+  startFalRemotionRenderTest: protectedProcedure.mutation(async ({ ctx }) => {
+    const latestPendingVideo = await ctx.db.query.pendingVideos.findFirst({
+      where: eq(pendingVideos.user_id, ctx.user_id),
+      orderBy: (pendingVideos, { desc }) => [desc(pendingVideos.timestamp)],
+      columns: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (
+      latestPendingVideo &&
+      !["COMPLETED", "ERROR"].includes(latestPendingVideo.status.toUpperCase())
+    ) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message:
+          "You already have an active pending job. Let it finish before starting another test.",
+      });
+    }
+
+    const videoId = randomUUID();
+    const webhookUrl = buildFalWebhookUrl(videoId);
+
+    if (isLocalWebhookUrl(webhookUrl)) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "The fal worker cannot call back to localhost. Set FAL_WEBHOOK_BASE_URL or NEXT_PUBLIC_APP_URL to a public URL before running this test locally.",
+      });
+    }
+
+    const pendingJob = await createPendingVideoJob({
+      userId: ctx.user_id,
+      agent1: "JORDAN_PETERSON",
+      agent2: "BEN_SHAPIRO",
+      title: "fal remotion render test",
+      videoId,
+      credits: 0,
+      videoMode: "brainrot",
+    });
+
+    try {
+      const queuedJob = await submitFalRemotionRenderTest({
         videoId,
         webhookUrl: pendingJob.falWebhookUrl,
         webhookKey: pendingJob.falWebhookKey,

@@ -36,6 +36,19 @@ export default function TestPageClient() {
     null,
   );
   const [lastRequestId, setLastRequestId] = useState<string | null>(null);
+  const [openRouterRequestId, setOpenRouterRequestId] = useState<string | null>(
+    null,
+  );
+  const [openRouterModel, setOpenRouterModel] = useState<string | null>(null);
+  const [openRouterOutput, setOpenRouterOutput] = useState<string | null>(null);
+  const [openRouterEndpoint, setOpenRouterEndpoint] = useState<string | null>(
+    null,
+  );
+  const [openRouterUsage, setOpenRouterUsage] = useState<{
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  } | null>(null);
   const [lastTerminalStatus, setLastTerminalStatus] = useState<string | null>(
     null,
   );
@@ -73,6 +86,35 @@ export default function TestPageClient() {
       },
     },
   );
+  const startFalRemotionRenderTestMutation =
+    trpc.user.startFalRemotionRenderTest.useMutation({
+      onSuccess: (data) => {
+        setLastStartedVideoId(data.videoId);
+        setLastRequestId(data.requestId);
+        setLastTerminalStatus(null);
+        setHandledTerminalPendingId(null);
+        toast.success("Submitted fal Remotion render test.");
+        void videoStatusQuery.refetch();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+        void videoStatusQuery.refetch();
+      },
+    });
+  const testFalOpenRouterCompatibilityMutation =
+    trpc.user.testFalOpenRouterCompatibility.useMutation({
+      onSuccess: (data) => {
+        setOpenRouterRequestId(data.requestId);
+        setOpenRouterModel(data.model);
+        setOpenRouterOutput(data.output);
+        setOpenRouterEndpoint(data.endpoint);
+        setOpenRouterUsage(data.usage);
+        toast.success("fal OpenAI-compatible endpoint responded.");
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
 
   const currentPendingVideo = videoStatusQuery.data?.videos ?? null;
   const currentPendingStatus = currentPendingVideo?.status?.toUpperCase();
@@ -127,110 +169,212 @@ export default function TestPageClient() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle>Run the smoke test</CardTitle>
-          <CardDescription>
-            The button below creates a pending job, submits the deployed fal app
-            with the per-job webhook key, and then watches the existing
-            `videoStatus` query update every couple seconds.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="flex flex-wrap gap-3">
-            <Button
-              className="gap-2"
-              disabled={
-                hasActivePendingJob || startFalWebhookTestMutation.isLoading
-              }
-              onClick={() => startFalWebhookTestMutation.mutate()}
-            >
-              {startFalWebhookTestMutation.isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              Start fal smoke test
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              disabled={videoStatusQuery.isFetching}
-              onClick={() => void videoStatusQuery.refetch()}
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${
-                  videoStatusQuery.isFetching ? "animate-spin" : ""
-                }`}
-              />
-              Refresh status
-            </Button>
-            {currentPendingVideo &&
-            isTerminalStatus(currentPendingVideo.status) ? (
+      <div className="space-y-6">
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle>Run the smoke test</CardTitle>
+            <CardDescription>
+              The button below creates a pending job, submits the deployed fal
+              app with the per-job webhook key, and then watches the existing
+              `videoStatus` query update every couple seconds.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                className="gap-2"
+                disabled={
+                  hasActivePendingJob || startFalWebhookTestMutation.isLoading
+                }
+                onClick={() => startFalWebhookTestMutation.mutate()}
+              >
+                {startFalWebhookTestMutation.isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                Start fal smoke test
+              </Button>
               <Button
                 variant="outline"
                 className="gap-2"
-                disabled={deletePendingVideoMutation.isLoading}
-                onClick={() =>
-                  deletePendingVideoMutation.mutate({
-                    id: currentPendingVideo.id,
-                  })
-                }
+                disabled={videoStatusQuery.isFetching}
+                onClick={() => void videoStatusQuery.refetch()}
               >
-                <Trash2 className="h-4 w-4" />
-                Clear pending row
+                <RefreshCw
+                  className={`h-4 w-4 ${
+                    videoStatusQuery.isFetching ? "animate-spin" : ""
+                  }`}
+                />
+                Refresh status
               </Button>
-            ) : null}
-          </div>
-
-          <div className="space-y-3 rounded-xl border bg-background/80 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                  Current job status
-                </p>
-                <p className="text-2xl font-semibold">
-                  {currentPendingVideo?.status ?? "No active pending job"}
-                </p>
-              </div>
-              {hasActivePendingJob ? (
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              {currentPendingVideo &&
+              isTerminalStatus(currentPendingVideo.status) ? (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={deletePendingVideoMutation.isLoading}
+                  onClick={() =>
+                    deletePendingVideoMutation.mutate({
+                      id: currentPendingVideo.id,
+                    })
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear pending row
+                </Button>
               ) : null}
             </div>
 
-            <Progress value={currentPendingVideo?.progress ?? 0} />
+            <div className="space-y-3 rounded-xl border bg-background/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                    Current job status
+                  </p>
+                  <p className="text-2xl font-semibold">
+                    {currentPendingVideo?.status ?? "No active pending job"}
+                  </p>
+                </div>
+                {hasActivePendingJob ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                ) : null}
+              </div>
 
-            <div className="grid gap-3 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-muted-foreground">Progress</p>
-                <p className="font-medium">
-                  {currentPendingVideo?.progress ?? 0}%
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Queue position</p>
-                <p className="font-medium">
-                  {currentPendingVideo && currentPendingVideo.progress > 0
-                    ? 0
-                    : videoStatusQuery.data?.queueLength ?? 0}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Latest request id</p>
-                <p className="font-mono text-xs">
-                  {lastRequestId ?? "None yet"}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Last terminal status</p>
-                <p className="font-medium">
-                  {lastTerminalStatus ?? "Not finished"}
-                </p>
+              <Progress value={currentPendingVideo?.progress ?? 0} />
+
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-muted-foreground">Progress</p>
+                  <p className="font-medium">
+                    {currentPendingVideo?.progress ?? 0}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Queue position</p>
+                  <p className="font-medium">
+                    {currentPendingVideo && currentPendingVideo.progress > 0
+                      ? 0
+                      : videoStatusQuery.data?.queueLength ?? 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Latest request id</p>
+                  <p className="font-mono text-xs">
+                    {lastRequestId ?? "None yet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Last terminal status</p>
+                  <p className="font-medium">
+                    {lastTerminalStatus ?? "Not finished"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Run a real Remotion render</CardTitle>
+            <CardDescription>
+              This queues a short actual Remotion render on fal, uploads the
+              resulting MP4 through fal&apos;s file helper, and completes through
+              the same webhook flow the app already uses.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                className="gap-2"
+                disabled={
+                  hasActivePendingJob ||
+                  startFalRemotionRenderTestMutation.isLoading
+                }
+                onClick={() => startFalRemotionRenderTestMutation.mutate()}
+              >
+                {startFalRemotionRenderTestMutation.isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                Start fal Remotion render test
+              </Button>
+            </div>
+
+            <div className="rounded-xl border bg-background/80 p-4 text-sm text-muted-foreground">
+              Expect a very short vertical black video with centered white text.
+              If it works, the webhook will mark the pending row
+              `COMPLETED` and the finished MP4 will show up in your normal
+              `videos` list.
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Check OpenAI compatibility</CardTitle>
+            <CardDescription>
+              This hits fal&apos;s OpenAI-style `chat/completions` endpoint from
+              the web app server with your `FAL_KEY` and returns a tiny mock
+              transcript.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                className="gap-2"
+                disabled={testFalOpenRouterCompatibilityMutation.isLoading}
+                onClick={() => testFalOpenRouterCompatibilityMutation.mutate()}
+              >
+                {testFalOpenRouterCompatibilityMutation.isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                Test fal OpenAI endpoint
+              </Button>
+            </div>
+
+            <div className="space-y-3 rounded-xl border bg-background/80 p-4">
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-muted-foreground">Endpoint</p>
+                  <p className="break-all font-mono text-xs">
+                    {openRouterEndpoint ?? "Not run yet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Model</p>
+                  <p className="font-medium">
+                    {openRouterModel ?? "Not run yet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Request id</p>
+                  <p className="break-all font-mono text-xs">
+                    {openRouterRequestId ?? "None yet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Token usage</p>
+                  <p className="font-medium">
+                    {openRouterUsage?.total_tokens ?? "Not available yet"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  Returned transcript
+                </p>
+                <pre className="mt-2 whitespace-pre-wrap rounded-lg border bg-muted/30 p-3 font-mono text-xs leading-6">
+                  {openRouterOutput ?? "Run the check to see the returned text."}
+                </pre>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
