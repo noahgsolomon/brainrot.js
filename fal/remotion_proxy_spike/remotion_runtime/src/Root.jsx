@@ -8,6 +8,10 @@ import { BlackRenderTest } from "./BlackRenderTest";
 import "./style.css";
 
 export function RemotionRoot() {
+  const compositionFps = 30;
+  const compositionWidth = 720;
+  const compositionHeight = 1280;
+
   return (
     <>
       <Composition
@@ -24,9 +28,9 @@ export function RemotionRoot() {
       <Composition
         id="BrainrotRenderTest"
         component={BrainrotRenderComposition}
-        fps={60}
-        width={1080}
-        height={1920}
+        fps={compositionFps}
+        width={compositionWidth}
+        height={compositionHeight}
         durationInFrames={3600}
         defaultProps={{
           initialAgentName: "JOE_ROGAN",
@@ -48,7 +52,7 @@ export function RemotionRoot() {
           const durationInSeconds =
             (await getAudioDuration(staticFile(props.audioFileName))) + 0.5;
           return {
-            durationInFrames: Math.ceil(durationInSeconds * 60),
+            durationInFrames: Math.ceil(durationInSeconds * compositionFps),
             props,
           };
         }}
