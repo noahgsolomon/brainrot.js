@@ -17,6 +17,7 @@
     "@azure/service-bus": "^7.9.4",
     "@clerk/nextjs": "^5.0.6",
     "@clerk/themes": "^2.1.2",
+    "@fal-ai/client": "latest",
     "@hookform/resolvers": "^3.3.2",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
     "@radix-ui/react-avatar": "^1.0.4",
