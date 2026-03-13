@@ -1,4 +1,5 @@
 import argparse
+import concurrent.futures
 import json
 import math
 import os
@@ -11,6 +12,7 @@ from fal.toolkit import Audio
 
 
 WHISPER_URL = "https://fal.run/fal-ai/whisper"
+DEFAULT_TRANSCRIBE_CONCURRENCY = 4
 
 
 def parse_args() -> argparse.Namespace:
@@ -115,6 +117,16 @@ def transcribe_audio(audio_path: str) -> list[dict]:
         )
 
     return normalized
+
+
+def resolve_transcribe_concurrency(audio_file_count: int) -> int:
+    configured = os.environ.get("BRAINROT_TRANSCRIBE_CONCURRENCY", "").strip()
+    try:
+        requested = int(configured) if configured else DEFAULT_TRANSCRIBE_CONCURRENCY
+    except ValueError:
+        requested = DEFAULT_TRANSCRIBE_CONCURRENCY
+
+    return max(1, min(requested, max(audio_file_count, 1)))
 
 
 def split_transcript_words(transcript_text: str) -> list[str]:
@@ -245,6 +257,29 @@ def concatenate_audio_files(
     )
 
 
+def process_audio_file(audio_file: dict) -> dict:
+    person = str(audio_file["person"])
+    index = int(audio_file["index"])
+    audio_path = str(audio_file["path"])
+    transcript_text = str(audio_file["text"])
+
+    duration_seconds = ffprobe_duration(audio_path)
+    recognized_words = transcribe_audio(audio_path)
+    aligned_words = align_words(
+        transcript_text=transcript_text,
+        recognized_words=recognized_words,
+        duration_seconds=duration_seconds,
+    )
+
+    return {
+        "person": person,
+        "index": index,
+        "path": audio_path,
+        "duration_seconds": duration_seconds,
+        "aligned_words": aligned_words,
+    }
+
+
 def main() -> None:
     args = parse_args()
     payload = load_payload(args.input_json)
@@ -259,22 +294,34 @@ def main() -> None:
 
     srt_files = []
     timeline_offset = 0.0
-    ordered_audio_paths = []
+    transcribe_concurrency = resolve_transcribe_concurrency(len(audio_files))
+    log(
+        f"Transcribing {len(audio_files)} clips with concurrency {transcribe_concurrency}"
+    )
 
-    for audio_file in audio_files:
-        person = str(audio_file["person"])
-        index = int(audio_file["index"])
-        audio_path = str(audio_file["path"])
-        transcript_text = str(audio_file["text"])
-        ordered_audio_paths.append(audio_path)
+    processed_audio_by_order: dict[int, dict] = {}
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=transcribe_concurrency
+    ) as executor:
+        future_to_order = {
+            executor.submit(process_audio_file, audio_file): order
+            for order, audio_file in enumerate(audio_files)
+        }
 
-        duration_seconds = ffprobe_duration(audio_path)
-        recognized_words = transcribe_audio(audio_path)
-        aligned_words = align_words(
-            transcript_text=transcript_text,
-            recognized_words=recognized_words,
-            duration_seconds=duration_seconds,
-        )
+        for future in concurrent.futures.as_completed(future_to_order):
+            order = future_to_order[future]
+            processed_audio_by_order[order] = future.result()
+
+    ordered_audio_paths = [
+        str(processed_audio_by_order[order]["path"]) for order in range(len(audio_files))
+    ]
+
+    for order in range(len(audio_files)):
+        processed_audio = processed_audio_by_order[order]
+        person = str(processed_audio["person"])
+        index = int(processed_audio["index"])
+        duration_seconds = float(processed_audio["duration_seconds"])
+        aligned_words = processed_audio["aligned_words"]
         srt_content = build_srt_content(aligned_words, timeline_offset)
         srt_path = output_srt_dir / f"{person}-{index}.srt"
         srt_path.write_text(srt_content, encoding="utf-8")
