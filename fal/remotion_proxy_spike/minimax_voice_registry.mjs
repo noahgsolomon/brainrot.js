@@ -35,6 +35,12 @@ let trainingAudioDirPromise = null;
 let musicDirPromise = null;
 let startupWarmupPromise = null;
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 function assertAgentSupported(agentId) {
   if (!Object.hasOwn(TRAINING_AUDIO_FILE_MAP, agentId)) {
     throw new Error(
@@ -186,38 +192,69 @@ export async function getCustomVoiceId(agentId) {
   return memoizePromise(customVoiceIdPromises, agentId, async () => {
     ensureFalClientConfigured();
     const audioUrl = await getUploadedTrainingAudioUrl(agentId);
-    console.log(
-      JSON.stringify({
-        type: "minimax_voice_clone_start",
-        agentId,
-        audioUrl,
-      }),
-    );
-    const result = await fal.subscribe("fal-ai/minimax/voice-clone", {
-      input: {
-        audio_url: audioUrl,
-        noise_reduction: true,
-        need_volume_normalization: true,
-        accuracy: 0.8,
-      },
-    });
-    const customVoiceId = result.data?.custom_voice_id?.trim();
+    let lastError = null;
 
-    if (!customVoiceId) {
-      throw new Error(
-        `MiniMax voice clone did not return a custom_voice_id for ${agentId}`,
-      );
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        console.log(
+          JSON.stringify({
+            type: "minimax_voice_clone_start",
+            agentId,
+            audioUrl,
+            attempt,
+          }),
+        );
+        const result = await fal.subscribe("fal-ai/minimax/voice-clone", {
+          input: {
+            audio_url: audioUrl,
+            noise_reduction: true,
+            need_volume_normalization: true,
+            accuracy: 0.8,
+          },
+        });
+        const customVoiceId = result.data?.custom_voice_id?.trim();
+
+        if (!customVoiceId) {
+          throw new Error(
+            `MiniMax voice clone did not return a custom_voice_id for ${agentId}`,
+          );
+        }
+
+        console.log(
+          JSON.stringify({
+            type: "minimax_voice_clone_done",
+            agentId,
+            customVoiceId,
+            attempt,
+          }),
+        );
+
+        return customVoiceId;
+      } catch (error) {
+        lastError = error;
+        const message =
+          error instanceof Error ? error.message : String(error ?? "unknown error");
+
+        console.warn(
+          JSON.stringify({
+            type: "minimax_voice_clone_retry",
+            agentId,
+            attempt,
+            message,
+          }),
+        );
+
+        if (attempt < 3) {
+          await sleep(attempt * 3000);
+        }
+      }
     }
 
-    console.log(
-      JSON.stringify({
-        type: "minimax_voice_clone_done",
-        agentId,
-        customVoiceId,
-      }),
+    throw new Error(
+      `MiniMax voice clone failed for ${agentId} after 3 attempts: ${
+        lastError instanceof Error ? lastError.message : "unknown error"
+      }`,
     );
-
-    return customVoiceId;
   });
 }
 
