@@ -22,8 +22,17 @@ export function createProgressReporter(options) {
    * @param {string} status
    * @param {number} progress
    * @param {Record<string, unknown>} [extra]
-   */
+  */
   return async (status, progress, extra = {}) => {
+    console.log(
+      JSON.stringify({
+        type: "progress",
+        status,
+        progress,
+        ...extra,
+      }),
+    );
+
     if (!callbackUrl) {
       return;
     }

@@ -15,7 +15,7 @@ class NodeBridge:
         self,
         port: int = 8765,
         startup_timeout_seconds: int = 20,
-        request_timeout_seconds: int = 300,
+        request_timeout_seconds: int = 1800,
         node_script_path: str | None = None,
     ) -> None:
         print(

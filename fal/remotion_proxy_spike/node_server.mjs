@@ -2,6 +2,8 @@ import http from "node:http";
 import { runBrainrotTranscriptAudioJob } from "./brainrot_transcript_audio.mjs";
 import { createProgressReporter, sleep } from "./job_callbacks.mjs";
 import { startMiniMaxAssetWarmup } from "./minimax_voice_registry.mjs";
+import { runBrainrotLambdaRenderJob } from "./remotion_brainrot_lambda_render.mjs";
+import { runRemotionBrainrotRenderJob } from "./remotion_brainrot_render.mjs";
 import { runRemotionBlackRenderJob } from "./remotion_black_render.mjs";
 
 const port = Number(process.env.REMOTION_PROXY_PORT || "8765");
@@ -161,6 +163,58 @@ const server = http.createServer(async (req, res) => {
               : {},
         });
         const result = await runRemotionBlackRenderJob({
+          jobId: String(body.job_id ?? "job"),
+          props,
+          reportProgress,
+        });
+
+        sendJson(res, 200, {
+          ok: true,
+          nodePid: process.pid,
+          renderedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      }
+
+      if (props.pipeline === "brainrot_remotion_render") {
+        const reportProgress = createProgressReporter({
+          callbackUrl:
+            typeof body.callback_url === "string" ? body.callback_url : null,
+          callbackHeaders:
+            body.callback_headers &&
+            typeof body.callback_headers === "object" &&
+            !Array.isArray(body.callback_headers)
+              ? /** @type {Record<string, string>} */ (body.callback_headers)
+              : {},
+        });
+        const result = await runRemotionBrainrotRenderJob({
+          jobId: String(body.job_id ?? "job"),
+          props,
+          reportProgress,
+        });
+
+        sendJson(res, 200, {
+          ok: true,
+          nodePid: process.pid,
+          renderedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      }
+
+      if (props.pipeline === "brainrot_lambda_render") {
+        const reportProgress = createProgressReporter({
+          callbackUrl:
+            typeof body.callback_url === "string" ? body.callback_url : null,
+          callbackHeaders:
+            body.callback_headers &&
+            typeof body.callback_headers === "object" &&
+            !Array.isArray(body.callback_headers)
+              ? /** @type {Record<string, string>} */ (body.callback_headers)
+              : {},
+        });
+        const result = await runBrainrotLambdaRenderJob({
           jobId: String(body.job_id ?? "job"),
           props,
           reportProgress,

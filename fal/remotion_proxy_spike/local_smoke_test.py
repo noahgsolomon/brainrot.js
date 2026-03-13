@@ -9,7 +9,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--pipeline",
-        choices=["stub", "brainrot_transcript_audio"],
+        choices=[
+            "stub",
+            "brainrot_transcript_audio",
+            "brainrot_remotion_render",
+            "brainrot_lambda_render",
+        ],
         default="stub",
     )
     parser.add_argument("--mock-services", action="store_true")
@@ -22,9 +27,13 @@ def main() -> None:
     try:
         props: dict[str, object] = {"topic": "fal spike"}
 
-        if args.pipeline == "brainrot_transcript_audio":
+        if args.pipeline in {
+            "brainrot_transcript_audio",
+            "brainrot_remotion_render",
+            "brainrot_lambda_render",
+        }:
             props = {
-                "pipeline": "brainrot_transcript_audio",
+                "pipeline": args.pipeline,
                 "topic": "fal spike migration",
                 "agentA": "JOE_ROGAN",
                 "agentB": "JOE_BIDEN",
