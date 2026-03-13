@@ -42,7 +42,7 @@ export async function generateMetadata(
         : ""
     }`,
     openGraph: {
-      images: ["https://images.smart.wtf/videoprev.png"],
+      images: ["/brainrot_new2.png"],
     },
     twitter: {
       card: "summary_large_image",
@@ -64,7 +64,7 @@ export async function generateMetadata(
               .join(" ")
           : ""
       }`,
-      images: ["https://images.smart.wtf/videoprev.png"],
+      images: ["/brainrot_new2.png"],
     },
   };
 }

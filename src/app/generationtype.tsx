@@ -93,7 +93,7 @@ export default function GenerationType() {
                       height={32}
                       className="border-3 border-primary"
                       alt={videoDetails.agents[0]?.name ?? ""}
-                      src={`https://images.smart.wtf/${videoDetails.agents[0]?.name}.png`}
+                      src={`/img/${videoDetails.agents[0]?.name}.png`}
                     />
                   </Avatar>
                 )}
@@ -103,7 +103,7 @@ export default function GenerationType() {
                     height={32}
                     className="border-3 border-primary"
                     alt={videoDetails.agents[1]?.name ?? ""}
-                    src={`https://images.smart.wtf/${videoDetails.agents[1]?.name}.png`}
+                    src={`/img/${videoDetails.agents[1]?.name}.png`}
                   />
                 </Avatar>
               </div>

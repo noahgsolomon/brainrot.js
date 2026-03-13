@@ -190,7 +190,7 @@ export default async function Home({
       {/* <footer className="flex w-screen justify-center border-t border-border bg-secondary px-4 py-4">
         <div className="flex w-full items-center justify-between px-[5%] py-1 md:px-[10%]">
           <Image
-            src={"https://images.smart.wtf/brainrot.png"}
+            src={"/brainrot_new2.png"}
             width={64}
             height={64}
             alt="brainrot"
