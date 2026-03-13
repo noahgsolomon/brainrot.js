@@ -199,9 +199,13 @@ export default function CreateVideo({
 
   const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
-    "Covariance Matrix",
-    "Alien Invasion",
-    "Fall of Roman Empire",
+    "diddy party freak off",
+    "jeffrey epstein",
+    "iran war",
+    "mr beast is satan",
+    "logan paul low cortisol ww2 german edits changed my life",
+    "white hamster variation meme",
+    "ozempic is for cucks",
   ]);
   const [isInsufficientCreditsOpen, setIsInsufficientCreditsOpen] =
     useState(false);
@@ -527,6 +531,26 @@ export default function CreateVideo({
                   >
                     Not a valid topic
                   </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {recommendedTopics.map((topic, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`rounded-full border px-3 py-1 text-xs transition-all hover:scale-[1.03] active:scale-[0.97] ${
+                          recommendedSelect === index
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-secondary text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                        }`}
+                        onClick={() => {
+                          setRecommendedSelect(index);
+                          setVideoInput(topic);
+                          setInvalidTopic(false);
+                        }}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>
