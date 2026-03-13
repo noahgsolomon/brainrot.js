@@ -40,6 +40,23 @@ export function verifyFalWebhookKey(
   return timingSafeEqual(expectedBuffer, actualBuffer);
 }
 
+function getFalWebhookBaseUrl() {
+  const configuredBaseUrl =
+    process.env.FAL_WEBHOOK_BASE_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.WEBSITE ? `https://${process.env.WEBSITE}` : null);
+
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/$/, "");
+  }
+
+  return absoluteUrl("").replace(/\/$/, "");
+}
+
 export function buildFalWebhookUrl(videoId: string) {
-  return absoluteUrl(`/api/webhooks/fal/${videoId}`);
+  return `${getFalWebhookBaseUrl()}/api/webhooks/fal/${videoId}`;
+}
+
+export function isLocalWebhookUrl(url: string) {
+  return /localhost|127\.0\.0\.1/i.test(url);
 }

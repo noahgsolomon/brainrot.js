@@ -1,7 +1,9 @@
+import json
+import random
 import sys
 import time
 from pathlib import Path
-from urllib import request
+from urllib import error, request
 
 import fal
 from fal.container import ContainerImage
@@ -26,6 +28,24 @@ class SpikeRequest(BaseModel):
     props: dict = Field(
         default_factory=dict,
         description="Future Remotion input props.",
+    )
+    callback_url: str | None = Field(
+        default=None,
+        description="Optional Brainrot webhook URL for progress updates.",
+    )
+    callback_headers: dict[str, str] = Field(
+        default_factory=dict,
+        description="Optional headers forwarded to the Brainrot webhook.",
+    )
+    step_delay_seconds: int = Field(
+        default=5,
+        ge=0,
+        le=30,
+        description="Delay between simulated progress updates.",
+    )
+    final_url: str = Field(
+        default="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        description="Dummy media URL returned on completion.",
     )
 
 
@@ -75,6 +95,58 @@ class RemotionProxySpike(fal.App):
         self.bridge = NodeBridge()
         self.bridge.start()
 
+    def _post_callback(
+        self,
+        callback_url: str,
+        callback_headers: dict[str, str],
+        payload: dict,
+    ) -> None:
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "remotion-proxy-spike/1.0",
+            **callback_headers,
+        }
+        req = request.Request(
+            url=callback_url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+
+        try:
+            with request.urlopen(req, timeout=20) as response:
+                if response.status >= 400:
+                    raise RuntimeError(
+                        f"Callback returned unexpected HTTP {response.status}"
+                    )
+        except error.HTTPError as exc:
+            details = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"Callback failed with HTTP {exc.code}: {details}"
+            ) from exc
+
+    def _emit_test_progress(self, input: SpikeRequest) -> None:
+        if not input.callback_url:
+            return
+
+        steps = [
+            ("Accepted fal smoke test job", random.randint(5, 12)),
+            ("Booting local renderer bridge", random.randint(18, 32)),
+            ("Pretending to render frames", random.randint(45, 68)),
+            ("Uploading dummy output", random.randint(75, 92)),
+        ]
+
+        for status, progress in steps:
+            self._post_callback(
+                input.callback_url,
+                input.callback_headers,
+                {
+                    "status": status,
+                    "progress": progress,
+                },
+            )
+            time.sleep(input.step_delay_seconds)
+
     @fal.endpoint(
         "/health",
         health_check=fal.HealthCheck(
@@ -106,7 +178,30 @@ class RemotionProxySpike(fal.App):
 
     @fal.endpoint("/")
     def render(self, input: SpikeRequest) -> SpikeResponse:
-        node_response = self.bridge.render(input.model_dump())
+        self._emit_test_progress(input)
+
+        node_response = self.bridge.render(
+            input.model_dump(
+                exclude={
+                    "callback_url",
+                    "callback_headers",
+                    "step_delay_seconds",
+                    "final_url",
+                }
+            )
+        )
+
+        if input.callback_url:
+            self._post_callback(
+                input.callback_url,
+                input.callback_headers,
+                {
+                    "status": "COMPLETED",
+                    "progress": 100,
+                    "url": input.final_url,
+                },
+            )
+
         return SpikeResponse(
             ok=True,
             job_id=input.job_id,
