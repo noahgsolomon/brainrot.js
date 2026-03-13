@@ -210,12 +210,8 @@ export default function CreateVideo({
     onSuccess: async (data) => {
       if (data?.valid) {
         console.log(data);
-        if (data.mode === "rap" && !data.downloadUrl) {
-          toast.error("No download URL found. Please try a different song.");
-          return;
-        }
         const uuidVal = uuidv4();
-        await fetch("/api/create", {
+        const createResponse = await fetch("/api/create", {
           method: "POST",
           body: JSON.stringify({
             topic: videoDetails.title,
@@ -228,23 +224,22 @@ export default function CreateVideo({
             mode: videoDetails.mode,
             videoMode: videoDetails.mode,
             outputType: videoDetails.outputType,
-            lyrics: videoDetails.mode === "rap" ? data.lyrics : undefined,
-            audioUrl:
-              videoDetails.mode === "rap" ? data.downloadUrl : undefined,
-            songName:
-              videoDetails.mode === "rap" ? selectedTrack?.name : undefined,
-            artistName:
-              videoDetails.mode === "rap"
-                ? selectedTrack?.artists[0]?.name
-                : undefined,
-            rapper:
-              data.mode === "rap" ? videoDetails.agents[0]?.name : undefined,
           }),
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${data.apiKey}`,
           },
         });
+
+        if (!createResponse.ok) {
+          const payload = (await createResponse.json().catch(() => null)) as
+            | { error?: string }
+            | null;
+
+          setGenerating(false);
+          toast.error(payload?.error ?? "Unable to submit the generation job.");
+          return;
+        }
 
         setGenerating(false);
         setIsInQueue(true);
@@ -291,6 +286,7 @@ export default function CreateVideo({
     onError: (e) => {
       console.log(e);
       setGenerating(false);
+      toast.error(e.message);
     },
   });
 
@@ -1371,13 +1367,18 @@ export default function CreateVideo({
                     videoDetails.mode !== "rap" &&
                     agent.length !== 2) ||
                   (videoDetails.mode === "monologue" && agent.length !== 1) ||
-                  (videoDetails.mode === "rap" && agent.length !== 1) ||
+                  videoDetails.mode === "rap" ||
                   (videoInput === "" && recommendedSelect === -1) ||
                   generating ||
                   (!!user.userId && videoStatus.data?.videos !== null)
                 }
                 className="flex items-center gap-2"
                 onClick={() => {
+                  if (videoDetails.mode === "rap") {
+                    toast.error("Rap mode is coming soon.");
+                    return;
+                  }
+
                   if ((userDB?.credits ?? 0) < credits) {
                     setIsInsufficientCreditsOpen(true);
                     return;
@@ -1407,10 +1408,6 @@ export default function CreateVideo({
                     remainingCredits: userDB?.credits ?? 0,
                     outputType: videoDetails.outputType,
                     mode: videoDetails.mode,
-                    trackId:
-                      videoDetails.mode === "rap"
-                        ? selectedTrack?.id
-                        : undefined,
                   });
                 }}
               >

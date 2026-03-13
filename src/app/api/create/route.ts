@@ -1,5 +1,10 @@
 import { db } from "@/server/db";
-import { brainrotusers } from "@/server/db/schemas/users/schema";
+import {
+  brainrotusers,
+  pendingVideos,
+} from "@/server/db/schemas/users/schema";
+import { isLocalWebhookUrl } from "@/lib/fal-jobs";
+import { submitFalBrainrotRenderJob } from "@/server/fal/brainrot-render-test";
 import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -67,6 +72,70 @@ export async function POST(request: Request) {
       artistName: body.artistName,
       rapper: body.rapper,
     });
+
+    if (body.videoMode === "brainrot") {
+      if (isLocalWebhookUrl(pendingVideo.falWebhookUrl)) {
+        throw new Error(
+          "The fal worker cannot call back to localhost. Set FAL_WEBHOOK_BASE_URL or NEXT_PUBLIC_APP_URL to a public URL.",
+        );
+      }
+
+      try {
+        const queuedJob = await submitFalBrainrotRenderJob({
+          videoId: pendingVideo.videoId,
+          webhookUrl: pendingVideo.falWebhookUrl,
+          webhookKey: pendingVideo.falWebhookKey,
+          topic: body.topic,
+          agentA: body.agent1 ?? "JORDAN_PETERSON",
+          agentB: body.agent2 ?? "BEN_SHAPIRO",
+          music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
+        });
+
+        await db
+          .update(pendingVideos)
+          .set({
+            status: "Submitted to fal queue",
+            progress: 1,
+            processId: 0,
+            falRequestId: queuedJob.request_id,
+          })
+          .where(eq(pendingVideos.videoId, pendingVideo.videoId));
+
+        return Response.json(
+          {
+            ok: true,
+            videoId: pendingVideo.videoId,
+            requestId: queuedJob.request_id,
+          },
+          { status: 200 },
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown fal queue error";
+
+        await db.transaction(async (tx) => {
+          await tx
+            .update(pendingVideos)
+            .set({
+              status: "ERROR",
+              falError: errorMessage,
+            })
+            .where(eq(pendingVideos.videoId, pendingVideo.videoId));
+
+          await tx
+            .update(brainrotusers)
+            .set({
+              credits: user.credits + body.credits,
+            })
+            .where(eq(brainrotusers.id, user.id));
+        });
+
+        return Response.json(
+          { ok: false, error: errorMessage },
+          { status: 500 },
+        );
+      }
+    }
 
     return Response.json(
       {
