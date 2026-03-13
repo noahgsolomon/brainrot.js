@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def dl_model(link, model_name, dir_name):
-    with requests.get(f"{link}{model_name}") as r:
+    with requests.get(f"{link}{model_name}", timeout=10.0) as r:
         r.raise_for_status()
         os.makedirs(os.path.dirname(dir_name / model_name), exist_ok=True)
         with open(dir_name / model_name, "wb") as f:
