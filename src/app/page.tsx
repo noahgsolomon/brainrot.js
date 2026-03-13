@@ -57,7 +57,7 @@ export default async function Home({
   return (
     <>
       <main className="relative flex flex-col items-center justify-center gap-4">
-        <div className="mt-[100px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
+        <div className="mt-[140px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
           <div className="flex flex-col items-center justify-center gap-8 pb-8">
             {/* <div className="coarse:hidden">
             <FlyingGifs gifs={gifs} />

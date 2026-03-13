@@ -49,6 +49,7 @@ export const videos = mysqlTable(
     agent2: varchar("agent2", { length: 100 }).notNull(),
     title: varchar("title", { length: 2000 }).notNull().default(""),
     url: varchar("url", { length: 1000 }).notNull(),
+    thumbnail: varchar("thumbnail", { length: 1000 }),
     videoId: varchar("video_id", { length: 100 }).unique().notNull(),
   },
   (t) => ({

@@ -46,6 +46,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
       agent2: string;
       title: string;
       url: string;
+      thumbnail: string | null;
       videoId: string;
     }[]
   >(userVideosQuery.data?.videos ?? []);
@@ -140,6 +141,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                       <Suspense fallback={<Loader2 className="size-6" />}>
                         <video
                           src={url}
+                          poster={video.thumbnail ?? undefined}
                           loop
                           playsInline
                           controls

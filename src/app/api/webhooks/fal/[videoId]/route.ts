@@ -24,6 +24,7 @@ const falWebhookSchema = z.object({
   progress: z.number().int().min(0).max(100).optional(),
   phaseKey: z.string().min(1).max(100).optional(),
   url: z.string().max(1000).optional(),
+  thumbnailUrl: z.string().max(1000).optional(),
   error: z.string().optional(),
 });
 
@@ -143,6 +144,7 @@ export async function POST(
               agent2: pendingVideo.agent2 ?? "",
               title: pendingVideo.title ?? "",
               url: payload.url,
+              thumbnail: payload.thumbnailUrl ?? null,
               videoId: pendingVideo.videoId,
             });
           }
