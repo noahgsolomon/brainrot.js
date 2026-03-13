@@ -1,0 +1,8 @@
+{
+  "name": "remotion-proxy-spike-app",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fal-ai/client": "1.9.4"
+  }
+}
