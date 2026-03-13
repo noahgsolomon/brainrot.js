@@ -1,4 +1,7 @@
 import http from "node:http";
+import { runBrainrotTranscriptAudioJob } from "./brainrot_transcript_audio.mjs";
+import { createProgressReporter, sleep } from "./job_callbacks.mjs";
+import { runRemotionBlackRenderJob } from "./remotion_black_render.mjs";
 
 const port = Number(process.env.REMOTION_PROXY_PORT || "8765");
 const startedAt = Date.now();
@@ -44,6 +47,57 @@ function readJsonBody(req) {
 }
 
 /**
+ * @param {Record<string, unknown>} body
+ */
+async function runStubRender(body) {
+  const hasCallbackUrl = typeof body.callback_url === "string";
+  const reportProgress = createProgressReporter({
+    callbackUrl: hasCallbackUrl ? String(body.callback_url) : null,
+    callbackHeaders:
+      body.callback_headers &&
+      typeof body.callback_headers === "object" &&
+      !Array.isArray(body.callback_headers)
+        ? /** @type {Record<string, string>} */ (body.callback_headers)
+        : {},
+  });
+
+  const stepDelaySeconds =
+    typeof body.step_delay_seconds === "number" ? body.step_delay_seconds : 5;
+  /** @type {Array<[string, number]>} */
+  const steps = [
+    ["Accepted fal smoke test job", 8],
+    ["Booting local renderer bridge", 24],
+    ["Pretending to render frames", 57],
+    ["Uploading dummy output", 84],
+  ];
+
+  for (const [status, progress] of steps) {
+    await reportProgress(status, progress);
+    if (hasCallbackUrl) {
+      await sleep(stepDelaySeconds * 1000);
+    }
+  }
+
+  if (hasCallbackUrl && typeof body.final_url === "string") {
+    await reportProgress("COMPLETED", 100, {
+      url: body.final_url,
+    });
+  }
+
+  return {
+    ok: true,
+    echoedInput: {
+      job_id: body.job_id,
+      composition_id: body.composition_id,
+      props: body.props ?? {},
+    },
+    nodePid: process.pid,
+    renderedAt: new Date().toISOString(),
+    note: "Stub response from the local Node renderer process.",
+  };
+}
+
+/**
  * @param {import("node:http").IncomingMessage} req
  * @param {import("node:http").ServerResponse} res
  */
@@ -61,13 +115,64 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/render") {
     try {
       const body = await readJsonBody(req);
-      sendJson(res, 200, {
-        ok: true,
-        echoedInput: body,
-        nodePid: process.pid,
-        renderedAt: new Date().toISOString(),
-        note: "Stub response from the local Node renderer process.",
-      });
+      const props =
+        body.props && typeof body.props === "object" && !Array.isArray(body.props)
+          ? /** @type {Record<string, unknown>} */ (body.props)
+          : {};
+
+      if (props.pipeline === "brainrot_transcript_audio") {
+        const reportProgress = createProgressReporter({
+          callbackUrl:
+            typeof body.callback_url === "string" ? body.callback_url : null,
+          callbackHeaders:
+            body.callback_headers &&
+            typeof body.callback_headers === "object" &&
+            !Array.isArray(body.callback_headers)
+              ? /** @type {Record<string, string>} */ (body.callback_headers)
+              : {},
+        });
+        const result = await runBrainrotTranscriptAudioJob({
+          jobId: String(body.job_id ?? "job"),
+          props,
+          reportProgress,
+        });
+
+        sendJson(res, 200, {
+          ok: true,
+          nodePid: process.pid,
+          renderedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      }
+
+      if (props.pipeline === "remotion_black_render") {
+        const reportProgress = createProgressReporter({
+          callbackUrl:
+            typeof body.callback_url === "string" ? body.callback_url : null,
+          callbackHeaders:
+            body.callback_headers &&
+            typeof body.callback_headers === "object" &&
+            !Array.isArray(body.callback_headers)
+              ? /** @type {Record<string, string>} */ (body.callback_headers)
+              : {},
+        });
+        const result = await runRemotionBlackRenderJob({
+          jobId: String(body.job_id ?? "job"),
+          props,
+          reportProgress,
+        });
+
+        sendJson(res, 200, {
+          ok: true,
+          nodePid: process.pid,
+          renderedAt: new Date().toISOString(),
+          ...result,
+        });
+        return;
+      }
+
+      sendJson(res, 200, await runStubRender(body));
     } catch (error) {
       sendJson(res, 400, {
         ok: false,

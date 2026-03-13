@@ -1,0 +1,12 @@
+{
+  "name": "remotion-proxy-spike-runtime",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@remotion/bundler": "4.0.260",
+    "@remotion/renderer": "4.0.260",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "remotion": "4.0.260"
+  }
+}
