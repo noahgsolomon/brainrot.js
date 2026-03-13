@@ -20,6 +20,7 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { buildFalWebhookUrl, isLocalWebhookUrl } from "@/lib/fal-jobs";
 import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
+import { submitFalBrainrotRenderTest } from "@/server/fal/brainrot-render-test";
 import { runFalOpenRouterCompatibilityTest } from "@/server/fal/openrouter-compat-test";
 import { submitFalRemotionRenderTest } from "@/server/fal/remotion-render-test";
 import { submitFalSmokeTest } from "@/server/fal/smoke-test";
@@ -332,6 +333,90 @@ export const userRouter = createTRPCRouter({
     }
   }),
 
+  startFalBrainrotRenderTest: protectedProcedure.mutation(async ({ ctx }) => {
+    const latestPendingVideo = await ctx.db.query.pendingVideos.findFirst({
+      where: eq(pendingVideos.user_id, ctx.user_id),
+      orderBy: (pendingVideos, { desc }) => [desc(pendingVideos.timestamp)],
+      columns: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (
+      latestPendingVideo &&
+      !["COMPLETED", "ERROR"].includes(latestPendingVideo.status.toUpperCase())
+    ) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message:
+          "You already have an active pending job. Let it finish before starting another test.",
+      });
+    }
+
+    const videoId = randomUUID();
+    const webhookUrl = buildFalWebhookUrl(videoId);
+
+    if (isLocalWebhookUrl(webhookUrl)) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "The fal worker cannot call back to localhost. Set FAL_WEBHOOK_BASE_URL or NEXT_PUBLIC_APP_URL to a public URL before running this test locally.",
+      });
+    }
+
+    const pendingJob = await createPendingVideoJob({
+      userId: ctx.user_id,
+      agent1: "JOE_ROGAN",
+      agent2: "JOE_BIDEN",
+      title: "fal brainrot render test",
+      videoId,
+      credits: 0,
+      videoMode: "brainrot",
+    });
+
+    try {
+      const queuedJob = await submitFalBrainrotRenderTest({
+        videoId,
+        webhookUrl: pendingJob.falWebhookUrl,
+        webhookKey: pendingJob.falWebhookKey,
+      });
+
+      await ctx.db
+        .update(pendingVideos)
+        .set({
+          status: "Submitted to fal queue",
+          progress: 1,
+          processId: 0,
+          falRequestId: queuedJob.request_id,
+        })
+        .where(eq(pendingVideos.videoId, videoId));
+
+      return {
+        ok: true,
+        videoId,
+        requestId: queuedJob.request_id,
+        status: queuedJob.status,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown fal queue error";
+
+      await ctx.db
+        .update(pendingVideos)
+        .set({
+          status: "ERROR",
+          falError: errorMessage,
+        })
+        .where(eq(pendingVideos.videoId, videoId));
+
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: errorMessage,
+      });
+    }
+  }),
+
   videoStatus: protectedProcedure.query(async ({ ctx }) => {
     const pendingVideo = await ctx.db.query.pendingVideos.findFirst({
       where: eq(pendingVideos.user_id, ctx.user_id),
@@ -559,105 +644,8 @@ export const userRouter = createTRPCRouter({
             };
           }
 
-          // Fetch lyrics and download URL for rap mode
           let lyrics = null;
           let downloadUrl = null;
-
-          if (mode === "rap" && trackId) {
-            try {
-              const lyricsResponse = await fetch(
-                `${
-                  process.env.MODE === "LOCAL"
-                    ? "http://localhost:3000"
-                    : `https://${process.env.WEBSITE}`
-                }/api/spotify/lyrics`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ id: trackId }),
-                },
-              );
-
-              if (lyricsResponse.ok) {
-                const lyricsData = await lyricsResponse.json();
-                lyrics = lyricsData.lyrics || null;
-              }
-
-              const trackResponse = await fetch(
-                `https://api.spotify.com/v1/tracks/${trackId}`,
-                {
-                  headers: {
-                    authorization: `Bearer ${await getSpotifyToken()}`,
-                    Accept: "application/json",
-                  },
-                },
-              );
-
-              if (trackResponse.ok) {
-                const trackData = await trackResponse.json();
-                console.log(
-                  "Track data:",
-                  trackData.name,
-                  "by",
-                  trackData.artists?.[0]?.name,
-                );
-
-                const spotifyUrl = trackData.external_urls.spotify;
-                const downloadApiUrl = `${
-                  process.env.MODE === "LOCAL"
-                    ? "http://localhost:3000"
-                    : `https://${process.env.WEBSITE}`
-                }/api/spotify/download?url=${encodeURIComponent(spotifyUrl)}`;
-
-                console.log("Calling download API:", downloadApiUrl);
-
-                const downloadResponse = await fetch(downloadApiUrl, {
-                  method: "GET",
-                  headers: {
-                    Accept: "application/json",
-                  },
-                });
-
-                console.log("Download API status:", downloadResponse.status);
-
-                if (downloadResponse.ok) {
-                  const downloadData = await downloadResponse.json();
-                  console.log(
-                    "Download API response:",
-                    JSON.stringify(downloadData, null, 2),
-                  );
-
-                  // The API returns the download URL in data.downloadLink
-                  downloadUrl =
-                    downloadData?.data?.downloadLink ||
-                    downloadData?.medias?.[0]?.url ||
-                    null;
-
-                  if (!downloadUrl) {
-                    console.error("No download URL found in response");
-                  } else {
-                    console.log("Got download URL:", downloadUrl);
-                  }
-                } else {
-                  const errorText = await downloadResponse.text();
-                  console.error(
-                    "Download API failed with status:",
-                    downloadResponse.status,
-                  );
-                  console.error("Error response:", errorText);
-                }
-              } else {
-                console.error(
-                  "Spotify track API failed with status:",
-                  trackResponse.status,
-                );
-              }
-            } catch (error) {
-              console.error("Error fetching lyrics or download URL:", error);
-            }
-          }
 
           await ctx.db
             .update(brainrotusers)

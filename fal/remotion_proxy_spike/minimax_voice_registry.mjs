@@ -1,3 +1,4 @@
+// @ts-nocheck
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,10 +34,6 @@ let configuredFalKey = null;
 let trainingAudioDirPromise = null;
 let musicDirPromise = null;
 let startupWarmupPromise = null;
-
-function humanizeAgentName(agentId) {
-  return agentId.replace(/_/g, " ");
-}
 
 function assertAgentSupported(agentId) {
   if (!Object.hasOwn(TRAINING_AUDIO_FILE_MAP, agentId)) {
@@ -142,6 +139,13 @@ export async function getUploadedTrainingAudioUrl(agentId) {
     ensureFalClientConfigured();
     const trainingAudioPath = await getTrainingAudioFilePath(agentId);
     const fileName = path.basename(trainingAudioPath);
+    console.log(
+      JSON.stringify({
+        type: "minimax_training_audio_upload_start",
+        agentId,
+        fileName,
+      }),
+    );
     const buffer = await fs.readFile(trainingAudioPath);
     const uploadable = createNamedBlob(
       buffer,
@@ -149,11 +153,19 @@ export async function getUploadedTrainingAudioUrl(agentId) {
       guessContentType(fileName),
     );
 
-    return fal.storage.upload(uploadable, {
+    const uploadedUrl = await fal.storage.upload(uploadable, {
       lifecycle: {
         expiresIn: "30d",
       },
     });
+    console.log(
+      JSON.stringify({
+        type: "minimax_training_audio_upload_done",
+        agentId,
+        uploadedUrl,
+      }),
+    );
+    return uploadedUrl;
   });
 }
 
@@ -174,14 +186,19 @@ export async function getCustomVoiceId(agentId) {
   return memoizePromise(customVoiceIdPromises, agentId, async () => {
     ensureFalClientConfigured();
     const audioUrl = await getUploadedTrainingAudioUrl(agentId);
+    console.log(
+      JSON.stringify({
+        type: "minimax_voice_clone_start",
+        agentId,
+        audioUrl,
+      }),
+    );
     const result = await fal.subscribe("fal-ai/minimax/voice-clone", {
       input: {
         audio_url: audioUrl,
         noise_reduction: true,
         need_volume_normalization: true,
         accuracy: 0.8,
-        text: `This is ${humanizeAgentName(agentId)} speaking.`,
-        model: "speech-02-hd",
       },
     });
     const customVoiceId = result.data?.custom_voice_id?.trim();
@@ -192,6 +209,14 @@ export async function getCustomVoiceId(agentId) {
       );
     }
 
+    console.log(
+      JSON.stringify({
+        type: "minimax_voice_clone_done",
+        agentId,
+        customVoiceId,
+      }),
+    );
+
     return customVoiceId;
   });
 }
@@ -199,6 +224,14 @@ export async function getCustomVoiceId(agentId) {
 export async function synthesizeMiniMaxSpeech({ agentId, text, outputPath }) {
   ensureFalClientConfigured();
   const customVoiceId = await getCustomVoiceId(agentId);
+  console.log(
+    JSON.stringify({
+      type: "minimax_tts_start",
+      agentId,
+      outputPath,
+      textLength: text.length,
+    }),
+  );
   const result = await fal.subscribe("fal-ai/minimax/speech-02-hd", {
     input: {
       text,
@@ -225,6 +258,14 @@ export async function synthesizeMiniMaxSpeech({ agentId, text, outputPath }) {
     throw new Error(`MiniMax TTS did not return an audio URL for ${agentId}`);
   }
 
+  console.log(
+    JSON.stringify({
+      type: "minimax_tts_done",
+      agentId,
+      audioUrl,
+    }),
+  );
+
   const response = await fetch(audioUrl);
 
   if (!response.ok) {
@@ -238,6 +279,14 @@ export async function synthesizeMiniMaxSpeech({ agentId, text, outputPath }) {
 
   const arrayBuffer = await response.arrayBuffer();
   await fs.writeFile(outputPath, Buffer.from(arrayBuffer));
+
+  console.log(
+    JSON.stringify({
+      type: "minimax_tts_download_done",
+      agentId,
+      outputPath,
+    }),
+  );
 
   return {
     audioUrl,

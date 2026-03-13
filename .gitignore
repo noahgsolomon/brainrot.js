@@ -1,4 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+fal/remotion_proxy_spike/remotion_runtime/node_modules
+fal/remotion_proxy_spike/remotion_runtime/public/background/
+fal/remotion_proxy_spike/remotion_runtime/public/music/
+fal/remotion_proxy_spike/remotion_runtime/public/pose/
+fal/remotion_proxy_spike/remotion_runtime/public/jobs/
 
 # dependencies
 /node_modules
@@ -10,7 +15,7 @@ package-lock.json
 /coverage
 query.sql
 
-/src/env.mjs 
+/src/env.mjs
 # next.js
 /.next/
 /out/
@@ -66,7 +71,7 @@ bun.lockb
 
 # sst
 .sst
-	
+
 # open-next
 .open-next
 

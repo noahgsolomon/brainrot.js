@@ -101,6 +101,21 @@ export default function TestPageClient() {
         void videoStatusQuery.refetch();
       },
     });
+  const startFalBrainrotRenderTestMutation =
+    trpc.user.startFalBrainrotRenderTest.useMutation({
+      onSuccess: (data) => {
+        setLastStartedVideoId(data.videoId);
+        setLastRequestId(data.requestId);
+        setLastTerminalStatus(null);
+        setHandledTerminalPendingId(null);
+        toast.success("Submitted fal brainrot render test.");
+        void videoStatusQuery.refetch();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+        void videoStatusQuery.refetch();
+      },
+    });
   const testFalOpenRouterCompatibilityMutation =
     trpc.user.testFalOpenRouterCompatibility.useMutation({
       onSuccess: (data) => {
@@ -131,6 +146,9 @@ export default function TestPageClient() {
         (video) => video.videoId === lastStartedVideoId,
       ) ??
       userVideosQuery.data.videos.find(
+        (video) => video.title === "fal brainrot render test",
+      ) ??
+      userVideosQuery.data.videos.find(
         (video) => video.title === "fal remotion render test",
       ) ??
       userVideosQuery.data.videos.find(
@@ -156,10 +174,10 @@ export default function TestPageClient() {
     setLastTerminalStatus(currentPendingVideo.status.toUpperCase());
 
     if (currentPendingVideo.status.toUpperCase() === "COMPLETED") {
-      toast.success("fal smoke test completed.");
+      toast.success("fal test job completed.");
       void userVideosQuery.refetch();
     } else {
-      toast.error("fal smoke test failed.");
+      toast.error("fal test job failed.");
     }
 
     deletePendingVideoMutation.mutate({ id: currentPendingVideo.id });
@@ -197,6 +215,22 @@ export default function TestPageClient() {
                   <Sparkles className="h-4 w-4" />
                 )}
                 Start fal smoke test
+              </Button>
+              <Button
+                variant="secondary"
+                className="gap-2"
+                disabled={
+                  hasActivePendingJob ||
+                  startFalBrainrotRenderTestMutation.isLoading
+                }
+                onClick={() => startFalBrainrotRenderTestMutation.mutate()}
+              >
+                {startFalBrainrotRenderTestMutation.isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                Start fal brainrot render
               </Button>
               <Button
                 variant="outline"

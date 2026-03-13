@@ -91,17 +91,20 @@ class RemotionProxySpike(fal.App):
         (APP_DIR / "Dockerfile").read_text(),
         context_dir=REPO_ROOT,
     )
-    machine_type = "S"
+    machine_type = "GPU-L40"
     keep_alive = 300
     startup_timeout = 300
-    request_timeout = 300
+    request_timeout = 1800
     max_concurrency = 2
     max_multiplexing = 1
 
     def setup(self) -> None:
         print("[app.py] setup() called — initializing NodeBridge...")
         self.started_at = time.time()
-        self.bridge = NodeBridge()
+        self.bridge = NodeBridge(
+            startup_timeout_seconds=int(self.startup_timeout),
+            request_timeout_seconds=int(self.request_timeout),
+        )
         self.bridge.start()
         print(f"[app.py] setup() complete — bridge started, started_at={self.started_at}")
 
@@ -210,9 +213,13 @@ class RemotionProxySpike(fal.App):
             print(f"[app.py] /render bridge response={json.dumps(node_response)}")
 
             video_url: str | None = None
+            output_video_url = node_response.get("outputVideoUrl")
             output_video_path = node_response.get("outputVideoPath")
 
-            if isinstance(output_video_path, str) and output_video_path:
+            if isinstance(output_video_url, str) and output_video_url:
+                video_url = output_video_url
+
+            if video_url is None and isinstance(output_video_path, str) and output_video_path:
                 print(f"[app.py] /render uploading rendered video from {output_video_path}")
                 hosted_video = Video.from_path(output_video_path)
                 candidate_url = getattr(hosted_video, "url", None)
@@ -222,17 +229,17 @@ class RemotionProxySpike(fal.App):
                 video_url = candidate_url
                 node_response["hostedVideoUrl"] = video_url
 
-                if input.callback_url:
-                    print(f"[app.py] /render sending COMPLETED callback with url={video_url}")
-                    self._post_callback(
-                        input.callback_url,
-                        input.callback_headers,
-                        {
-                            "status": "COMPLETED",
-                            "progress": 100,
-                            "url": video_url,
-                        },
-                    )
+            if video_url is not None and input.callback_url:
+                print(f"[app.py] /render sending COMPLETED callback with url={video_url}")
+                self._post_callback(
+                    input.callback_url,
+                    input.callback_headers,
+                    {
+                        "status": "COMPLETED",
+                        "progress": 100,
+                        "url": video_url,
+                    },
+                )
 
             print(f"[app.py] /render done — job_id={input.job_id}")
             return SpikeResponse(

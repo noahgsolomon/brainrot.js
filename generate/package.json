@@ -11,8 +11,8 @@
 	"repository": {},
 	"license": "UNLICENSED",
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.554.0",
-		"@aws-sdk/client-sqs": "^3.511.0",
+		"@aws-sdk/client-s3": "3.738.0",
+		"@aws-sdk/client-sqs": "3.738.0",
 		"@remotion/cli": "4.0.260",
 		"@remotion/eslint-plugin": "4.0.260",
 		"@remotion/lambda": "4.0.260",
