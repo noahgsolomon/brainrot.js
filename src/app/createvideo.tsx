@@ -567,7 +567,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                       agent.some((a) => a.name === "JORDAN_PETERSON")
                         ? "opacity-40"
                         : "opacity-0"
@@ -595,7 +595,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                       agent.some((a) => a.name === "BEN_SHAPIRO")
                         ? "opacity-40"
                         : "opacity-0"
@@ -623,7 +623,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                       agent.some((a) => a.name === "JOE_ROGAN")
                         ? "opacity-40"
                         : "opacity-0"
@@ -682,7 +682,7 @@ export default function CreateVideo({
                         <Crown className="size-4 text-secondary dark:text-primary" />
                       </div>
                       <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                           agent.some((a) => a.name === "DONALD_TRUMP")
                             ? "opacity-40"
                             : "opacity-0"
@@ -712,7 +712,7 @@ export default function CreateVideo({
                     }
                   >
                     <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                         agent.some((a) => a.name === "DONALD_TRUMP")
                           ? "opacity-40"
                           : "opacity-0"
@@ -947,7 +947,7 @@ export default function CreateVideo({
                       }
                     >
                       <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                           agent[0]?.name === hostName
                             ? "opacity-40"
                             : "opacity-0"
@@ -1001,7 +1001,7 @@ export default function CreateVideo({
                             }
                           >
                             <Image
-                              className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                              className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                                 agent[1]?.name === guestName
                                   ? "opacity-40"
                                   : "opacity-0"
@@ -1215,7 +1215,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                       agent.some((a) => a.name === "SPONGEBOB")
                         ? "opacity-40"
                         : "opacity-0"
@@ -1243,7 +1243,7 @@ export default function CreateVideo({
                   }
                 >
                   <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 z-20 transition-all ${
+                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                       agent.some((a) => a.name === "BARACK_OBAMA")
                         ? "opacity-40"
                         : "opacity-0"
