@@ -3,8 +3,7 @@ import { runBrainrotTranscriptAudioJob } from "./brainrot_transcript_audio.mjs";
 import { createProgressReporter, sleep } from "./job_callbacks.mjs";
 import { startMiniMaxAssetWarmup } from "./minimax_voice_registry.mjs";
 import { runBrainrotLambdaRenderJob } from "./remotion_brainrot_lambda_render.mjs";
-import { runRemotionBrainrotRenderJob } from "./remotion_brainrot_render.mjs";
-import { runRemotionBlackRenderJob } from "./remotion_black_render.mjs";
+import { runBrainrotPrepUploadJob } from "./brainrot_prep_upload.mjs";
 
 const port = Number(process.env.REMOTION_PROXY_PORT || "8765");
 const startedAt = Date.now();
@@ -151,7 +150,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      if (props.pipeline === "remotion_black_render") {
+      if (props.pipeline === "brainrot_prep_upload") {
         const reportProgress = createProgressReporter({
           callbackUrl:
             typeof body.callback_url === "string" ? body.callback_url : null,
@@ -162,33 +161,7 @@ const server = http.createServer(async (req, res) => {
               ? /** @type {Record<string, string>} */ (body.callback_headers)
               : {},
         });
-        const result = await runRemotionBlackRenderJob({
-          jobId: String(body.job_id ?? "job"),
-          props,
-          reportProgress,
-        });
-
-        sendJson(res, 200, {
-          ok: true,
-          nodePid: process.pid,
-          renderedAt: new Date().toISOString(),
-          ...result,
-        });
-        return;
-      }
-
-      if (props.pipeline === "brainrot_remotion_render") {
-        const reportProgress = createProgressReporter({
-          callbackUrl:
-            typeof body.callback_url === "string" ? body.callback_url : null,
-          callbackHeaders:
-            body.callback_headers &&
-            typeof body.callback_headers === "object" &&
-            !Array.isArray(body.callback_headers)
-              ? /** @type {Record<string, string>} */ (body.callback_headers)
-              : {},
-        });
-        const result = await runRemotionBrainrotRenderJob({
+        const result = await runBrainrotPrepUploadJob({
           jobId: String(body.job_id ?? "job"),
           props,
           reportProgress,

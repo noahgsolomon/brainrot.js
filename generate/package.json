@@ -5,6 +5,7 @@
 	"scripts": {
 		"start": "remotion studio",
 		"build": "remotion render Video out/video.mp4",
+		"prep": "node scripts/fetch-prep.mjs",
 		"upgrade": "remotion upgrade",
 		"test": "eslint src --ext ts,tsx,js,jsx && tsc"
 	},
