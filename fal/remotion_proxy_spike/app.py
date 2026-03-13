@@ -5,11 +5,11 @@ import time
 from pathlib import Path
 from urllib import error, request
 
-import fal
 from fal.container import ContainerImage
 from fal.toolkit import Video
 from pydantic import BaseModel, Field
 
+import fal
 
 APP_DIR = Path(__file__).resolve().parent
 REPO_ROOT = APP_DIR.parent.parent
@@ -95,7 +95,8 @@ class RemotionProxySpike(fal.App):
     keep_alive = 300
     startup_timeout = 300
     request_timeout = 1800
-    max_concurrency = 2
+    max_concurrency = 5
+    min_concurrency = 2
     max_multiplexing = 1
 
     def setup(self) -> None:
@@ -106,7 +107,9 @@ class RemotionProxySpike(fal.App):
             request_timeout_seconds=int(self.request_timeout),
         )
         self.bridge.start()
-        print(f"[app.py] setup() complete — bridge started, started_at={self.started_at}")
+        print(
+            f"[app.py] setup() complete — bridge started, started_at={self.started_at}"
+        )
 
     def _post_callback(
         self,
@@ -114,7 +117,9 @@ class RemotionProxySpike(fal.App):
         callback_headers: dict[str, str],
         payload: dict,
     ) -> None:
-        print(f"[app.py] _post_callback() -> {callback_url} payload={json.dumps(payload)}")
+        print(
+            f"[app.py] _post_callback() -> {callback_url} payload={json.dumps(payload)}"
+        )
         headers = {
             "Content-Type": "application/json",
             "User-Agent": "remotion-proxy-spike/1.0",
@@ -153,9 +158,13 @@ class RemotionProxySpike(fal.App):
             ("Uploading dummy output", random.randint(75, 92)),
         ]
 
-        print(f"[app.py] _emit_test_progress() sending {len(steps)} progress updates to {input.callback_url}")
+        print(
+            f"[app.py] _emit_test_progress() sending {len(steps)} progress updates to {input.callback_url}"
+        )
         for i, (status, progress) in enumerate(steps):
-            print(f"[app.py] progress step {i+1}/{len(steps)}: status={status!r} progress={progress}")
+            print(
+                f"[app.py] progress step {i + 1}/{len(steps)}: status={status!r} progress={progress}"
+            )
             self._post_callback(
                 input.callback_url,
                 input.callback_headers,
@@ -202,8 +211,12 @@ class RemotionProxySpike(fal.App):
 
     @fal.endpoint("/")
     def render(self, input: SpikeRequest) -> SpikeResponse:
-        print(f"[app.py] /render called — job_id={input.job_id} composition_id={input.composition_id}")
-        print(f"[app.py] /render props keys={list(input.props.keys())} callback_url={input.callback_url}")
+        print(
+            f"[app.py] /render called — job_id={input.job_id} composition_id={input.composition_id}"
+        )
+        print(
+            f"[app.py] /render props keys={list(input.props.keys())} callback_url={input.callback_url}"
+        )
 
         try:
             print(f"[app.py] /render calling bridge.render()...")
@@ -219,8 +232,14 @@ class RemotionProxySpike(fal.App):
             if isinstance(output_video_url, str) and output_video_url:
                 video_url = output_video_url
 
-            if video_url is None and isinstance(output_video_path, str) and output_video_path:
-                print(f"[app.py] /render uploading rendered video from {output_video_path}")
+            if (
+                video_url is None
+                and isinstance(output_video_path, str)
+                and output_video_path
+            ):
+                print(
+                    f"[app.py] /render uploading rendered video from {output_video_path}"
+                )
                 hosted_video = Video.from_path(output_video_path)
                 candidate_url = getattr(hosted_video, "url", None)
                 if not isinstance(candidate_url, str) or not candidate_url:
@@ -230,7 +249,9 @@ class RemotionProxySpike(fal.App):
                 node_response["hostedVideoUrl"] = video_url
 
             if video_url is not None and input.callback_url:
-                print(f"[app.py] /render sending COMPLETED callback with url={video_url}")
+                print(
+                    f"[app.py] /render sending COMPLETED callback with url={video_url}"
+                )
                 self._post_callback(
                     input.callback_url,
                     input.callback_headers,
@@ -265,6 +286,8 @@ class RemotionProxySpike(fal.App):
                         },
                     )
                 except Exception as callback_error:
-                    print(f"[app.py] /render failed to post ERROR callback: {callback_error}")
+                    print(
+                        f"[app.py] /render failed to post ERROR callback: {callback_error}"
+                    )
 
             raise

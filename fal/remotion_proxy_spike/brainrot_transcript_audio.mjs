@@ -10,6 +10,12 @@ import { runPythonSrtPipeline } from "./python_srt_pipeline.mjs";
 
 const FAL_OPENROUTER_API_URL = "https://fal.run/openrouter/router";
 const DEFAULT_TRANSCRIPT_MODEL = "x-ai/grok-4.20-beta";
+const FALLBACK_TRANSCRIPT_MODELS = [
+  "qwen/qwen3.5-35b-a3b",
+  "google/gemini-3.1-flash-image-preview",
+  "minimax/minimax-m2.5",
+  "z-ai/glm-5",
+];
 const DEFAULT_BACKGROUND_VIDEO = "/background/MINECRAFT-0.mp4";
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
 
@@ -199,22 +205,33 @@ async function getTranscriptWithRetry(input) {
     ];
   }
 
+  const modelsToTry = [input.model, ...FALLBACK_TRANSCRIPT_MODELS];
   let lastError = null;
 
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
-    try {
-      return await generateBrainrotTranscript(input);
-    } catch (error) {
-      lastError = error;
+  for (const model of modelsToTry) {
+    for (let attempt = 1; attempt <= 5; attempt += 1) {
+      try {
+        console.log(`[transcript] Trying model ${model} (attempt ${attempt}/5)`);
+        return await generateBrainrotTranscript({ ...input, model });
+      } catch (error) {
+        lastError = error;
+        console.error(
+          `[transcript] Model ${model} attempt ${attempt}/5 failed: ${
+            error instanceof Error ? error.message : "unknown error"
+          }`,
+        );
 
-      if (attempt < 5) {
-        await sleep(15_000);
+        if (attempt < 5) {
+          await sleep(15_000);
+        }
       }
     }
+
+    console.error(`[transcript] Model ${model} exhausted all 5 attempts, trying next model...`);
   }
 
   throw new Error(
-    `Failed to generate valid transcript after 5 attempts: ${
+    `Failed to generate valid transcript after trying all models (${modelsToTry.join(", ")}): ${
       lastError instanceof Error ? lastError.message : "unknown error"
     }`,
   );
