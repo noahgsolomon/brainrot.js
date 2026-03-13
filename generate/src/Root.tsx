@@ -12,6 +12,10 @@ import {
 import { getAudioDuration } from '@remotion/media-utils';
 
 export const RemotionRoot: React.FC = () => {
+	const compositionFps = 30;
+	const compositionWidth = 720;
+	const compositionHeight = 1280;
+
 	const getCompositionProps = () => {
 		const baseProps = {
 			// Audio settings
@@ -129,16 +133,16 @@ export const RemotionRoot: React.FC = () => {
 			<Composition
 				id="Video"
 				component={getCompositionComponent()}
-				fps={60}
-				width={1080}
-				height={1920}
+				fps={compositionFps}
+				width={compositionWidth}
+				height={compositionHeight}
 				schema={getCompositionSchema()}
 				defaultProps={getCompositionProps()}
 				calculateMetadata={async ({ props }) => {
 					const duration =
 						(await getAudioDuration(staticFile(`audio.mp3`))) + 0.5;
 					return {
-						durationInFrames: Math.ceil(duration * 60),
+						durationInFrames: Math.ceil(duration * compositionFps),
 						props,
 					};
 				}}
