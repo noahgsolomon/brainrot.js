@@ -40,6 +40,11 @@ const nextConfig = {
         hostname: "cwp8pb7l7rzz6iyv.public.blob.vercel-storage.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "v3b.fal.media",
+        pathname: "**",
+      },
     ],
   },
 };

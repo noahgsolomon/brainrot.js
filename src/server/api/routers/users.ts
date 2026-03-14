@@ -342,6 +342,8 @@ export const userRouter = createTRPCRouter({
       columns: {
         id: true,
         title: true,
+        agent1: true,
+        agent2: true,
         status: true,
         progress: true,
         credits: true,
@@ -420,6 +422,8 @@ export const userRouter = createTRPCRouter({
         videos: {
           id: pendingVideo.id,
           title: pendingVideo.title,
+          agent1: pendingVideo.agent1,
+          agent2: pendingVideo.agent2,
           status: pendingVideo.status,
           progress: pendingVideo.progress,
           credits: pendingVideo.credits,
@@ -506,32 +510,29 @@ export const userRouter = createTRPCRouter({
     }),
 
   getLatestGenerations: publicProcedure.query(async ({ ctx }) => {
-    const results = await ctx.db
-      .select({
-        id: videos.id,
-        title: videos.title,
-        url: videos.url,
-        thumbnail: videos.thumbnail,
-        agent1: videos.agent1,
-        agent2: videos.agent2,
-      })
-      .from(videos)
-      .where(
-        sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
-      )
-      .innerJoin(
-        sql`(
-          SELECT MAX(id) as max_id
-          FROM videos
-          WHERE thumbnail IS NOT NULL AND thumbnail != ''
-          GROUP BY title
-        ) AS latest`,
-        sql`${videos.id} = latest.max_id`,
-      )
-      .orderBy(sql`${videos.id} DESC`)
-      .limit(20);
+    const allWithThumbnails = await ctx.db.query.videos.findMany({
+      where: sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
+      orderBy: (videos, { desc }) => [desc(videos.id)],
+      columns: {
+        id: true,
+        title: true,
+        url: true,
+        thumbnail: true,
+        agent1: true,
+        agent2: true,
+      },
+    });
 
-    return { videos: results };
+    // Deduplicate by title — keep the most recent (first seen since sorted by id DESC)
+    const seen = new Set<string>();
+    const unique = allWithThumbnails.filter((v) => {
+      const key = v.title.toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return { videos: unique.slice(0, 20) };
   }),
 
   newUserVideo: protectedProcedure.query(async ({ ctx }) => {

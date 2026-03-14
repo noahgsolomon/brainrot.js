@@ -767,7 +767,7 @@ export default function CreateVideo({
                         <Crown className="size-4 text-secondary dark:text-primary" />
                       </div>
                       <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                           agent.some((a) => a.name === "JOE_BIDEN")
                             ? "opacity-40"
                             : "opacity-0"
@@ -797,7 +797,7 @@ export default function CreateVideo({
                     }
                   >
                     <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                         agent.some((a) => a.name === "JOE_BIDEN")
                           ? "opacity-40"
                           : "opacity-0"
@@ -828,7 +828,7 @@ export default function CreateVideo({
                         <Crown className="size-4 text-secondary dark:text-primary" />
                       </div>
                       <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                           agent.some((a) => a.name === "ANDREW_TATE")
                             ? "opacity-40"
                             : "opacity-0"
@@ -858,7 +858,7 @@ export default function CreateVideo({
                     }
                   >
                     <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                         agent.some((a) => a.name === "ANDREW_TATE")
                           ? "opacity-40"
                           : "opacity-0"
@@ -889,7 +889,7 @@ export default function CreateVideo({
                         <Crown className="size-4 text-secondary dark:text-primary" />
                       </div>
                       <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                           agent.some((a) => a.name === "KAMALA_HARRIS")
                             ? "opacity-40"
                             : "opacity-0"
@@ -919,7 +919,7 @@ export default function CreateVideo({
                     }
                   >
                     <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 z-20  transition-all ${
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
                         agent.some((a) => a.name === "KAMALA_HARRIS")
                           ? "opacity-40"
                           : "opacity-0"
