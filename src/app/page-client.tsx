@@ -6,9 +6,23 @@ import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Crown, Folder, Loader2, Star, Wand, X,
-  GraduationCap, Rocket, Landmark, Globe, Atom, Church, Zap, Home, FlaskConical,
-  Castle, Anchor,
+  Crown,
+  Folder,
+  Loader2,
+  Star,
+  Wand,
+  X,
+  GraduationCap,
+  Rocket,
+  Landmark,
+  Globe,
+  Atom,
+  Church,
+  Zap,
+  Home,
+  FlaskConical,
+  Castle,
+  Anchor,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +40,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
+import LatestGenerations from "@/components/latest-generations";
 
 const buttonVariantsAnimated = {
   initial: { opacity: 0, y: 20 },
@@ -59,9 +74,13 @@ export default function PageClient({
   searchParams,
   initialPendingVideo,
   clerkUser,
+  initialActiveQueueCount,
+  initialLatestGenerations,
+  initialVideoDetails,
 }: {
   searchParams: { [key: string]: string | undefined };
   initialPendingVideo: boolean;
+  initialVideoDetails?: { title: string; agent1: string; agent2: string };
   clerkUser:
     | {
         id: string | null | undefined;
@@ -72,6 +91,15 @@ export default function PageClient({
       }
     | null
     | undefined;
+  initialActiveQueueCount: number;
+  initialLatestGenerations: {
+    id: number;
+    title: string;
+    url: string;
+    thumbnail: string;
+    agent1: string;
+    agent2: string;
+  }[];
 }) {
   const router = useRouter();
 
@@ -89,7 +117,15 @@ export default function PageClient({
 
   const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
   const [placeInQueue, setPlaceInQueue] = useState(0);
-  const [pendingVideoTitle, setPendingVideoTitle] = useState("");
+  const [pendingVideoTitle, setPendingVideoTitle] = useState(
+    initialVideoDetails?.title ?? "",
+  );
+  const [pendingAgent1, setPendingAgent1] = useState(
+    initialVideoDetails?.agent1 ?? "",
+  );
+  const [pendingAgent2, setPendingAgent2] = useState(
+    initialVideoDetails?.agent2 ?? "",
+  );
 
   const videoStatus = trpc.user.videoStatus.useQuery();
 
@@ -99,8 +135,7 @@ export default function PageClient({
   const [status, setStatus] = useState("Waiting in Queue");
   const fallbackEstimatedMs =
     pendingVideo && status !== "COMPLETED" && status !== "ERROR"
-      ? ((progress > 0 ? 0 : placeInQueue * 4) +
-          ((100 - progress) / 100) * 4) *
+      ? ((progress > 0 ? 0 : placeInQueue * 4) + ((100 - progress) / 100) * 4) *
         60_000
       : null;
   const liveEstimatedMsRemaining = useLiveEta(
@@ -115,6 +150,8 @@ export default function PageClient({
       setIsInQueue(false);
       setPendingVideo(false);
       setPendingVideoTitle("");
+      setPendingAgent1("");
+      setPendingAgent2("");
     },
   });
 
@@ -126,6 +163,8 @@ export default function PageClient({
       setIsInQueue(false);
       setPendingVideo(false);
       setPendingVideoTitle("");
+      setPendingAgent1("");
+      setPendingAgent2("");
       window.location.reload();
     },
   });
@@ -161,6 +200,8 @@ export default function PageClient({
           deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
         } else {
           setPendingVideoTitle(videoStatus.data.videos.title ?? "");
+          setPendingAgent1(videoStatus.data.videos.agent1 ?? "");
+          setPendingAgent2(videoStatus.data.videos.agent2 ?? "");
           setPendingVideo(true);
           setIsInQueue(true);
           setPlaceInQueue(videoStatus.data.queueLength);
@@ -185,49 +226,78 @@ export default function PageClient({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm"
+            className="relative w-80 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm"
           >
-            <div className="flex flex-row items-center gap-2">
-              <Loader2 className="size-4 animate-spin" />
+            {/* Dashed header with avatars + topic */}
+            {(pendingAgent1 || pendingAgent2 || pendingVideoTitle) && (
+              <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
+                {(pendingAgent1 || pendingAgent2) && (
+                  <div className="flex justify-center">
+                    <div className="flex flex-row-reverse">
+                      {pendingAgent2 && (
+                        <Image
+                          src={`/img/${pendingAgent2}.png`}
+                          alt={pendingAgent2}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                        />
+                      )}
+                      {pendingAgent1 && (
+                        <Image
+                          src={`/img/${pendingAgent1}.png`}
+                          alt={pendingAgent1}
+                          width={48}
+                          height={48}
+                          className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+                {pendingVideoTitle && (
+                  <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
+                    {pendingVideoTitle}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-row items-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex gap-2"
+                >
+                  <span className="font-bold">Place in queue:</span>{" "}
+                  {progress > 0 ? 0 : placeInQueue}
+                </motion.div>
+              </div>
+              <div>
+                <span className="font-bold">Status:</span> {status}
+              </div>
+              <div>
+                <span className="font-bold">Est. time remaining: </span>{" "}
+                {formatEtaSeconds(liveEstimatedMsRemaining) ?? "Estimating..."}
+              </div>
+
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex gap-2"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                className="flex w-full flex-row items-center gap-2"
               >
-                <span className="font-bold">Place in queue:</span>{" "}
-                {progress > 0 ? 0 : placeInQueue}
+                <p className="text-xs">{progress}%</p>
+                <Progress className="w-full" value={progress} />
               </motion.div>
             </div>
-            <div>
-              <span className="font-bold">Status:</span> {status}
-            </div>
-            <div>
-              <span className="font-bold">Est. time remaining: </span>{" "}
-              {formatEtaSeconds(liveEstimatedMsRemaining) ?? "Estimating..."}
-            </div>
-
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              className="flex w-full flex-row items-center gap-2"
-            >
-              <p className="text-xs">{progress}%</p>
-              <Progress className="w-full" value={progress} />
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div
-        variants={containerVariants}
-        initial="initial"
-        animate="animate"
-        className="flex w-full flex-col gap-4"
-      >
-        <motion.div
-          variants={buttonVariantsAnimated}
-          className="flex justify-center"
-        >
+      <div className="flex w-full flex-col gap-4">
+        <div className="flex justify-center">
           <Button
             className="flex w-80 flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
             variant={"pink"}
@@ -239,8 +309,7 @@ export default function PageClient({
           >
             <Wand className="h-5 w-5" /> Create Video
           </Button>
-        </motion.div>
-
+        </div>
 
         {/* <motion.div variants={buttonVariantsAnimated} className="w-full"> */}
         {/* <Link
@@ -257,7 +326,7 @@ export default function PageClient({
             <p className="text-lg">Run Locally (free)</p>
           </Link> */}
         {/* </motion.div> */}
-        {/* 
+        {/*
         <motion.div variants={buttonVariantsAnimated} className="w-full">
           <Link
             href={"https://deepfi.sh?utm_source=brainrot&utm_medium=referral"}
@@ -275,38 +344,27 @@ export default function PageClient({
           </Link>
         </motion.div> */}
 
-        <AnimatePresence>
-          {pendingVideo && (
-            <motion.div
-              variants={buttonVariantsAnimated}
-              initial="initial"
-              animate="animate"
-              exit={{ opacity: 0, y: -10 }}
-              className="flex justify-center"
+        {pendingVideo && (
+          <div className="flex justify-center">
+            <Button
+              className="flex w-80 flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
+              variant={"outline"}
+              onClick={() => {
+                cancelPendingVideoMutation.mutate({
+                  id: videoStatus.data?.videos?.id ?? 0,
+                  credits: videoStatus.data?.videos?.credits ?? 0,
+                });
+              }}
             >
-              <Button
-                className="flex w-80 flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
-                variant={"outline"}
-                onClick={() => {
-                  cancelPendingVideoMutation.mutate({
-                    id: videoStatus.data?.videos?.id ?? 0,
-                    credits: videoStatus.data?.videos?.credits ?? 0,
-                  });
-                }}
-              >
-                <X className="h-5 w-5 text-red-500" /> Cancel Generation
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <X className="h-5 w-5 text-red-500" /> Cancel Generation
+            </Button>
+          </div>
+        )}
 
         {clerkUser?.id && (
-          <motion.div
-            variants={buttonVariantsAnimated}
-            className="flex flex-col items-center gap-4"
-          >
+          <div className="flex flex-col items-center gap-4">
             <Credits />
-            <motion.div variants={buttonVariantsAnimated}>
+            <div>
               <Button
                 variant={"outline"}
                 className="flex w-80 flex-row items-center justify-center gap-2 text-lg"
@@ -315,73 +373,105 @@ export default function PageClient({
                 <Folder className="h-5 w-5" />
                 Your videos
               </Button>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Live Queue Activity */}
-      <LiveQueueActivity />
+      <LiveQueueActivity initialCount={initialActiveQueueCount} />
 
       {/* How it works */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6"
-      >
+      <div className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6">
         <h2 className="text-xl font-bold">How it works</h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/idea.png" alt="Pick a topic" width={80} height={80} className="rounded-full border border-border" />
+            <Image
+              src="/idea.png"
+              alt="Pick a topic"
+              width={80}
+              height={80}
+              className="rounded-full border border-border"
+            />
             <p className="text-sm font-semibold">Pick a topic</p>
-            <p className="text-xs text-muted-foreground">Choose any topic and your favorite characters</p>
+            <p className="text-xs text-muted-foreground">
+              Choose any topic and your favorite characters
+            </p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/ai.png" alt="AI generates" width={80} height={80} className="rounded-full border border-border" />
+            <Image
+              src="/ai.png"
+              alt="AI generates"
+              width={80}
+              height={80}
+              className="rounded-full border border-border"
+            />
             <p className="text-sm font-semibold">AI generates</p>
-            <p className="text-xs text-muted-foreground">Our AI writes the script and creates your video</p>
+            <p className="text-xs text-muted-foreground">
+              Our AI writes the script and creates your video
+            </p>
           </div>
           <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
-            <Image src="/share.png" alt="Download & share" width={80} height={80} className="rounded-full border border-border" />
+            <Image
+              src="/share.png"
+              alt="Download & share"
+              width={80}
+              height={80}
+              className="rounded-full border border-border"
+            />
             <p className="text-sm font-semibold">Download & share</p>
-            <p className="text-xs text-muted-foreground">Get your video and post it everywhere</p>
+            <p className="text-xs text-muted-foreground">
+              Get your video and post it everywhere
+            </p>
           </div>
         </div>
-      </motion.div>
+      </div>
+
+      {/* Latest Generations */}
+      <LatestGenerations initialData={initialLatestGenerations} />
 
       {/* Not Trusted By marquee */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3"
-      >
+      <div className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Definitely Not Trusted By
         </p>
         <div
           className="relative flex w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]"
-          style={{ "--duration": "30s", "--gap": "2.5rem" } as React.CSSProperties}
+          style={
+            { "--duration": "30s", "--gap": "2.5rem" } as React.CSSProperties
+          }
         >
           <div className="flex shrink-0 animate-marquee items-center gap-[--gap]">
             {FAKE_COMPANIES.map((company, i) => (
-              <div key={i} className="flex items-center gap-2 text-muted-foreground/30 select-none">
+              <div
+                key={i}
+                className="flex select-none items-center gap-2 text-muted-foreground/30"
+              >
                 <company.icon className="h-6 w-6 shrink-0" />
-                <span className="whitespace-nowrap text-sm font-semibold">{company.name}</span>
+                <span className="whitespace-nowrap text-sm font-semibold">
+                  {company.name}
+                </span>
               </div>
             ))}
           </div>
-          <div className="flex shrink-0 animate-marquee items-center gap-[--gap]" aria-hidden>
+          <div
+            className="flex shrink-0 animate-marquee items-center gap-[--gap]"
+            aria-hidden
+          >
             {FAKE_COMPANIES.map((company, i) => (
-              <div key={i} className="flex items-center gap-2 text-muted-foreground/30 select-none">
+              <div
+                key={i}
+                className="flex select-none items-center gap-2 text-muted-foreground/30"
+              >
                 <company.icon className="h-6 w-6 shrink-0" />
-                <span className="whitespace-nowrap text-sm font-semibold">{company.name}</span>
+                <span className="whitespace-nowrap text-sm font-semibold">
+                  {company.name}
+                </span>
               </div>
             ))}
           </div>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }
@@ -400,26 +490,23 @@ const FAKE_COMPANIES = [
   { name: "The Krusty Krab", icon: Anchor },
 ];
 
-function LiveQueueActivity() {
+function LiveQueueActivity({ initialCount }: { initialCount: number }) {
   const activeQueue = trpc.user.activeQueueCount.useQuery(undefined, {
     refetchInterval: 10000,
+    initialData: { count: initialCount },
   });
 
-  const count = activeQueue.data?.count ?? 0;
+  const count = activeQueue.data?.count ?? initialCount;
 
   if (count === 0) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="mt-4 flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-2 text-sm text-muted-foreground"
-    >
+    <div className="mt-4 flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-2 text-sm text-muted-foreground">
       <span className="relative flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
       </span>
       {count} video{count !== 1 ? "s" : ""} being generated right now
-    </motion.div>
+    </div>
   );
 }

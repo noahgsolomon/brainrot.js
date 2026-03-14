@@ -4,7 +4,7 @@ import { api } from "@/trpc/server";
 import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import Tweets from "./tweets";
+
 import { Button } from "@/components/ui/button";
 import ProButton from "./ProButton";
 import { Crown } from "lucide-react";
@@ -34,14 +34,42 @@ export default async function Home({
   let userDB;
   let pendingVideo = false;
   let clerkUser;
+  let initialVideoDetails: { title: string; agent1: string; agent2: string } | undefined;
+  let initialActiveQueueCount = 0;
+  let initialLatestGenerations: {
+    id: number;
+    title: string;
+    url: string;
+    thumbnail: string;
+    agent1: string;
+    agent2: string;
+  }[] = [];
   try {
     userDB = await api.user.user.query();
     clerkUser = await currentUser();
     const videoStatus = await api.user.videoStatus.query();
     pendingVideo =
       videoStatus?.videos !== null && videoStatus?.videos !== undefined;
+    if (videoStatus?.videos) {
+      initialVideoDetails = {
+        title: videoStatus.videos.title ?? "",
+        agent1: videoStatus.videos.agent1 ?? "",
+        agent2: videoStatus.videos.agent2 ?? "",
+      };
+    }
   } catch (e) {
     userDB = null;
+  }
+  try {
+    const [queueResult, generationsResult] = await Promise.all([
+      api.user.activeQueueCount.query(),
+      api.user.getLatestGenerations.query(),
+    ]);
+    initialActiveQueueCount = queueResult?.count ?? 0;
+    initialLatestGenerations = (generationsResult?.videos ??
+      []) as typeof initialLatestGenerations;
+  } catch {
+    // non-critical, will hydrate client-side
   }
 
   const safeUserData = clerkUser
@@ -116,7 +144,10 @@ export default async function Home({
             <PageClient
               searchParams={searchParams}
               initialPendingVideo={pendingVideo}
+              initialVideoDetails={initialVideoDetails}
               clerkUser={safeUserData}
+              initialActiveQueueCount={initialActiveQueueCount}
+              initialLatestGenerations={initialLatestGenerations}
             />
             {userDB && userDB?.user ? (
               <div className="flex w-80 flex-col gap-3">
@@ -126,8 +157,7 @@ export default async function Home({
                       Go Pro
                     </h3>
                     <p className="text-sm text-secondary-foreground/80">
-                      Generate 25 videos, 60 FPS, all agents, perfect
-                      subtitles
+                      Generate 25 videos, 60 FPS, all agents, perfect subtitles
                     </p>
                     <ProButton>
                       <Button
@@ -184,7 +214,6 @@ export default async function Home({
           </div>
         </div>
       </footer> */}
-      <Tweets />
 
       <script
         type="application/ld+json"

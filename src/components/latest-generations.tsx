@@ -6,6 +6,20 @@ import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import Image from "next/image";
 
+// Track whether we've been forced to mute by the browser (no user gesture yet)
+let browserRequiresMuted = true;
+
+// Once the user clicks anywhere, the browser allows unmuted playback
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    browserRequiresMuted = false;
+    window.removeEventListener("click", unlock);
+    window.removeEventListener("touchstart", unlock);
+  };
+  window.addEventListener("click", unlock);
+  window.addEventListener("touchstart", unlock);
+}
+
 function VideoCard({
   video,
 }: {
@@ -21,14 +35,17 @@ function VideoCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const userExplicitlyMuted = useRef(false);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
+    userExplicitlyMuted.current = false;
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
     setIsMuted(true);
+    userExplicitlyMuted.current = false;
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -36,25 +53,43 @@ function VideoCard({
   }, []);
 
   const handleVideoReady = useCallback(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {});
+    const el = videoRef.current;
+    if (!el) return;
+
+    if (browserRequiresMuted || userExplicitlyMuted.current) {
+      // Browser hasn't gotten a gesture yet, or user chose mute — play muted
+      el.muted = true;
+      setIsMuted(true);
+      el.play().catch(() => {});
+    } else {
+      // Try unmuted first
+      el.muted = false;
+      setIsMuted(false);
+      el.play().catch(() => {
+        // Browser blocked unmuted — fall back to muted
+        browserRequiresMuted = true;
+        el.muted = true;
+        setIsMuted(true);
+        el.play().catch(() => {});
+      });
     }
   }, []);
 
   const toggleMute = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMuted((prev) => {
+      const next = !prev;
       if (videoRef.current) {
-        videoRef.current.muted = prev;
+        videoRef.current.muted = next;
       }
-      return !prev;
+      userExplicitlyMuted.current = next;
+      return next;
     });
   }, []);
 
   return (
     <div
-      className="relative flex w-[180px] shrink-0 cursor-pointer flex-col gap-2"
+      className="relative flex w-[270px] shrink-0 cursor-pointer flex-col gap-2"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -67,7 +102,7 @@ function VideoCard({
           className={`object-cover transition-opacity duration-200 ${
             isHovered ? "opacity-0" : "opacity-100"
           }`}
-          sizes="180px"
+          sizes="270px"
         />
 
         {/* Video — only mounts on hover */}
@@ -97,40 +132,49 @@ function VideoCard({
         )}
       </div>
 
-      <p className="line-clamp-2 text-xs font-medium text-foreground/80">
+      <p className="line-clamp-2 text-sm font-medium text-foreground/80">
         {video.title}
       </p>
     </div>
   );
 }
 
-export default function LatestGenerations() {
-  const { data, isLoading } = trpc.user.getLatestGenerations.useQuery(
+export default function LatestGenerations({
+  initialData,
+}: {
+  initialData?: {
+    id: number;
+    title: string;
+    url: string;
+    thumbnail: string;
+    agent1: string;
+    agent2: string;
+  }[];
+}) {
+  const { data } = trpc.user.getLatestGenerations.useQuery(
     undefined,
     {
       staleTime: 60_000,
       refetchOnWindowFocus: false,
+      initialData: initialData?.length ? { videos: initialData } : undefined,
     },
   );
 
   const videos = data?.videos;
 
-  if (isLoading || !videos || videos.length === 0) return null;
+  if (!videos || videos.length === 0) return null;
 
-  const duration = `${Math.max(20, videos.length * 3)}s`;
+  const duration = `${Math.max(40, videos.length * 8)}s`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="mt-8 flex w-full max-w-4xl flex-col items-center gap-3"
+    <div
+      className="mt-8 flex w-full max-w-5xl flex-col items-center gap-3"
     >
       <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
         Latest Generations
       </h2>
       <div
-        className="group relative flex w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        className="group relative flex w-full gap-[--gap] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         style={
           { "--duration": duration, "--gap": "1rem" } as React.CSSProperties
         }
@@ -151,6 +195,6 @@ export default function LatestGenerations() {
           ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
