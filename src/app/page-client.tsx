@@ -76,11 +76,27 @@ export default function PageClient({
   clerkUser,
   initialActiveQueueCount,
   initialLatestGenerations,
-  initialVideoDetails,
+  initialVideoStatus,
 }: {
   searchParams: { [key: string]: string | undefined };
   initialPendingVideo: boolean;
-  initialVideoDetails?: { title: string; agent1: string; agent2: string };
+  initialVideoStatus?: {
+    videos: {
+      id: number;
+      title: string | null;
+      agent1: string | null;
+      agent2: string | null;
+      status: string;
+      progress: number;
+      credits: number | null;
+      phaseKey: string | null;
+      estimatedMsRemaining: number | null;
+      estimatedMsTotal: number | null;
+      etaConfidence: string | null;
+      etaSampleSize: number | null;
+    };
+    queueLength: number;
+  } | { videos: null };
   clerkUser:
     | {
         id: string | null | undefined;
@@ -115,24 +131,37 @@ export default function PageClient({
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
 
+  const initialVideos = initialVideoStatus?.videos;
   const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
-  const [placeInQueue, setPlaceInQueue] = useState(0);
+  const [placeInQueue, setPlaceInQueue] = useState(
+    initialVideoStatus && "queueLength" in initialVideoStatus ? initialVideoStatus.queueLength : 0,
+  );
   const [pendingVideoTitle, setPendingVideoTitle] = useState(
-    initialVideoDetails?.title ?? "",
+    initialVideos?.title ?? "",
   );
   const [pendingAgent1, setPendingAgent1] = useState(
-    initialVideoDetails?.agent1 ?? "",
+    initialVideos?.agent1 ?? "",
   );
   const [pendingAgent2, setPendingAgent2] = useState(
-    initialVideoDetails?.agent2 ?? "",
+    initialVideos?.agent2 ?? "",
   );
 
-  const videoStatus = trpc.user.videoStatus.useQuery();
+  const videoStatus = trpc.user.videoStatus.useQuery(undefined, {
+    refetchInterval: pendingVideo ? 5000 : false,
+    initialData: initialVideoStatus,
+  });
 
-  const { setIsOpen, isInQueue, setIsInQueue } = useCreateVideo();
+  const {
+    setIsOpen,
+    isInQueue,
+    setIsInQueue,
+    submittedAgent1,
+    submittedAgent2,
+    submittedTitle,
+  } = useCreateVideo();
   const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("Waiting in Queue");
+  const [progress, setProgress] = useState(initialVideos?.progress ?? 0);
+  const [status, setStatus] = useState(initialVideos?.status ?? "Waiting in Queue");
   const fallbackEstimatedMs =
     pendingVideo && status !== "COMPLETED" && status !== "ERROR"
       ? ((progress > 0 ? 0 : placeInQueue * 4) + ((100 - progress) / 100) * 4) *
@@ -168,16 +197,6 @@ export default function PageClient({
       window.location.reload();
     },
   });
-
-  useEffect(() => {
-    if (isInQueue) {
-      const intervalId = setInterval(() => {
-        videoStatus.refetch();
-      }, 5000);
-
-      return () => clearInterval(intervalId);
-    }
-  }, [videoStatus]);
 
   useEffect(() => {
     if (clerkUser?.id) {
@@ -229,24 +248,24 @@ export default function PageClient({
             className="relative w-80 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm"
           >
             {/* Dashed header with avatars + topic */}
-            {(pendingAgent1 || pendingAgent2 || pendingVideoTitle) && (
+            {(pendingAgent1 || submittedAgent1 || pendingAgent2 || submittedAgent2 || pendingVideoTitle || submittedTitle) && (
               <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
-                {(pendingAgent1 || pendingAgent2) && (
+                {(pendingAgent1 || submittedAgent1 || pendingAgent2 || submittedAgent2) && (
                   <div className="flex justify-center">
                     <div className="flex flex-row-reverse">
-                      {pendingAgent2 && (
+                      {(pendingAgent2 || submittedAgent2) && (
                         <Image
-                          src={`/img/${pendingAgent2}.png`}
-                          alt={pendingAgent2}
+                          src={`/img/${pendingAgent2 || submittedAgent2}.png`}
+                          alt={pendingAgent2 || submittedAgent2}
                           width={48}
                           height={48}
                           className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
                         />
                       )}
-                      {pendingAgent1 && (
+                      {(pendingAgent1 || submittedAgent1) && (
                         <Image
-                          src={`/img/${pendingAgent1}.png`}
-                          alt={pendingAgent1}
+                          src={`/img/${pendingAgent1 || submittedAgent1}.png`}
+                          alt={pendingAgent1 || submittedAgent1}
                           width={48}
                           height={48}
                           className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
@@ -255,9 +274,9 @@ export default function PageClient({
                     </div>
                   </div>
                 )}
-                {pendingVideoTitle && (
+                {(pendingVideoTitle || submittedTitle) && (
                   <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
-                    {pendingVideoTitle}
+                    {pendingVideoTitle || submittedTitle}
                   </p>
                 )}
               </div>

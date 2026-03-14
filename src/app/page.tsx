@@ -34,7 +34,23 @@ export default async function Home({
   let userDB;
   let pendingVideo = false;
   let clerkUser;
-  let initialVideoDetails: { title: string; agent1: string; agent2: string } | undefined;
+  let initialVideoStatus: {
+    videos: {
+      id: number;
+      title: string | null;
+      agent1: string | null;
+      agent2: string | null;
+      status: string;
+      progress: number;
+      credits: number | null;
+      phaseKey: string | null;
+      estimatedMsRemaining: number | null;
+      estimatedMsTotal: number | null;
+      etaConfidence: string | null;
+      etaSampleSize: number | null;
+    };
+    queueLength: number;
+  } | { videos: null } | undefined;
   let initialActiveQueueCount = 0;
   let initialLatestGenerations: {
     id: number;
@@ -48,15 +64,9 @@ export default async function Home({
     userDB = await api.user.user.query();
     clerkUser = await currentUser();
     const videoStatus = await api.user.videoStatus.query();
+    initialVideoStatus = videoStatus;
     pendingVideo =
       videoStatus?.videos !== null && videoStatus?.videos !== undefined;
-    if (videoStatus?.videos) {
-      initialVideoDetails = {
-        title: videoStatus.videos.title ?? "",
-        agent1: videoStatus.videos.agent1 ?? "",
-        agent2: videoStatus.videos.agent2 ?? "",
-      };
-    }
   } catch (e) {
     userDB = null;
   }
@@ -144,7 +154,7 @@ export default async function Home({
             <PageClient
               searchParams={searchParams}
               initialPendingVideo={pendingVideo}
-              initialVideoDetails={initialVideoDetails}
+              initialVideoStatus={initialVideoStatus}
               clerkUser={safeUserData}
               initialActiveQueueCount={initialActiveQueueCount}
               initialLatestGenerations={initialLatestGenerations}
