@@ -1326,15 +1326,7 @@ export default function CreateVideo({
               </motion.div> */}
             </motion.div>
           ) : null}
-          {user.userId ? (
-            <>
-              {videoStatus.data?.videos !== null && (
-                <p className="text-sm text-destructive/60">
-                  Error. Please refresh the page.
-                </p>
-              )}
-            </>
-          ) : null}
+          {null}
 
           {videoDetails.mode === "rap" && (
             <motion.div
@@ -1399,8 +1391,7 @@ export default function CreateVideo({
                   (videoDetails.mode === "monologue" && agent.length !== 1) ||
                   videoDetails.mode === "rap" ||
                   (videoInput === "" && recommendedSelect === -1) ||
-                  generating ||
-                  (!!user.userId && videoStatus.data?.videos !== null)
+                  generating
                 }
                 className="flex items-center gap-2"
                 onClick={() => {

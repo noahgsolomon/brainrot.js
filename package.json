@@ -94,6 +94,7 @@
     "sharp": "^0.32.6",
     "sonner": "^1.2.4",
     "sst": "^3.8.3",
+    "sst-darwin-arm64": "^4.2.7",
     "stripe": "^15.2.0",
     "superjson": "^2.0.0",
     "tailwind-classes-sorter": "^0.2.5",
