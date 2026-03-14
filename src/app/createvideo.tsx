@@ -170,6 +170,9 @@ export default function CreateVideo({
     setVideoInput,
     videoInput,
     setIsInQueue,
+    setSubmittedAgent1,
+    setSubmittedAgent2,
+    setSubmittedTitle,
   } = useCreateVideo();
   const {
     setIsOpen: setIsGenerationTypeOpen,
@@ -246,6 +249,9 @@ export default function CreateVideo({
         }
 
         setGenerating(false);
+        setSubmittedAgent1(videoDetails.agents[0]?.name ?? "");
+        setSubmittedAgent2(videoDetails.agents[1]?.name ?? "");
+        setSubmittedTitle(videoDetails.title ?? "");
         setIsInQueue(true);
         setIsOpen(false);
       } else {
