@@ -81,8 +81,8 @@ type PendingVideoItem = {
   phaseKey: string | null;
   estimatedMsRemaining: number | null;
   estimatedMsTotal: number | null;
-  etaConfidence: string | null;
-  etaSampleSize: number | null;
+  etaConfidence: "none" | "low" | "medium" | "high";
+  etaSampleSize: number;
   queueLength: number;
 };
 
@@ -129,13 +129,9 @@ export default function PageClient({
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
 
-  const videoStatus = trpc.user.videoStatus.useQuery(undefined, {
-    initialData: initialPendingVideos.length > 0
-      ? { videos: initialPendingVideos }
-      : undefined,
-  });
+  const videoStatus = trpc.user.videoStatus.useQuery();
 
-  const pendingVideos = videoStatus.data?.videos ?? [];
+  const pendingVideos = videoStatus.data?.videos ?? initialPendingVideos;
   const hasPendingVideos = pendingVideos.length > 0;
 
   // Refetch while any videos are pending
@@ -211,81 +207,13 @@ export default function PageClient({
   );
   return (
     <>
-      <AnimatePresence>
-        {pendingVideo && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="relative w-80 rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm"
-          >
-            {/* Dashed header with avatars + topic */}
-            {(pendingAgent1 || submittedAgent1 || pendingAgent2 || submittedAgent2 || pendingVideoTitle || submittedTitle) && (
-              <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
-                {(pendingAgent1 || submittedAgent1 || pendingAgent2 || submittedAgent2) && (
-                  <div className="flex justify-center">
-                    <div className="flex flex-row-reverse">
-                      {(pendingAgent2 || submittedAgent2) && (
-                        <Image
-                          src={`/img/${pendingAgent2 || submittedAgent2}.png`}
-                          alt={pendingAgent2 || submittedAgent2}
-                          width={48}
-                          height={48}
-                          className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                        />
-                      )}
-                      {(pendingAgent1 || submittedAgent1) && (
-                        <Image
-                          src={`/img/${pendingAgent1 || submittedAgent1}.png`}
-                          alt={pendingAgent1 || submittedAgent1}
-                          width={48}
-                          height={48}
-                          className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-                {(pendingVideoTitle || submittedTitle) && (
-                  <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
-                    {pendingVideoTitle || submittedTitle}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex flex-row items-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-2"
-                >
-                  <span className="font-bold">Place in queue:</span>{" "}
-                  {progress > 0 ? 0 : placeInQueue}
-                </motion.div>
-              </div>
-              <div>
-                <span className="font-bold">Status:</span> {status}
-              </div>
-              <div>
-                <span className="font-bold">Est. time remaining: </span>{" "}
-                {formatEtaSeconds(liveEstimatedMsRemaining) ?? "Estimating..."}
-              </div>
-
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                className="flex w-full flex-row items-center gap-2"
-              >
-                <p className="text-xs">{progress}%</p>
-                <Progress className="w-full" value={progress} />
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <PendingVideoStack
+        videos={pendingVideos}
+        onCancel={handleCancel}
+        submittedAgent1={submittedAgent1}
+        submittedAgent2={submittedAgent2}
+        submittedTitle={submittedTitle}
+      />
 
       <div className="flex w-full flex-col gap-4">
         <div className="flex justify-center">
@@ -293,7 +221,6 @@ export default function PageClient({
             className="flex w-80 flex-row items-center justify-center gap-2 text-lg text-secondary dark:text-primary"
             variant={"pink"}
             size={"lg"}
-            disabled={pendingVideo}
             onClick={() => {
               setIsGenerationTypeOpen(true);
             }}
@@ -301,56 +228,6 @@ export default function PageClient({
             <Wand className="h-5 w-5" /> Create Video
           </Button>
         </div>
-
-        {/* <motion.div variants={buttonVariantsAnimated} className="w-full"> */}
-        {/* <Link
-            href={"https://github.com/noahgsolomon/brainrot.js"}
-            target="_blank"
-            className={buttonVariants({
-              className:
-                "flex w-full flex-row items-center justify-center gap-2 text-lg",
-              size: "lg",
-              variant: "outline",
-            })}
-          >
-            <Star className="h-5 w-5" />
-            <p className="text-lg">Run Locally (free)</p>
-          </Link> */}
-        {/* </motion.div> */}
-        {/*
-        <motion.div variants={buttonVariantsAnimated} className="w-full">
-          <Link
-            href={"https://deepfi.sh?utm_source=brainrot&utm_medium=referral"}
-            target="_blank"
-            className="group flex w-full flex-row items-center justify-center gap-2 rounded-md bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-6 py-3 text-lg font-semibold text-white shadow-lg transition hover:scale-105 active:scale-95"
-          >
-            <Image
-              src="/deepfish.png"
-              width={20}
-              height={20}
-              alt="Deep Fish logo"
-              className="h-5 w-5"
-            />
-            Try Deep Fish
-          </Link>
-        </motion.div> */}
-
-        {pendingVideo && (
-          <div className="flex justify-center">
-            <Button
-              className="flex w-80 flex-row items-center justify-center gap-2 border border-red-500/60 bg-red-500/20 text-lg hover:bg-red-500/30"
-              variant={"outline"}
-              onClick={() => {
-                cancelPendingVideoMutation.mutate({
-                  id: videoStatus.data?.videos?.id ?? 0,
-                  credits: videoStatus.data?.videos?.credits ?? 0,
-                });
-              }}
-            >
-              <X className="h-5 w-5 text-red-500" /> Cancel Generation
-            </Button>
-          </div>
-        )}
 
         {clerkUser?.id && (
           <div className="flex flex-col items-center gap-4">
@@ -464,6 +341,259 @@ export default function PageClient({
         </div>
       </div>
     </>
+  );
+}
+
+function PendingVideoCard({
+  video,
+  onCancel,
+}: {
+  video: PendingVideoItem;
+  onCancel: (video: PendingVideoItem) => void;
+}) {
+  const fallbackMs =
+    video.status !== "COMPLETED" && video.status !== "ERROR"
+      ? ((video.progress > 0 ? 0 : video.queueLength * 4) +
+          ((100 - video.progress) / 100) * 4) *
+        60_000
+      : null;
+
+  const liveEta = useLiveEta(
+    video.estimatedMsRemaining ?? fallbackMs,
+    video.status !== "COMPLETED" && video.status !== "ERROR",
+  );
+
+  return (
+    <div className="rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
+      {/* Dashed header with avatars + topic */}
+      {(video.agent1 || video.agent2 || video.title) && (
+        <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
+          {(video.agent1 || video.agent2) && (
+            <div className="flex justify-center">
+              <div className="flex flex-row-reverse">
+                {video.agent2 && (
+                  <Image
+                    src={`/img/${video.agent2}.png`}
+                    alt={video.agent2}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                  />
+                )}
+                {video.agent1 && (
+                  <Image
+                    src={`/img/${video.agent1}.png`}
+                    alt={video.agent1}
+                    width={48}
+                    height={48}
+                    className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+          {video.title && (
+            <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
+              {video.title}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-row items-center gap-2">
+          <Loader2 className="size-4 animate-spin" />
+          <span>
+            <span className="font-bold">Place in queue:</span>{" "}
+            {video.progress > 0 ? 0 : video.queueLength}
+          </span>
+        </div>
+        <div>
+          <span className="font-bold">Status:</span> {video.status}
+        </div>
+        <div>
+          <span className="font-bold">Est. time remaining: </span>
+          {formatEtaSeconds(liveEta) ?? "Estimating..."}
+        </div>
+
+        {/* Progress bar with inline cancel */}
+        <div className="flex w-full items-center gap-2">
+          <p className="shrink-0 text-xs">{video.progress}%</p>
+          <Progress className="flex-1" value={video.progress} />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel(video);
+            }}
+            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            title="Cancel generation"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PendingVideoStack({
+  videos,
+  onCancel,
+  submittedAgent1,
+  submittedAgent2,
+  submittedTitle,
+}: {
+  videos: PendingVideoItem[];
+  onCancel: (video: PendingVideoItem) => void;
+  submittedAgent1: string;
+  submittedAgent2: string;
+  submittedTitle: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const supportsHover =
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover)").matches;
+
+  // Show optimistic card when queue submitted but server hasn't responded yet
+  const showOptimistic =
+    (submittedAgent1 || submittedAgent2 || submittedTitle) &&
+    videos.length === 0;
+
+  if (videos.length === 0 && !showOptimistic) return null;
+
+  if (showOptimistic) {
+    return (
+      <div className="w-80">
+        <div className="rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
+          {(submittedAgent1 || submittedAgent2 || submittedTitle) && (
+            <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
+              {(submittedAgent1 || submittedAgent2) && (
+                <div className="flex justify-center">
+                  <div className="flex flex-row-reverse">
+                    {submittedAgent2 && (
+                      <Image
+                        src={`/img/${submittedAgent2}.png`}
+                        alt={submittedAgent2}
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                      />
+                    )}
+                    {submittedAgent1 && (
+                      <Image
+                        src={`/img/${submittedAgent1}.png`}
+                        alt={submittedAgent1}
+                        width={48}
+                        height={48}
+                        className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              {submittedTitle && (
+                <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
+                  {submittedTitle}
+                </p>
+              )}
+            </div>
+          )}
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              <span className="font-bold">Waiting in Queue</span>
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <p className="shrink-0 text-xs">0%</p>
+              <Progress className="flex-1" value={0} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Single video — no stacking needed
+  if (videos.length === 1) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-80"
+      >
+        <PendingVideoCard video={videos[0]!} onCancel={onCancel} />
+      </motion.div>
+    );
+  }
+
+  // Multiple videos — sonner-style stack
+  const maxVisibleBehind = 2; // show at most 2 peeking cards behind front
+
+  return (
+    <div
+      className="relative w-80"
+      onPointerEnter={() => supportsHover && setIsExpanded(true)}
+      onPointerLeave={() => supportsHover && setIsExpanded(false)}
+      onClick={() => !supportsHover && setIsExpanded((p) => !p)}
+      style={{
+        // Reserve space for peeking cards when collapsed
+        paddingBottom: isExpanded
+          ? 0
+          : Math.min(videos.length - 1, maxVisibleBehind) * 8,
+      }}
+    >
+      {/* Count badge */}
+      {!isExpanded && videos.length > 1 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute -right-2 -top-2 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow"
+        >
+          {videos.length}
+        </motion.div>
+      )}
+
+      <AnimatePresence mode="popLayout">
+        {videos.map((video, index) => {
+          const behindIndex = index; // 0 = front
+          const scale = isExpanded
+            ? 1
+            : Math.max(1 - behindIndex * 0.05, 0.85);
+          const yOffset = isExpanded ? 0 : behindIndex * 8;
+          const opacity = isExpanded
+            ? 1
+            : Math.max(1 - behindIndex * 0.2, 0.4);
+
+          return (
+            <motion.div
+              key={video.id}
+              layout
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{
+                opacity,
+                y: yOffset,
+                scale,
+                zIndex: videos.length - index,
+              }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{
+                position:
+                  isExpanded || index === 0 ? "relative" : "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                marginBottom: isExpanded ? 8 : 0,
+                pointerEvents:
+                  isExpanded || index === 0 ? "auto" : "none",
+              }}
+            >
+              <PendingVideoCard video={video} onCancel={onCancel} />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </div>
   );
 }
 

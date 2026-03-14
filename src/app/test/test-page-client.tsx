@@ -117,7 +117,7 @@ export default function TestPageClient() {
       },
     });
 
-  const currentPendingVideo = videoStatusQuery.data?.videos ?? null;
+  const currentPendingVideo = videoStatusQuery.data?.videos?.[0] ?? null;
   const currentPendingStatus = currentPendingVideo?.status?.toUpperCase();
   const hasActivePendingJob =
     !!currentPendingVideo && !isTerminalStatus(currentPendingVideo.status);
@@ -282,7 +282,7 @@ export default function TestPageClient() {
                   <p className="font-medium">
                     {currentPendingVideo && currentPendingVideo.progress > 0
                       ? 0
-                      : videoStatusQuery.data?.queueLength ?? 0}
+                      : currentPendingVideo?.queueLength ?? 0}
                   </p>
                 </div>
                 <div>

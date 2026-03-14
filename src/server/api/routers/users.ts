@@ -365,8 +365,8 @@ export const userRouter = createTRPCRouter({
     });
 
     // Cache timing samples by videoMode|outputType to avoid redundant queries
-    type TimingSample = { totalDurationMs: number | null; queueDurationMs: number | null; phaseTimings: string | null };
-    const timingSampleCache = new Map<string, TimingSample[]>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const timingSampleCache = new Map<string, any[]>();
     const timingColumns = {
       totalDurationMs: true as const,
       queueDurationMs: true as const,
@@ -425,10 +425,9 @@ export const userRouter = createTRPCRouter({
           (v) => v.timestamp! < video.timestamp! && v.processId === -1,
         ).length;
 
-        const samples = await getTimingSamples(
-          video.videoMode,
-          video.outputType,
-        );
+        const samples = video.videoMode
+          ? await getTimingSamples(video.videoMode, video.outputType)
+          : [];
 
         const eta = estimateRemainingTime({
           samples,

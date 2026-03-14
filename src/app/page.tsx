@@ -44,8 +44,8 @@ export default async function Home({
     phaseKey: string | null;
     estimatedMsRemaining: number | null;
     estimatedMsTotal: number | null;
-    etaConfidence: string | null;
-    etaSampleSize: number | null;
+    etaConfidence: "none" | "low" | "medium" | "high";
+    etaSampleSize: number;
     queueLength: number;
   }[] = [];
   let initialActiveQueueCount = 0;
@@ -60,10 +60,14 @@ export default async function Home({
   try {
     userDB = await api.user.user.query();
     clerkUser = await currentUser();
-    const videoStatus = await api.user.videoStatus.query();
-    initialPendingVideos = videoStatus?.videos ?? [];
   } catch (e) {
     userDB = null;
+  }
+  try {
+    const videoStatus = await api.user.videoStatus.query();
+    initialPendingVideos = videoStatus?.videos ?? [];
+  } catch {
+    // user not authenticated or no pending videos
   }
   try {
     const [queueResult, generationsResult] = await Promise.all([
