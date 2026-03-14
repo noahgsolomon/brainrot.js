@@ -336,9 +336,9 @@ export const userRouter = createTRPCRouter({
   }),
 
   videoStatus: protectedProcedure.query(async ({ ctx }) => {
-    const pendingVideo = await ctx.db.query.pendingVideos.findFirst({
+    const userPendingVideos = await ctx.db.query.pendingVideos.findMany({
       where: eq(pendingVideos.user_id, ctx.user_id),
-      orderBy: (pendingVideos, { desc }) => [desc(pendingVideos.timestamp)],
+      orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
       columns: {
         id: true,
         title: true,
@@ -356,86 +356,107 @@ export const userRouter = createTRPCRouter({
       },
     });
 
-    if (pendingVideo) {
-      const allVideos = await ctx.db.query.pendingVideos.findMany({
-        orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
-      });
-      const queueLength = allVideos.filter(
-        (v) => v.timestamp! < pendingVideo.timestamp! && v.processId === -1,
-      ).length;
-      const exactTimingSamples = await ctx.db.query.generationTimingSamples.findMany({
-        where: (timingSample, { and, eq, isNull }) =>
+    if (userPendingVideos.length === 0) {
+      return { videos: [] };
+    }
+
+    const allVideos = await ctx.db.query.pendingVideos.findMany({
+      orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
+    });
+
+    // Cache timing samples by videoMode|outputType to avoid redundant queries
+    type TimingSample = { totalDurationMs: number | null; queueDurationMs: number | null; phaseTimings: string | null };
+    const timingSampleCache = new Map<string, TimingSample[]>();
+    const timingColumns = {
+      totalDurationMs: true as const,
+      queueDurationMs: true as const,
+      phaseTimings: true as const,
+    };
+
+    async function getTimingSamples(videoMode: string, outputType: string | null) {
+      const cacheKey = `${videoMode}|${outputType ?? "null"}`;
+      const cached = timingSampleCache.get(cacheKey);
+      if (cached) return cached;
+
+      const exactSamples = await ctx.db.query.generationTimingSamples.findMany({
+        where: (ts, { and, eq, isNull }) =>
           and(
-            eq(timingSample.videoMode, pendingVideo.videoMode),
-            pendingVideo.outputType
-              ? eq(timingSample.outputType, pendingVideo.outputType)
-              : isNull(timingSample.outputType),
-            eq(timingSample.success, true),
+            eq(ts.videoMode, videoMode),
+            outputType ? eq(ts.outputType, outputType) : isNull(ts.outputType),
+            eq(ts.success, true),
           ),
-        orderBy: (timingSample, { desc }) => [desc(timingSample.completedAt)],
+        orderBy: (ts, { desc }) => [desc(ts.completedAt)],
         limit: 20,
-        columns: {
-          totalDurationMs: true,
-          queueDurationMs: true,
-          phaseTimings: true,
-        },
-      });
-      const fallbackModeSamples =
-        exactTimingSamples.length > 0
-          ? exactTimingSamples
-          : await ctx.db.query.generationTimingSamples.findMany({
-              where: (timingSample, { and, eq }) =>
-                and(
-                  eq(timingSample.videoMode, pendingVideo.videoMode),
-                  eq(timingSample.success, true),
-                ),
-              orderBy: (timingSample, { desc }) => [desc(timingSample.completedAt)],
-              limit: 20,
-              columns: {
-                totalDurationMs: true,
-                queueDurationMs: true,
-                phaseTimings: true,
-              },
-            });
-      const recentTimingSamples =
-        fallbackModeSamples.length > 0
-          ? fallbackModeSamples
-          : await ctx.db.query.generationTimingSamples.findMany({
-              where: (timingSample, { eq }) => eq(timingSample.success, true),
-              orderBy: (timingSample, { desc }) => [desc(timingSample.completedAt)],
-              limit: 20,
-              columns: {
-                totalDurationMs: true,
-                queueDurationMs: true,
-                phaseTimings: true,
-              },
-            });
-      const eta = estimateRemainingTime({
-        samples: recentTimingSamples,
-        createdAt: pendingVideo.timestamp ?? new Date(),
-        queueLength,
-        currentPhaseKey: pendingVideo.phaseKey,
-        phaseStartedAt: pendingVideo.phaseStartedAt,
+        columns: timingColumns,
       });
 
-      return {
-        videos: {
-          id: pendingVideo.id,
-          title: pendingVideo.title,
-          agent1: pendingVideo.agent1,
-          agent2: pendingVideo.agent2,
-          status: pendingVideo.status,
-          progress: pendingVideo.progress,
-          credits: pendingVideo.credits,
-          phaseKey: pendingVideo.phaseKey,
+      if (exactSamples.length > 0) {
+        timingSampleCache.set(cacheKey, exactSamples);
+        return exactSamples;
+      }
+
+      const modeSamples = await ctx.db.query.generationTimingSamples.findMany({
+        where: (ts, { and, eq }) =>
+          and(eq(ts.videoMode, videoMode), eq(ts.success, true)),
+        orderBy: (ts, { desc }) => [desc(ts.completedAt)],
+        limit: 20,
+        columns: timingColumns,
+      });
+
+      if (modeSamples.length > 0) {
+        timingSampleCache.set(cacheKey, modeSamples);
+        return modeSamples;
+      }
+
+      const anySamples = await ctx.db.query.generationTimingSamples.findMany({
+        where: (ts, { eq }) => eq(ts.success, true),
+        orderBy: (ts, { desc }) => [desc(ts.completedAt)],
+        limit: 20,
+        columns: timingColumns,
+      });
+
+      timingSampleCache.set(cacheKey, anySamples);
+      return anySamples;
+    }
+
+    const videosWithEta = await Promise.all(
+      userPendingVideos.map(async (video) => {
+        const queueLength = allVideos.filter(
+          (v) => v.timestamp! < video.timestamp! && v.processId === -1,
+        ).length;
+
+        const samples = await getTimingSamples(
+          video.videoMode,
+          video.outputType,
+        );
+
+        const eta = estimateRemainingTime({
+          samples,
+          createdAt: video.timestamp ?? new Date(),
+          queueLength,
+          currentPhaseKey: video.phaseKey,
+          phaseStartedAt: video.phaseStartedAt,
+        });
+
+        return {
+          id: video.id,
+          title: video.title,
+          agent1: video.agent1,
+          agent2: video.agent2,
+          status: video.status,
+          progress: video.progress,
+          credits: video.credits,
+          phaseKey: video.phaseKey,
           estimatedMsRemaining: eta.estimatedMsRemaining,
           estimatedMsTotal: eta.estimatedMsTotal,
           etaConfidence: eta.confidence,
           etaSampleSize: eta.sampleSize,
-        },
-        queueLength,
-      };
-    } else return { videos: null };
+          queueLength,
+        };
+      }),
+    );
+
+    return { videos: videosWithEta };
   }),
   // Mutation to update the current user's username
   setUsername: protectedProcedure

@@ -3,7 +3,7 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Crown,
@@ -70,33 +70,31 @@ const containerVariants = {
   },
 };
 
+type PendingVideoItem = {
+  id: number;
+  title: string | null;
+  agent1: string | null;
+  agent2: string | null;
+  status: string;
+  progress: number;
+  credits: number;
+  phaseKey: string | null;
+  estimatedMsRemaining: number | null;
+  estimatedMsTotal: number | null;
+  etaConfidence: string | null;
+  etaSampleSize: number | null;
+  queueLength: number;
+};
+
 export default function PageClient({
   searchParams,
-  initialPendingVideo,
+  initialPendingVideos,
   clerkUser,
   initialActiveQueueCount,
   initialLatestGenerations,
-  initialVideoStatus,
 }: {
   searchParams: { [key: string]: string | undefined };
-  initialPendingVideo: boolean;
-  initialVideoStatus?: {
-    videos: {
-      id: number;
-      title: string | null;
-      agent1: string | null;
-      agent2: string | null;
-      status: string;
-      progress: number;
-      credits: number | null;
-      phaseKey: string | null;
-      estimatedMsRemaining: number | null;
-      estimatedMsTotal: number | null;
-      etaConfidence: string | null;
-      etaSampleSize: number | null;
-    };
-    queueLength: number;
-  } | { videos: null };
+  initialPendingVideos: PendingVideoItem[];
   clerkUser:
     | {
         id: string | null | undefined;
@@ -131,25 +129,21 @@ export default function PageClient({
   const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
     useGenerationType();
 
-  const initialVideos = initialVideoStatus?.videos;
-  const [pendingVideo, setPendingVideo] = useState(initialPendingVideo);
-  const [placeInQueue, setPlaceInQueue] = useState(
-    initialVideoStatus && "queueLength" in initialVideoStatus ? initialVideoStatus.queueLength : 0,
-  );
-  const [pendingVideoTitle, setPendingVideoTitle] = useState(
-    initialVideos?.title ?? "",
-  );
-  const [pendingAgent1, setPendingAgent1] = useState(
-    initialVideos?.agent1 ?? "",
-  );
-  const [pendingAgent2, setPendingAgent2] = useState(
-    initialVideos?.agent2 ?? "",
-  );
-
   const videoStatus = trpc.user.videoStatus.useQuery(undefined, {
-    refetchInterval: pendingVideo ? 5000 : false,
-    initialData: initialVideoStatus,
+    initialData: initialPendingVideos.length > 0
+      ? { videos: initialPendingVideos }
+      : undefined,
   });
+
+  const pendingVideos = videoStatus.data?.videos ?? [];
+  const hasPendingVideos = pendingVideos.length > 0;
+
+  // Refetch while any videos are pending
+  useEffect(() => {
+    if (!hasPendingVideos) return;
+    const id = setInterval(() => videoStatus.refetch(), 5000);
+    return () => clearInterval(id);
+  }, [hasPendingVideos]);
 
   const {
     setIsOpen,
@@ -160,83 +154,61 @@ export default function PageClient({
     submittedTitle,
   } = useCreateVideo();
   const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
-  const [progress, setProgress] = useState(initialVideos?.progress ?? 0);
-  const [status, setStatus] = useState(initialVideos?.status ?? "Waiting in Queue");
-  const fallbackEstimatedMs =
-    pendingVideo && status !== "COMPLETED" && status !== "ERROR"
-      ? ((progress > 0 ? 0 : placeInQueue * 4) + ((100 - progress) / 100) * 4) *
-        60_000
-      : null;
-  const liveEstimatedMsRemaining = useLiveEta(
-    videoStatus.data?.videos?.estimatedMsRemaining ?? fallbackEstimatedMs,
-    pendingVideo && status !== "COMPLETED" && status !== "ERROR",
-  );
 
   const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
     onSuccess: () => {
-      setProgress(0);
-      setStatus("Waiting in Queue");
-      setIsInQueue(false);
-      setPendingVideo(false);
-      setPendingVideoTitle("");
-      setPendingAgent1("");
-      setPendingAgent2("");
+      videoStatus.refetch();
     },
   });
 
   const cancelPendingVideoMutation = trpc.user.cancelPendingVideo.useMutation({
     onSuccess: () => {
-      toast.success("deleted video generation!");
-      setProgress(0);
-      setStatus("Waiting in Queue");
-      setIsInQueue(false);
-      setPendingVideo(false);
-      setPendingVideoTitle("");
-      setPendingAgent1("");
-      setPendingAgent2("");
-      window.location.reload();
+      toast.success("Cancelled video generation!");
+      videoStatus.refetch();
     },
   });
 
+  // Handle completions and errors for each video
+  const handledVideoIds = useRef(new Set<number>());
   useEffect(() => {
-    if (clerkUser?.id) {
-      if (
-        videoStatus.data?.videos !== null &&
-        videoStatus.data?.videos !== undefined
-      ) {
-        setProgress(videoStatus.data.videos.progress);
-        setStatus(videoStatus.data.videos.status);
-        if (videoStatus.data.videos.status === "COMPLETED") {
-          toast.success("Your media has been generated!", { icon: "🎉" });
-          setRefetchVideos(true);
-          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
-          setIsYourVideosOpen(true);
-        } else if (videoStatus.data.videos.status === "ERROR") {
-          toast.error(
-            "Your video was not able to be generated. Please try again.",
-            { icon: "💣" },
-          );
-          deletePendingVideoMutation.mutate({ id: videoStatus.data.videos.id });
-        } else {
-          setPendingVideoTitle(videoStatus.data.videos.title ?? "");
-          setPendingAgent1(videoStatus.data.videos.agent1 ?? "");
-          setPendingAgent2(videoStatus.data.videos.agent2 ?? "");
-          setPendingVideo(true);
-          setIsInQueue(true);
-          setPlaceInQueue(videoStatus.data.queueLength);
-        }
+    if (!clerkUser?.id) return;
+    for (const video of pendingVideos) {
+      if (handledVideoIds.current.has(video.id)) continue;
+      if (video.status === "COMPLETED") {
+        handledVideoIds.current.add(video.id);
+        toast.success("Your media has been generated!", { icon: "🎉" });
+        setRefetchVideos(true);
+        deletePendingVideoMutation.mutate({ id: video.id });
+        setIsYourVideosOpen(true);
+      } else if (video.status === "ERROR") {
+        handledVideoIds.current.add(video.id);
+        toast.error(
+          "Your video was not able to be generated. Please try again.",
+          { icon: "💣" },
+        );
+        deletePendingVideoMutation.mutate({ id: video.id });
       }
     }
-  }, [videoStatus.data?.videos]);
+  }, [pendingVideos]);
 
   const userVideosQuery = trpc.user.userVideos.useQuery();
 
   useEffect(() => {
     if (isInQueue) {
       toast.info("Your video is currently in queue", { icon: "🕒" });
-      setPendingVideo(true);
+      videoStatus.refetch();
     }
   }, [isInQueue]);
+
+  const handleCancel = useCallback(
+    (video: PendingVideoItem) => {
+      cancelPendingVideoMutation.mutate({
+        id: video.id,
+        credits: video.credits,
+      });
+    },
+    [cancelPendingVideoMutation],
+  );
   return (
     <>
       <AnimatePresence>
