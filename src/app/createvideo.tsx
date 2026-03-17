@@ -48,7 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import ProButton from "./ProButton";
 import { useGenerationType } from "./usegenerationtype";
 import { v4 as uuidv4 } from "uuid";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import BuyCreditsDialog from "./buy-credits-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,13 +69,13 @@ const PODCAST_GUEST_OPTIONS: Record<PodcastHost, PodcastGuest[]> = {
   LEX_FRIDMAN: ["JOE_ROGAN", "JORDAN_PETERSON", "ELON_MUSK"],
 };
 
-const fadeIn = {
+const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -20 },
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   visible: {
     transition: {
       staggerChildren: 0.1,
@@ -83,7 +83,7 @@ const staggerContainer = {
   },
 };
 
-const agentAnimation = {
+const agentAnimation: Variants = {
   hidden: { scale: 0.8, opacity: 0 },
   visible: {
     scale: 1,
@@ -97,7 +97,7 @@ const agentAnimation = {
 };
 
 // Animation variants for song cards
-const songCardAnimation = {
+const songCardAnimation: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -118,7 +118,7 @@ const songCardAnimation = {
 };
 
 // Staggered container for song cards
-const songListAnimation = {
+const songListAnimation: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -136,7 +136,7 @@ const songListAnimation = {
 };
 
 // Animation for selected track
-const selectedTrackAnimation = {
+const selectedTrackAnimation: Variants = {
   hidden: { opacity: 0, scale: 0.9 },
   visible: {
     opacity: 1,

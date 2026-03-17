@@ -51,7 +51,7 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 const isAuthed = t.middleware(async ({ next }) => {
-  const user = auth();
+  const user = await auth();
   if (!user?.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
@@ -70,7 +70,7 @@ const isAuthed = t.middleware(async ({ next }) => {
 });
 
 const isSubscribed = t.middleware(async ({ next }) => {
-  const user = auth();
+  const user = await auth();
   if (!user?.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }

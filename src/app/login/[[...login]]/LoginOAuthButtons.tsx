@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useSignIn } from "@clerk/nextjs";
-import { type OAuthStrategy } from "@clerk/types";
+import { useSignIn } from "@clerk/nextjs/legacy";
+import { type OAuthStrategy } from "@clerk/shared/types";
 import { Github } from "lucide-react";
 
 export default function LogInOAuthButtons({

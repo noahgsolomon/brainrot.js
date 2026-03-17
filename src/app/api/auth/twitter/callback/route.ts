@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { returnUrl } = state;
-  const { userId: clerkId } = auth();
+  const { userId: clerkId } = await auth();
   console.log("Clerk ID:", clerkId);
 
   if (!code || !clerkId) {

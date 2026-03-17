@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/input-otp";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn } from "@clerk/nextjs/legacy";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {

@@ -1,71 +1,16 @@
-"use client";
+import {
+  normalizeCreateVideoSearchParams,
+  type RawSearchParams,
+} from "@/lib/create-video-search-params";
+import AuthPageClient from "./auth-page-client";
 
-import { useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
-
-import { useTRPC } from "@/trpc/client";
-
-const Page = ({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: {
-    // all for create video
-    agent1Id?: string;
-    agent2Id?: string;
-    agent1Name?: string;
-    agent2Name?: string;
-    title?: string;
-    credits?: string;
-    music?: string;
-    background?: string;
-    assetType?: string;
-    duration?: string;
-    fps?: string;
-  };
-}) => {
-  const trpc = useTRPC();
-  const existsMutation = useMutation(
-    trpc.user.exists.mutationOptions({
-      onSuccess: () => {
-        const searchQueryString = `?loggedIn=true&agent1Id=${encodeURIComponent(
-          searchParams.agent1Id || "",
-        )}&agent2Id=${encodeURIComponent(
-          searchParams.agent2Id || "",
-        )}&agent1Name=${encodeURIComponent(
-          searchParams.agent1Name || "",
-        )}&agent2Name=${encodeURIComponent(
-          searchParams.agent2Name || "",
-        )}&title=${encodeURIComponent(
-          searchParams.title || "",
-        )}&credits=${encodeURIComponent(
-          searchParams.credits || "",
-        )}&music=${encodeURIComponent(
-          searchParams.music || "",
-        )}&background=${encodeURIComponent(
-          searchParams.background || "",
-        )}&assetType=${encodeURIComponent(
-          searchParams.assetType || "",
-        )}&duration=${encodeURIComponent(
-          searchParams.duration || "",
-        )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
-        window.location.href = `/${searchQueryString}`;
-      },
-      onError: () => {
-        window.location.href = `/?error=true`;
-      },
-    }),
-  );
+  searchParams: Promise<RawSearchParams>;
+}) {
+  const resolvedSearchParams =
+    normalizeCreateVideoSearchParams(await searchParams);
 
-  useEffect(() => {
-    existsMutation.mutate();
-  }, [existsMutation]);
-
-  return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <Loader2 className="h-5 w-5 animate-spin " />
-    </div>
-  );
-};
-
-export default Page;
+  return <AuthPageClient searchParams={resolvedSearchParams} />;
+}

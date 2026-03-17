@@ -45,6 +45,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
 import LatestGenerations from "@/components/latest-generations";
+import type { CreateVideoSearchParams } from "@/lib/create-video-search-params";
 
 const buttonVariantsAnimated = {
   initial: { opacity: 0, y: 20 },
@@ -106,7 +107,7 @@ function hasActivePendingVideos(videos: PendingVideoItem[] | undefined) {
 export default function PageClient({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: CreateVideoSearchParams;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();

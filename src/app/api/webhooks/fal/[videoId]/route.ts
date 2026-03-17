@@ -38,9 +38,10 @@ function isErrorStatus(status: string) {
 
 export async function POST(
   request: Request,
-  { params }: { params: { videoId: string } },
+  { params }: { params: Promise<{ videoId: string }> },
 ) {
   try {
+    const { videoId } = await params;
     const jobKey = request.headers.get(FAL_JOB_KEY_HEADER);
 
     if (!jobKey) {
@@ -49,7 +50,7 @@ export async function POST(
 
     const payload = falWebhookSchema.parse(await request.json());
     const pendingVideo = await db.query.pendingVideos.findFirst({
-      where: eq(pendingVideos.videoId, params.videoId),
+      where: eq(pendingVideos.videoId, videoId),
     });
 
     if (!pendingVideo) {

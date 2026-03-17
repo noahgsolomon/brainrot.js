@@ -7,6 +7,10 @@ import {
   prefetchTRPC,
   trpc,
 } from "@/trpc/server";
+import {
+  normalizeCreateVideoSearchParams,
+  type RawSearchParams,
+} from "@/lib/create-video-search-params";
 import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
@@ -19,24 +23,10 @@ import BuyCreditsDialog from "./buy-credits-dialog";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: {
-    error?: string;
-    loggedIn?: string;
-    subscribed?: string;
-    // all for create video
-    agent1Id?: string;
-    agent2Id?: string;
-    agent1Name?: string;
-    agent2Name?: string;
-    title?: string;
-    credits?: string;
-    music?: string;
-    background?: string;
-    assetType?: string;
-    duration?: string;
-    fps?: string;
-  };
+  searchParams: Promise<RawSearchParams>;
 }) {
+  const resolvedSearchParams =
+    normalizeCreateVideoSearchParams(await searchParams);
   const clerkUser = await currentUser();
 
   const userDB = clerkUser
@@ -120,7 +110,7 @@ export default async function Home({
             </div>
 
             <PageClient
-              searchParams={searchParams}
+              searchParams={resolvedSearchParams}
             />
             {userDB && userDB?.user ? (
               <div className="flex w-80 flex-col gap-3">
