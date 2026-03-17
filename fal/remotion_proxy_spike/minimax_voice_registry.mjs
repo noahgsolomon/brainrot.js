@@ -1,12 +1,16 @@
 // @ts-nocheck
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 import { fal } from "@fal-ai/client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const execFileAsync = promisify(execFile);
 
 const TRAINING_AUDIO_DIR_CANDIDATES = [
   path.resolve(__dirname, "../../training_audio"),
@@ -30,11 +34,25 @@ const TRAINING_AUDIO_FILE_MAP = {
 
 const uploadedTrainingAudioUrlPromises = new Map();
 const customVoiceIdPromises = new Map();
+const preparedTrainingAudioPathPromises = new Map();
 
 let configuredFalKey = null;
 let trainingAudioDirPromise = null;
 let musicDirPromise = null;
 let startupWarmupPromise = null;
+const PREPARED_TRAINING_AUDIO_DIR = path.join(
+  os.tmpdir(),
+  "brainrot-minimax-training-audio",
+);
+const MINIMAX_TRAINING_AUDIO_MAX_DURATION_SECONDS = Number.parseFloat(
+  process.env.MINIMAX_TRAINING_AUDIO_MAX_DURATION_SECONDS ?? "60",
+);
+const MINIMAX_TRAINING_AUDIO_SAMPLE_RATE = Number.parseInt(
+  process.env.MINIMAX_TRAINING_AUDIO_SAMPLE_RATE ?? "32000",
+  10,
+);
+const MINIMAX_TRAINING_AUDIO_BITRATE =
+  process.env.MINIMAX_TRAINING_AUDIO_BITRATE ?? "128k";
 const MINIMAX_VOICE_CLONE_TIMEOUT_MS = Number.parseInt(
   process.env.MINIMAX_VOICE_CLONE_TIMEOUT_MS ?? "120000",
   10,
@@ -168,6 +186,67 @@ async function getTrainingAudioFilePath(agentId) {
   return path.join(trainingAudioDir, TRAINING_AUDIO_FILE_MAP[agentId]);
 }
 
+async function getAudioDurationSeconds(filePath) {
+  const { stdout } = await execFileAsync("ffprobe", [
+    "-v",
+    "error",
+    "-show_entries",
+    "format=duration",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    filePath,
+  ]);
+  const durationSeconds = Number.parseFloat(stdout.trim());
+
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    throw new Error(`Could not determine audio duration for ${filePath}`);
+  }
+
+  return durationSeconds;
+}
+
+async function getPreparedTrainingAudioFilePath(agentId) {
+  return memoizePromise(preparedTrainingAudioPathPromises, agentId, async () => {
+    const sourcePath = await getTrainingAudioFilePath(agentId);
+    const sourceDurationSeconds = await getAudioDurationSeconds(sourcePath);
+    const preparedFileName = `${agentId.toLowerCase()}-prepared.mp3`;
+    const preparedPath = path.join(PREPARED_TRAINING_AUDIO_DIR, preparedFileName);
+
+    await fs.mkdir(PREPARED_TRAINING_AUDIO_DIR, { recursive: true });
+
+    await execFileAsync("ffmpeg", [
+      "-y",
+      "-i",
+      sourcePath,
+      "-vn",
+      "-ac",
+      "1",
+      "-ar",
+      String(MINIMAX_TRAINING_AUDIO_SAMPLE_RATE),
+      "-b:a",
+      MINIMAX_TRAINING_AUDIO_BITRATE,
+      "-t",
+      String(MINIMAX_TRAINING_AUDIO_MAX_DURATION_SECONDS),
+      preparedPath,
+    ]);
+
+    const preparedDurationSeconds = await getAudioDurationSeconds(preparedPath);
+
+    console.log(
+      JSON.stringify({
+        type: "minimax_training_audio_prepared",
+        agentId,
+        sourcePath,
+        sourceDurationSeconds,
+        preparedPath,
+        preparedDurationSeconds,
+      }),
+    );
+
+    return preparedPath;
+  });
+}
+
 export async function resolveBundledMusicPath(musicName) {
   const musicDir = await getMusicDirectory();
   const musicPath = path.join(musicDir, `${musicName}.MP3`);
@@ -179,7 +258,7 @@ export async function resolveBundledMusicPath(musicName) {
 export async function getUploadedTrainingAudioUrl(agentId) {
   return memoizePromise(uploadedTrainingAudioUrlPromises, agentId, async () => {
     ensureFalClientConfigured();
-    const trainingAudioPath = await getTrainingAudioFilePath(agentId);
+    const trainingAudioPath = await getPreparedTrainingAudioFilePath(agentId);
     const fileName = path.basename(trainingAudioPath);
     console.log(
       JSON.stringify({

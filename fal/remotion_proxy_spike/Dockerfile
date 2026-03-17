@@ -27,6 +27,7 @@ COPY fal/remotion_proxy_spike/bridge.py /app/bridge.py
 COPY fal/remotion_proxy_spike/node_server.mjs /app/node_server.mjs
 COPY fal/remotion_proxy_spike/job_callbacks.mjs /app/job_callbacks.mjs
 COPY fal/remotion_proxy_spike/brainrot_transcript_audio.mjs /app/brainrot_transcript_audio.mjs
+COPY fal/remotion_proxy_spike/pitch_mode_audio.mjs /app/pitch_mode_audio.mjs
 COPY fal/remotion_proxy_spike/minimax_voice_registry.mjs /app/minimax_voice_registry.mjs
 COPY fal/remotion_proxy_spike/python_srt_pipeline.mjs /app/python_srt_pipeline.mjs
 COPY fal/remotion_proxy_spike/transcribe_and_generate_srt.py /app/transcribe_and_generate_srt.py

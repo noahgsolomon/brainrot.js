@@ -136,13 +136,56 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
   };
 }
 
+async function runAlignmentOnlyPythonPipeline({ workDir, audioFiles }) {
+  const inputJsonPath = path.join(workDir, "subtitle-alignment-input.json");
+  const inputPayload = {
+    workDir,
+    mode: "alignment_only",
+    audioFiles: audioFiles.map((audioFile) => ({
+      person: audioFile.person,
+      index: audioFile.index,
+      path: audioFile.path,
+      text: audioFile.text,
+    })),
+  };
+
+  await fs.writeFile(inputJsonPath, JSON.stringify(inputPayload, null, 2), "utf8");
+  const scriptPath = await resolveScriptPath();
+
+  return runPythonScript([
+    scriptPath,
+    "--input-json",
+    inputJsonPath,
+  ]);
+}
+
+export async function runPythonAlignmentPipeline({
+  workDir,
+  audioFiles,
+  useMockServices,
+}) {
+  if (useMockServices) {
+    return {
+      ok: true,
+      audioFiles: [],
+    };
+  }
+
+  return runAlignmentOnlyPythonPipeline({
+    workDir,
+    audioFiles,
+  });
+}
+
 export async function runPythonSrtPipeline({
   workDir,
   audioFiles,
   reportProgress,
   useMockServices,
+  startProgress = 24,
+  completeProgress = 35,
 }) {
-  await reportProgress("Generating subtitle files", 24, {
+  await reportProgress("Generating subtitle files", startProgress, {
     phase: "brainrot_transcript_audio",
     phaseKey: "subtitle_generation_start",
   });
@@ -153,7 +196,7 @@ export async function runPythonSrtPipeline({
       audioFiles,
     });
 
-    await reportProgress("Subtitle files ready", 35, {
+    await reportProgress("Subtitle files ready", completeProgress, {
       phase: "brainrot_transcript_audio",
       phaseKey: "subtitle_generation_complete",
       subtitleFileCount: mockResult.srtFiles.length,
@@ -164,6 +207,7 @@ export async function runPythonSrtPipeline({
   const inputJsonPath = path.join(workDir, "subtitle-input.json");
   const inputPayload = {
     workDir,
+    mode: "full",
     outputAudioPath: path.join(workDir, "audio.mp3"),
     outputSrtDir: path.join(workDir, "srt"),
     silenceDurationSeconds: 0.2,
@@ -184,7 +228,7 @@ export async function runPythonSrtPipeline({
     inputJsonPath,
   ]);
 
-  await reportProgress("Subtitle files ready", 35, {
+  await reportProgress("Subtitle files ready", completeProgress, {
     phase: "brainrot_transcript_audio",
     phaseKey: "subtitle_generation_complete",
     subtitleFileCount: Array.isArray(result.srtFiles) ? result.srtFiles.length : 0,

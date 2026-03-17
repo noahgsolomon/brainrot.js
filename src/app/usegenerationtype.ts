@@ -31,6 +31,7 @@ interface useGenerationTypeProps {
     music: string | null;
     assetType: string | null;
     outputType?: "video" | "audio";
+    pitchMode: boolean;
   };
   setVideoDetails: (videoDetails: {
     mode: "brainrot" | "podcast" | "monologue" | "rap";
@@ -58,6 +59,7 @@ interface useGenerationTypeProps {
     music: string | null;
     assetType: string | null;
     outputType?: "video" | "audio";
+    pitchMode: boolean;
   }) => void;
 }
 
@@ -76,6 +78,7 @@ export const useGenerationType = create<useGenerationTypeProps>((set) => ({
     music: null,
     assetType: null,
     outputType: "audio",
+    pitchMode: false,
   },
   setVideoDetails: (videoDetails) => set({ videoDetails }),
 }));

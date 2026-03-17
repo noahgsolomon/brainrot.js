@@ -12,12 +12,14 @@ def parse_args() -> argparse.Namespace:
         choices=[
             "stub",
             "brainrot_transcript_audio",
+            "brainrot_prep_upload",
             "brainrot_remotion_render",
             "brainrot_lambda_render",
         ],
         default="stub",
     )
     parser.add_argument("--mock-services", action="store_true")
+    parser.add_argument("--pitch-mode", action="store_true")
     return parser.parse_args()
 
 
@@ -29,6 +31,7 @@ def main() -> None:
 
         if args.pipeline in {
             "brainrot_transcript_audio",
+            "brainrot_prep_upload",
             "brainrot_remotion_render",
             "brainrot_lambda_render",
         }:
@@ -42,6 +45,9 @@ def main() -> None:
 
             if args.mock_services:
                 props["use_mock_services"] = True
+
+            if args.pitch_mode:
+                props["pitchMode"] = True
 
         response = bridge.render(
             {

@@ -605,11 +605,15 @@ export const userRouter = createTRPCRouter({
         remainingCredits: z.number(),
         cost: z.number(),
         outputType: z.enum(["video", "audio"]).optional().default("video"),
+        pitchMode: z.boolean().optional().default(false),
         mode: z
           .enum(["brainrot", "podcast", "monologue", "rap"])
           .optional()
           .default("brainrot"),
         trackId: z.string().optional(),
+        agent1Name: z.string().optional(),
+        agent2Name: z.string().optional(),
+        music: z.string().optional(),
       }),
     )
     .mutation(

@@ -6,17 +6,23 @@ import {
   resolveBundledMusicPath,
   synthesizeMiniMaxSpeech,
 } from "./minimax_voice_registry.mjs";
-import { runPythonSrtPipeline } from "./python_srt_pipeline.mjs";
+import { applyPitchModeToAudioFiles } from "./pitch_mode_audio.mjs";
+import {
+  runPythonAlignmentPipeline,
+  runPythonSrtPipeline,
+} from "./python_srt_pipeline.mjs";
 
 const FAL_OPENROUTER_API_URL = "https://fal.run/openrouter/router";
 const DEFAULT_TRANSCRIPT_MODEL = "x-ai/grok-4.20-beta";
-const FALLBACK_TRANSCRIPT_MODELS = [
+const FALLBACK_OPENROUTER_MODELS = [
   "qwen/qwen3.5-35b-a3b",
   "google/gemini-3.1-flash-image-preview",
   "minimax/minimax-m2.5",
   "z-ai/glm-5",
 ];
-const DEFAULT_BACKGROUND_VIDEO = "/background/MINECRAFT-0.mp4";
+const DEFAULT_BACKGROUND_VIDEO = `/background/MINECRAFT-${Math.floor(
+  Math.random() * 12,
+)}.mp4`;
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
 const OPENROUTER_REQUEST_TIMEOUT_MS = Number.parseInt(
   process.env.BRAINROT_OPENROUTER_TIMEOUT_MS ?? "45000",
@@ -31,25 +37,14 @@ const AUDIO_GENERATION_CONCURRENCY = Number.parseInt(
   10,
 );
 
-/**
- * @param {string} jobId
- */
 function sanitizeJobId(jobId) {
   return String(jobId || "job").replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
-/**
- * @param {string} agentName
- */
 function humanizeAgentName(agentName) {
   return agentName.replace(/_/g, " ");
 }
 
-/**
- * @param {Record<string, unknown>} props
- * @param {string} preferredKey
- * @param {string} fallbackKey
- */
 function resolveAgentName(props, preferredKey, fallbackKey) {
   const value = props[preferredKey] ?? props[fallbackKey];
 
@@ -60,23 +55,16 @@ function resolveAgentName(props, preferredKey, fallbackKey) {
   return value.trim();
 }
 
-/**
- * @param {number} ms
- * @returns {Promise<void>}
- */
+function parseBooleanProp(value) {
+  return value === true || value === "true";
+}
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
 
-/**
- * @template T, R
- * @param {T[]} items
- * @param {number} concurrency
- * @param {(item: T, index: number) => Promise<R>} mapper
- * @returns {Promise<R[]>}
- */
 async function mapWithConcurrency(items, concurrency, mapper) {
   const normalizedConcurrency = Math.max(
     1,
@@ -97,7 +85,7 @@ async function mapWithConcurrency(items, concurrency, mapper) {
         return;
       }
 
-      const item = /** @type {T} */ (items[currentIndex]);
+      const item = items[currentIndex];
       results[currentIndex] = await mapper(item, currentIndex);
     }
   }
@@ -109,14 +97,11 @@ async function mapWithConcurrency(items, concurrency, mapper) {
   return results;
 }
 
-/**
- * @param {string} text
- */
-function extractJsonString(text) {
+function extractJsonString(text, taskName) {
   const trimmed = text.trim();
 
   if (!trimmed) {
-    throw new Error("Transcript model returned an empty output string");
+    throw new Error(`${taskName} returned an empty output string`);
   }
 
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -134,14 +119,34 @@ function extractJsonString(text) {
   return trimmed;
 }
 
-/**
- * @param {unknown} payload
- */
+function splitTranscriptWords(text) {
+  return String(text)
+    .split(/\s+/)
+    .filter((word) => word.trim().length > 0);
+}
+
+function normalizeSearchToken(token) {
+  return String(token)
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
+}
+
+function tokensMatch(lineToken, phraseToken) {
+  if (lineToken === phraseToken) {
+    return true;
+  }
+
+  if (lineToken.length < 3 || phraseToken.length < 3) {
+    return false;
+  }
+
+  return lineToken.startsWith(phraseToken) || phraseToken.startsWith(lineToken);
+}
+
 function parseTranscriptPayload(payload) {
   const candidatePayload =
-    payload && typeof payload === "object"
-      ? /** @type {{ transcript?: unknown }} */ (payload)
-      : {};
+    payload && typeof payload === "object" ? payload : {};
   const transcript = candidatePayload.transcript;
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
@@ -167,25 +172,50 @@ function parseTranscriptPayload(payload) {
   });
 }
 
-/**
- * @param {{
- *   topic: string;
- *   agentA: string;
- *   agentB: string;
- *   model: string;
- * }} input
- */
-async function generateBrainrotTranscript(input) {
+function parsePitchSlowMomentsPayload(payload) {
+  const candidatePayload =
+    payload && typeof payload === "object" ? payload : {};
+  const rawSlowMoments = Array.isArray(candidatePayload.slowMoments)
+    ? candidatePayload.slowMoments
+    : [];
+
+  return rawSlowMoments.slice(0, 7).map((moment, index) => {
+    if (
+      !moment ||
+      typeof moment !== "object" ||
+      !Number.isInteger(moment.entryIndex) ||
+      typeof moment.phrase !== "string"
+    ) {
+      throw new Error(`Invalid pitch-mode moment at index ${index}`);
+    }
+
+    return {
+      entryIndex: moment.entryIndex,
+      agentId:
+        typeof moment.agentId === "string" && moment.agentId.trim().length > 0
+          ? moment.agentId.trim()
+          : null,
+      phrase: moment.phrase.trim(),
+      reason:
+        typeof moment.reason === "string" && moment.reason.trim().length > 0
+          ? moment.reason.trim()
+          : null,
+    };
+  });
+}
+
+async function callFalOpenRouter({
+  taskName,
+  prompt,
+  systemPrompt,
+  model,
+  parseOutput,
+}) {
   const falKey = process.env.FAL_KEY;
 
   if (!falKey) {
     throw new Error("Missing required environment variable: FAL_KEY");
   }
-
-  const agentAHuman = humanizeAgentName(input.agentA);
-  const agentBHuman = humanizeAgentName(input.agentB);
-  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${input.topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${input.topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${input.agentA} or ${input.agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${input.agentA}","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
-  const prompt = `Generate a video transcript about ${input.topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
 
   const response = await fetch(FAL_OPENROUTER_API_URL, {
     method: "POST",
@@ -197,7 +227,7 @@ async function generateBrainrotTranscript(input) {
     body: JSON.stringify({
       prompt,
       system_prompt: systemPrompt,
-      model: input.model,
+      model,
       temperature: 1,
       max_tokens: 4096,
     }),
@@ -206,7 +236,7 @@ async function generateBrainrotTranscript(input) {
   if (!response.ok) {
     const details = await response.text();
     throw new Error(
-      `fal OpenRouter returned HTTP ${response.status}: ${
+      `${taskName} request returned HTTP ${response.status}: ${
         details || "unknown error"
       }`,
     );
@@ -216,57 +246,41 @@ async function generateBrainrotTranscript(input) {
   const content = data?.output;
 
   if (typeof content !== "string" || content.trim().length === 0) {
-    throw new Error("fal OpenRouter returned an empty transcript payload");
+    throw new Error(`${taskName} returned an empty payload`);
   }
 
-  return parseTranscriptPayload(JSON.parse(extractJsonString(content)));
+  return parseOutput(JSON.parse(extractJsonString(content, taskName)));
 }
 
-/**
- * @param {{
- *   topic: string;
- *   agentA: string;
- *   agentB: string;
- *   model: string;
- *   useMockServices: boolean;
- * }} input
- */
-async function getTranscriptWithRetry(input) {
-  if (input.useMockServices) {
-    return [
-      {
-        agentId: input.agentA,
-        text: `I cannot believe we're actually doing a fal proof of concept about ${input.topic}.`,
-      },
-      {
-        agentId: input.agentB,
-        text: `This is the first real brainrot worker phase, and it already looks more serious than the old poller.`,
-      },
-      {
-        agentId: input.agentA,
-        text: `Good, because the next step is subtitles and then the real Remotion render.`,
-      },
-    ];
-  }
-
-  const fallbackModels = FALLBACK_TRANSCRIPT_MODELS.filter(
+async function runStructuredOpenRouterTaskWithRetry({
+  taskName,
+  primaryModel,
+  prompt,
+  systemPrompt,
+  parseOutput,
+}) {
+  const fallbackModels = FALLBACK_OPENROUTER_MODELS.filter(
     (model, index, models) =>
-      model !== input.model && models.indexOf(model) === index,
+      model !== primaryModel && models.indexOf(model) === index,
   );
   let lastError = null;
 
   for (let attempt = 1; attempt <= PRIMARY_MODEL_MAX_ATTEMPTS; attempt += 1) {
     try {
       console.log(
-        `[transcript] Trying primary model ${input.model} (attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS})`,
+        `[${taskName}] Trying primary model ${primaryModel} (attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS})`,
       );
-      return await generateBrainrotTranscript({ ...input, model: input.model });
+      return await callFalOpenRouter({
+        taskName,
+        prompt,
+        systemPrompt,
+        model: primaryModel,
+        parseOutput,
+      });
     } catch (error) {
       lastError = error;
       console.error(
-        `[transcript] Primary model ${
-          input.model
-        } attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS} failed: ${
+        `[${taskName}] Primary model ${primaryModel} attempt ${attempt}/${PRIMARY_MODEL_MAX_ATTEMPTS} failed: ${
           error instanceof Error ? error.message : "unknown error"
         }`,
       );
@@ -279,12 +293,12 @@ async function getTranscriptWithRetry(input) {
   }
 
   console.error(
-    `[transcript] Primary model ${input.model} exhausted ${PRIMARY_MODEL_MAX_ATTEMPTS} attempts, switching to concurrent fallback waves...`,
+    `[${taskName}] Primary model ${primaryModel} exhausted ${PRIMARY_MODEL_MAX_ATTEMPTS} attempts, switching to concurrent fallback waves...`,
   );
 
   for (let wave = 1; wave <= FALLBACK_MODEL_MAX_WAVES; wave += 1) {
     console.log(
-      `[transcript] Starting fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} with models: ${fallbackModels.join(
+      `[${taskName}] Starting fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} with models: ${fallbackModels.join(
         ", ",
       )}`,
     );
@@ -293,14 +307,17 @@ async function getTranscriptWithRetry(input) {
       const winner = await Promise.any(
         fallbackModels.map(async (model) => {
           try {
-            const transcript = await generateBrainrotTranscript({
-              ...input,
+            const result = await callFalOpenRouter({
+              taskName,
+              prompt,
+              systemPrompt,
               model,
+              parseOutput,
             });
-            return { model, transcript };
+            return { model, result };
           } catch (error) {
             console.error(
-              `[transcript] Fallback model ${model} failed in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}: ${
+              `[${taskName}] Fallback model ${model} failed in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}: ${
                 error instanceof Error ? error.message : "unknown error"
               }`,
             );
@@ -310,15 +327,15 @@ async function getTranscriptWithRetry(input) {
       );
 
       console.log(
-        `[transcript] Fallback model ${winner.model} succeeded in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}`,
+        `[${taskName}] Fallback model ${winner.model} succeeded in wave ${wave}/${FALLBACK_MODEL_MAX_WAVES}`,
       );
-      return winner.transcript;
+      return winner.result;
     } catch (error) {
       const aggregateError =
         error instanceof AggregateError ? error : new AggregateError([error]);
       lastError = aggregateError.errors.at(-1) ?? error;
       console.error(
-        `[transcript] Fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} fully failed`,
+        `[${taskName}] Fallback wave ${wave}/${FALLBACK_MODEL_MAX_WAVES} fully failed`,
       );
     }
 
@@ -329,51 +346,233 @@ async function getTranscriptWithRetry(input) {
   }
 
   throw new Error(
-    `Failed to generate valid transcript after trying primary model ${
-      input.model
-    } and fallback models (${fallbackModels.join(", ")}): ${
-      lastError instanceof Error ? lastError.message : "unknown error"
-    }`,
+    `Failed to complete ${taskName} after trying primary model ${primaryModel} and fallback models (${fallbackModels.join(
+      ", ",
+    )}): ${lastError instanceof Error ? lastError.message : "unknown error"}`,
   );
 }
 
-/**
- * @param {{
- *   agentId: string;
- *   line: string;
- *   outputPath: string;
- *   useMockServices: boolean;
- * }} input
- */
-async function generateVoiceClip(input) {
-  if (input.useMockServices) {
-    const placeholder = Buffer.from(
-      `MOCK_AUDIO:${new Date().toISOString()}:${input.line}`,
-      "utf8",
-    );
-    await fs.writeFile(input.outputPath, placeholder);
-    return;
+function buildMockTranscript({ topic, agentA, agentB }) {
+  return [
+    {
+      agentId: agentA,
+      text: `I cannot believe we're actually doing a fal proof of concept about ${topic}.`,
+    },
+    {
+      agentId: agentB,
+      text: `This is the first real brainrot worker phase, and it already looks more serious than the old poller.`,
+    },
+    {
+      agentId: agentA,
+      text: `Good, because the next step is subtitles and then the real Remotion render.`,
+    },
+  ];
+}
+
+async function getTranscriptWithRetry({
+  topic,
+  agentA,
+  agentB,
+  model,
+  useMockServices,
+}) {
+  if (useMockServices) {
+    return buildMockTranscript({
+      topic,
+      agentA,
+      agentB,
+    });
   }
-  await synthesizeMiniMaxSpeech({
-    agentId: input.agentId,
-    text: input.line,
-    outputPath: input.outputPath,
+
+  const agentAHuman = humanizeAgentName(agentA);
+  const agentBHuman = humanizeAgentName(agentB);
+  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${agentA} or ${agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agentA}","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
+  const prompt = `Generate a video transcript about ${topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
+
+  return runStructuredOpenRouterTaskWithRetry({
+    taskName: "transcript",
+    primaryModel: model,
+    prompt,
+    systemPrompt,
+    parseOutput: parseTranscriptPayload,
   });
 }
 
-/**
- * @param {{
- *   music: string;
- *   initialAgentName: string;
- *   audioFiles: Array<{ person: string; index: number; path: string }>;
- *   backgroundVideoFileName: string;
- * }} input
- */
-function buildContextContent(input) {
-  const musicValue =
-    input.music === "NONE" ? `'NONE'` : `'/music/${input.music}.MP3'`;
+function buildFallbackPitchSlowMomentSelections(transcript) {
+  return transcript
+    .slice(0, Math.min(transcript.length, 5))
+    .map((entry, entryIndex) => {
+      const words = splitTranscriptWords(entry.text);
+      const phraseWords = words.slice(Math.max(0, words.length - 4));
 
-  const subtitleEntries = input.audioFiles
+      if (phraseWords.length === 0) {
+        return null;
+      }
+
+      return {
+        entryIndex,
+        agentId: entry.agentId,
+        phrase: phraseWords.join(" "),
+        reason: "fallback punchline",
+      };
+    })
+    .filter(Boolean);
+}
+
+async function getPitchSlowMomentsWithRetry({
+  transcript,
+  model,
+  useMockServices,
+}) {
+  if (useMockServices) {
+    return buildFallbackPitchSlowMomentSelections(transcript);
+  }
+
+  const transcriptForPrompt = transcript.map((entry, entryIndex) => ({
+    entryIndex,
+    agentId: entry.agentId,
+    text: entry.text,
+  }));
+  const systemPrompt = `You are selecting a few short "pitch drop" meme moments for an aggressively edited short-form video. The default voice treatment is sped-up and higher-pitched. Your job is to identify the handful of moments that should dramatically switch to slowed-down, lower-pitched delivery. Choose the funniest, most shocking, most damning, most risqué, or most absurd punchline phrases. Pick between 3 and 7 moments when the transcript supports it. Each phrase must be copied exactly from one transcript line as a short contiguous phrase, ideally 1 to 8 words. Spread the moments across the conversation when possible. Do not choose overlapping phrases from the same line. Avoid selecting a whole line unless the line is already very short. Return valid JSON only with this exact shape: {"slowMoments":[{"entryIndex":0,"agentId":"JOE_ROGAN","phrase":"exact words here","reason":"brief why"}]}.`;
+  const prompt = `Select the slowdown phrases for this transcript:\n${JSON.stringify(
+    transcriptForPrompt,
+    null,
+    2,
+  )}`;
+
+  return runStructuredOpenRouterTaskWithRetry({
+    taskName: "pitch_mode",
+    primaryModel: model,
+    prompt,
+    systemPrompt,
+    parseOutput: parsePitchSlowMomentsPayload,
+  });
+}
+
+function findPhraseWordRange(lineWords, phraseWords) {
+  const normalizedLineWords = lineWords.map(normalizeSearchToken);
+  const normalizedPhraseWords = phraseWords
+    .map(normalizeSearchToken)
+    .filter((token) => token.length > 0);
+
+  if (normalizedPhraseWords.length === 0) {
+    return null;
+  }
+
+  for (
+    let phraseLength = normalizedPhraseWords.length;
+    phraseLength >= 1;
+    phraseLength -= 1
+  ) {
+    for (
+      let phraseStart = 0;
+      phraseStart + phraseLength <= normalizedPhraseWords.length;
+      phraseStart += 1
+    ) {
+      const candidatePhraseWords = normalizedPhraseWords.slice(
+        phraseStart,
+        phraseStart + phraseLength,
+      );
+
+      for (
+        let lineStart = 0;
+        lineStart + candidatePhraseWords.length <= normalizedLineWords.length;
+        lineStart += 1
+      ) {
+        const matches = candidatePhraseWords.every((candidateWord, offset) =>
+          tokensMatch(normalizedLineWords[lineStart + offset], candidateWord),
+        );
+
+        if (!matches) {
+          continue;
+        }
+
+        return {
+          startWordIndexInclusive: lineStart,
+          endWordIndexInclusive: lineStart + candidatePhraseWords.length - 1,
+          matchedPhrase: lineWords
+            .slice(lineStart, lineStart + candidatePhraseWords.length)
+            .join(" "),
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function resolvePitchSlowMoments({ transcript, selections }) {
+  const resolvedMoments = [];
+  const usedKeys = new Set();
+
+  for (const selection of selections) {
+    const entry = transcript[selection.entryIndex];
+    if (!entry) {
+      continue;
+    }
+
+    const lineWords = splitTranscriptWords(entry.text);
+    const phraseWords = splitTranscriptWords(selection.phrase);
+    const wordRange = findPhraseWordRange(lineWords, phraseWords);
+
+    if (!wordRange) {
+      continue;
+    }
+
+    const key = `${selection.entryIndex}:${wordRange.startWordIndexInclusive}:${wordRange.endWordIndexInclusive}`;
+    if (usedKeys.has(key)) {
+      continue;
+    }
+
+    usedKeys.add(key);
+    resolvedMoments.push({
+      entryIndex: selection.entryIndex,
+      agentId: entry.agentId,
+      phrase: wordRange.matchedPhrase,
+      reason: selection.reason,
+      startWordIndexInclusive: wordRange.startWordIndexInclusive,
+      endWordIndexInclusive: wordRange.endWordIndexInclusive,
+    });
+  }
+
+  return resolvedMoments.sort(
+    (left, right) =>
+      left.entryIndex - right.entryIndex ||
+      left.startWordIndexInclusive - right.startWordIndexInclusive,
+  );
+}
+
+async function generateVoiceClip({
+  agentId,
+  line,
+  outputPath,
+  useMockServices,
+}) {
+  if (useMockServices) {
+    const placeholder = Buffer.from(
+      `MOCK_AUDIO:${new Date().toISOString()}:${line}`,
+      "utf8",
+    );
+    await fs.writeFile(outputPath, placeholder);
+    return;
+  }
+
+  await synthesizeMiniMaxSpeech({
+    agentId,
+    text: line,
+    outputPath,
+  });
+}
+
+function buildContextContent({
+  music,
+  initialAgentName,
+  audioFiles,
+  backgroundVideoFileName,
+}) {
+  const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
+
+  const subtitleEntries = audioFiles
     .map(
       (entry) => `{
     name: '${entry.person}',
@@ -385,8 +584,8 @@ function buildContextContent(input) {
   return `import { staticFile } from 'remotion';
 
 export const music: string = ${musicValue};
-export const initialAgentName = '${input.initialAgentName}';
-export const videoFileName = '${input.backgroundVideoFileName}';
+export const initialAgentName = '${initialAgentName}';
+export const videoFileName = '${backgroundVideoFileName}';
 export const videoMode = 'brainrot';
 
 export const subtitlesFileName = [
@@ -398,13 +597,6 @@ export const imageBackground: string = '/rap/SPONGEBOB.png';
 `;
 }
 
-/**
- * @param {{
- *   jobId: string;
- *   props: Record<string, unknown>;
- *   reportProgress: (status: string, progress: number, extra?: Record<string, unknown>) => Promise<void>;
- * }} input
- */
 export async function runBrainrotTranscriptAudioJob(input) {
   const topic = String(input.props.topic ?? "").trim();
 
@@ -423,7 +615,11 @@ export async function runBrainrotTranscriptAudioJob(input) {
     input.props.videoFileName.trim().length > 0
       ? input.props.videoFileName.trim()
       : DEFAULT_BACKGROUND_VIDEO;
-  const useMockServices = input.props.use_mock_services === true;
+  const useMockServices = parseBooleanProp(input.props.use_mock_services);
+  const pitchModeEnabled = parseBooleanProp(
+    input.props.pitchMode ?? input.props.pitch_mode,
+  );
+  const pitchModeApplied = pitchModeEnabled && !useMockServices;
   const transcriptModel =
     typeof input.props.transcriptModel === "string" &&
     input.props.transcriptModel.trim().length > 0
@@ -431,6 +627,11 @@ export async function runBrainrotTranscriptAudioJob(input) {
       : process.env.BRAINROT_TRANSCRIPT_MODEL?.trim() ||
         process.env.FAL_OPENROUTER_MODEL?.trim() ||
         DEFAULT_TRANSCRIPT_MODEL;
+  const pitchAnalysisModel =
+    typeof input.props.pitchAnalysisModel === "string" &&
+    input.props.pitchAnalysisModel.trim().length > 0
+      ? input.props.pitchAnalysisModel.trim()
+      : process.env.BRAINROT_PITCH_ANALYSIS_MODEL?.trim() || transcriptModel;
 
   const safeJobId = sanitizeJobId(input.jobId);
   const workDir = path.join("/tmp", "brainrot", safeJobId);
@@ -481,14 +682,61 @@ export async function runBrainrotTranscriptAudioJob(input) {
     transcriptLineCount: transcript.length,
   });
 
+  let pitchSlowMomentSelections = [];
+  let resolvedPitchSlowMoments = [];
+
+  if (pitchModeEnabled) {
+    await input.reportProgress("Selecting pitch mode moments", 9, {
+      phase: "brainrot_transcript_audio",
+      phaseKey: "pitch_mode_selection_start",
+    });
+
+    try {
+      pitchSlowMomentSelections = await getPitchSlowMomentsWithRetry({
+        transcript,
+        model: pitchAnalysisModel,
+        useMockServices,
+      });
+    } catch (error) {
+      console.error(
+        `[pitch_mode] Falling back to heuristic selections after analysis failure: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`,
+      );
+      pitchSlowMomentSelections =
+        buildFallbackPitchSlowMomentSelections(transcript);
+    }
+
+    resolvedPitchSlowMoments = resolvePitchSlowMoments({
+      transcript,
+      selections: pitchSlowMomentSelections,
+    });
+
+    if (resolvedPitchSlowMoments.length === 0) {
+      pitchSlowMomentSelections =
+        buildFallbackPitchSlowMomentSelections(transcript);
+      resolvedPitchSlowMoments = resolvePitchSlowMoments({
+        transcript,
+        selections: pitchSlowMomentSelections,
+      });
+    }
+
+    await input.reportProgress("Pitch mode moments ready", 10, {
+      phase: "brainrot_transcript_audio",
+      phaseKey: "pitch_mode_selection_complete",
+      pitchModeApplied,
+      slowMomentCount: resolvedPitchSlowMoments.length,
+    });
+  }
+
   if (!useMockServices) {
-    await input.reportProgress("Preparing MiniMax voice assets", 10, {
+    await input.reportProgress("Preparing MiniMax voice assets", 11, {
       phase: "brainrot_transcript_audio",
       phaseKey: "voice_assets_prepare",
     });
     await prepareMiniMaxAssets();
 
-    await input.reportProgress("MiniMax voice assets ready", 12, {
+    await input.reportProgress("MiniMax voice assets ready", 13, {
       phase: "brainrot_transcript_audio",
       phaseKey: "voice_assets_ready",
     });
@@ -502,7 +750,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
 
   let completedAudioCount = 0;
   let audioProgressChain = Promise.resolve();
-  const audioFiles = await mapWithConcurrency(
+  const generatedAudioFiles = await mapWithConcurrency(
     transcript,
     AUDIO_GENERATION_CONCURRENCY,
     async (entry, index) => {
@@ -544,11 +792,54 @@ export async function runBrainrotTranscriptAudioJob(input) {
     },
   );
 
+  let finalAudioFiles = generatedAudioFiles;
+
+  if (pitchModeApplied) {
+    let alignmentData = [];
+
+    if (resolvedPitchSlowMoments.length > 0) {
+      await input.reportProgress("Aligning audio for pitch mode", 24, {
+        phase: "brainrot_transcript_audio",
+        phaseKey: "pitch_mode_alignment_start",
+        slowMomentCount: resolvedPitchSlowMoments.length,
+      });
+
+      const alignmentResult = await runPythonAlignmentPipeline({
+        workDir,
+        audioFiles: generatedAudioFiles,
+        useMockServices,
+      });
+      alignmentData = alignmentResult.audioFiles ?? [];
+    }
+
+    await input.reportProgress("Applying pitch mode audio", 26, {
+      phase: "brainrot_transcript_audio",
+      phaseKey: "pitch_mode_audio_start",
+      slowMomentCount: resolvedPitchSlowMoments.length,
+    });
+
+    const pitchModeAudioResult = await applyPitchModeToAudioFiles({
+      workDir,
+      audioFiles: generatedAudioFiles,
+      alignmentData,
+      resolvedSlowMoments: resolvedPitchSlowMoments,
+    });
+    finalAudioFiles = pitchModeAudioResult.audioFiles;
+
+    await input.reportProgress("Pitch mode audio ready", 27, {
+      phase: "brainrot_transcript_audio",
+      phaseKey: "pitch_mode_audio_complete",
+      slowMomentCount: resolvedPitchSlowMoments.length,
+    });
+  }
+
   const subtitlePipelineResult = await runPythonSrtPipeline({
     workDir,
-    audioFiles,
+    audioFiles: finalAudioFiles,
     reportProgress: input.reportProgress,
     useMockServices,
+    startProgress: pitchModeApplied ? 28 : 24,
+    completeProgress: 35,
   });
 
   await fs.writeFile(
@@ -560,7 +851,14 @@ export async function runBrainrotTranscriptAudioJob(input) {
         agentA,
         agentB,
         music,
-        audioFiles,
+        transcriptModel,
+        pitchAnalysisModel,
+        pitchModeEnabled,
+        pitchModeApplied,
+        pitchSlowMomentSelections,
+        pitchSlowMoments: resolvedPitchSlowMoments,
+        sourceAudioFiles: generatedAudioFiles,
+        audioFiles: finalAudioFiles,
         outputAudioPath: subtitlePipelineResult.outputAudioPath,
         srtFiles: subtitlePipelineResult.srtFiles,
       },
@@ -574,8 +872,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
     contextPath,
     buildContextContent({
       music,
-      initialAgentName: audioFiles[0]?.person ?? agentA,
-      audioFiles,
+      initialAgentName: finalAudioFiles[0]?.person ?? agentA,
+      audioFiles: finalAudioFiles,
       backgroundVideoFileName,
     }),
     "utf8",
@@ -593,9 +891,12 @@ export async function runBrainrotTranscriptAudioJob(input) {
     transcriptPath,
     contextPath,
     manifestPath,
-    audioFiles,
+    audioFiles: finalAudioFiles,
     outputAudioPath: subtitlePipelineResult.outputAudioPath,
     srtFiles: subtitlePipelineResult.srtFiles,
+    pitchModeEnabled,
+    pitchModeApplied,
+    pitchSlowMoments: resolvedPitchSlowMoments,
     usedMockServices: useMockServices,
   };
 }

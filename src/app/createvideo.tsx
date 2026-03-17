@@ -53,6 +53,7 @@ import BuyCreditsDialog from "./buy-credits-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAudioStore } from "@/store/audioStore";
+import { Switch } from "@/components/ui/switch";
 
 export type PodcastHost = "JOE_ROGAN" | "JORDAN_PETERSON" | "LEX_FRIDMAN";
 export type PodcastGuest =
@@ -219,7 +220,7 @@ export default function CreateVideo({
 
   const createVideoMutation = useMutation(
     trpc.user.createVideo.mutationOptions({
-      onSuccess: async (data) => {
+      onSuccess: async (data, variables) => {
         await queryClient.invalidateQueries(trpc.user.user.queryFilter());
 
         if (data?.valid) {
@@ -228,16 +229,17 @@ export default function CreateVideo({
           const createResponse = await fetch("/api/create", {
             method: "POST",
             body: JSON.stringify({
-              topic: videoDetails.title,
-              agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
-              agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
+              topic: variables.title,
+              agent1: variables.agent1Name ?? "JORDAN_PETERSON",
+              agent2: variables.agent2Name ?? "BEN_SHAPIRO",
               videoId: uuidVal,
-              music: videoDetails.music,
-              credits: videoDetails.cost,
+              music: variables.music,
+              credits: variables.cost,
               apiKey: data.apiKey,
-              mode: videoDetails.mode,
-              videoMode: videoDetails.mode,
-              outputType: videoDetails.outputType,
+              mode: variables.mode,
+              videoMode: variables.mode,
+              outputType: variables.outputType,
+              pitchMode: variables.pitchMode,
             }),
             headers: {
               "Content-Type": "application/json",
@@ -1387,6 +1389,37 @@ export default function CreateVideo({
             </motion.div>
           )}
 
+          {videoDetails.mode === "brainrot" ? (
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              className="mt-4"
+            >
+              <div className="flex items-center justify-between rounded-lg border border-dashed bg-secondary/50 p-4">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="pitch-mode" className="cursor-pointer text-sm">
+                    Pitch Mode
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Speed the whole voice up and drop into slow, low-pitch
+                    moments on the funniest or wildest lines.
+                  </p>
+                </div>
+                <Switch
+                  id="pitch-mode"
+                  checked={videoDetails.pitchMode}
+                  onCheckedChange={(checked) =>
+                    setVideoDetails({
+                      ...videoDetails,
+                      pitchMode: checked,
+                    })
+                  }
+                />
+              </div>
+            </motion.div>
+          ) : null}
+
           <motion.div
             variants={fadeIn}
             initial="hidden"
@@ -1432,6 +1465,7 @@ export default function CreateVideo({
                     duration: 1,
                     fps: 60,
                     outputType: videoDetails.outputType,
+                    pitchMode: videoDetails.pitchMode,
                   });
 
                   // Optimistic update: close dialog and show pending card immediately
@@ -1442,12 +1476,16 @@ export default function CreateVideo({
                   toast.info("Your video is currently in queue", { icon: "🕒" });
 
                   createVideoMutation.mutate({
-                    title: videoInput,
+                    title: resolvedTitle,
                     agent1: agent[0]?.id ?? 0,
                     agent2: agent[1]?.id ?? 1,
+                    agent1Name: agent[0]?.name ?? "JORDAN_PETERSON",
+                    agent2Name: agent[1]?.name ?? "BEN_SHAPIRO",
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
+                    music: "WII_SHOP_CHANNEL_TRAP",
                     outputType: videoDetails.outputType,
+                    pitchMode: videoDetails.pitchMode,
                     mode: videoDetails.mode,
                   });
                 }}

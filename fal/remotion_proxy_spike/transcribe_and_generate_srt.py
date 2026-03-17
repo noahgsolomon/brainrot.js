@@ -275,8 +275,8 @@ def process_audio_file(audio_file: dict) -> dict:
         "person": person,
         "index": index,
         "path": audio_path,
-        "duration_seconds": duration_seconds,
-        "aligned_words": aligned_words,
+        "durationSeconds": duration_seconds,
+        "alignedWords": aligned_words,
     }
 
 
@@ -284,10 +284,13 @@ def main() -> None:
     args = parse_args()
     payload = load_payload(args.input_json)
     work_dir = str(payload["workDir"])
+    mode = str(payload.get("mode", "full"))
     silence_duration_seconds = float(payload.get("silenceDurationSeconds", 0.2))
-    concatenated_audio_path = str(payload["outputAudioPath"])
-    output_srt_dir = Path(payload["outputSrtDir"])
-    output_srt_dir.mkdir(parents=True, exist_ok=True)
+    concatenated_audio_path = str(payload.get("outputAudioPath", ""))
+    output_srt_dir_value = payload.get("outputSrtDir")
+    output_srt_dir = Path(str(output_srt_dir_value)) if output_srt_dir_value else None
+    if output_srt_dir is not None:
+        output_srt_dir.mkdir(parents=True, exist_ok=True)
 
     audio_files = payload["audioFiles"]
     log(f"Generating SRTs for {len(audio_files)} clips")
@@ -312,6 +315,21 @@ def main() -> None:
             order = future_to_order[future]
             processed_audio_by_order[order] = future.result()
 
+    ordered_processed_audio = [
+        processed_audio_by_order[order] for order in range(len(audio_files))
+    ]
+
+    if mode == "alignment_only":
+        print(
+            json.dumps(
+                {
+                    "ok": True,
+                    "audioFiles": ordered_processed_audio,
+                }
+            )
+        )
+        return
+
     ordered_audio_paths = [
         str(processed_audio_by_order[order]["path"]) for order in range(len(audio_files))
     ]
@@ -320,9 +338,11 @@ def main() -> None:
         processed_audio = processed_audio_by_order[order]
         person = str(processed_audio["person"])
         index = int(processed_audio["index"])
-        duration_seconds = float(processed_audio["duration_seconds"])
-        aligned_words = processed_audio["aligned_words"]
+        duration_seconds = float(processed_audio["durationSeconds"])
+        aligned_words = processed_audio["alignedWords"]
         srt_content = build_srt_content(aligned_words, timeline_offset)
+        if output_srt_dir is None:
+            raise RuntimeError("Missing outputSrtDir for full subtitle generation mode")
         srt_path = output_srt_dir / f"{person}-{index}.srt"
         srt_path.write_text(srt_content, encoding="utf-8")
 
@@ -334,6 +354,9 @@ def main() -> None:
             }
         )
         timeline_offset += duration_seconds + silence_duration_seconds
+
+    if not concatenated_audio_path:
+        raise RuntimeError("Missing outputAudioPath for full subtitle generation mode")
 
     concatenate_audio_files(
         audio_paths=ordered_audio_paths,

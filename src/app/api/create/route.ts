@@ -20,6 +20,7 @@ const createRequestSchema = z.object({
   credits: z.number().int().nonnegative(),
   videoMode: z.string().min(1).max(20),
   outputType: z.string().max(20).optional(),
+  pitchMode: z.boolean().optional(),
   lyrics: z.string().optional(),
   audioUrl: z.string().max(1000).optional(),
   songName: z.string().max(255).optional(),
@@ -89,6 +90,7 @@ export async function POST(request: Request) {
           agentA: body.agent1 ?? "JORDAN_PETERSON",
           agentB: body.agent2 ?? "BEN_SHAPIRO",
           music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
+          pitchMode: body.pitchMode ?? false,
         });
 
         await db

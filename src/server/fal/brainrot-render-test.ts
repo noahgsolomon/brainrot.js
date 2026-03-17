@@ -15,6 +15,7 @@ interface SubmitFalBrainrotRenderJobOptions {
   agentA: string;
   agentB: string;
   music: string;
+  pitchMode?: boolean;
 }
 
 function getFalCredentials() {
@@ -42,6 +43,7 @@ export async function submitFalBrainrotRenderJob({
   agentA,
   agentB,
   music,
+  pitchMode = false,
 }: SubmitFalBrainrotRenderJobOptions) {
   fal.config({
     credentials: getFalCredentials(),
@@ -57,6 +59,7 @@ export async function submitFalBrainrotRenderJob({
         agentA,
         agentB,
         music,
+        pitchMode,
         video_id: videoId,
       },
       callback_url: webhookUrl,
@@ -82,5 +85,6 @@ export async function submitFalBrainrotRenderTest({
     agentA: "JOE_ROGAN",
     agentB: "JOE_BIDEN",
     music: "WII_SHOP_CHANNEL_TRAP",
+    pitchMode: false,
   });
 }

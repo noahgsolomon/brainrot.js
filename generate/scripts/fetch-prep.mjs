@@ -10,7 +10,8 @@
  *     --topic "AI taking over the world" \
  *     --agentA BARACK_OBAMA \
  *     --agentB JORDAN_PETERSON \
- *     --music WII_SHOP_CHANNEL_TRAP
+ *     --music WII_SHOP_CHANNEL_TRAP \
+ *     --pitchMode
  *
  * Reads FAL_KEY from the root .env file automatically.
  */
@@ -84,10 +85,11 @@ const agentB = args.agentB || "JORDAN_PETERSON";
 const music = args.music || "WII_SHOP_CHANNEL_TRAP";
 const videoFileName = args.videoFileName || "/background/MINECRAFT-0.mp4";
 const mock = args.mock === "true";
+const pitchMode = args.pitchMode === "true";
 
 if (!topic) {
   console.error(
-    "Usage: node scripts/fetch-prep.mjs --topic 'your topic' [--agentA X] [--agentB Y] [--music Z] [--mock]",
+    "Usage: node scripts/fetch-prep.mjs --topic 'your topic' [--agentA X] [--agentB Y] [--music Z] [--pitchMode] [--mock]",
   );
   process.exit(1);
 }
@@ -136,6 +138,7 @@ async function main() {
   console.log(`  Agents: ${agentA} vs ${agentB}`);
   console.log(`  Music:  ${music}`);
   console.log(`  Mock:   ${mock}`);
+  console.log(`  Pitch:  ${pitchMode}`);
   console.log(`  FAL:    ${FAL_APP_ID}`);
   console.log();
 
@@ -152,6 +155,7 @@ async function main() {
         agentB,
         music,
         videoFileName,
+        ...(pitchMode ? { pitchMode: true } : {}),
         ...(mock ? { use_mock_services: true } : {}),
       },
     },
