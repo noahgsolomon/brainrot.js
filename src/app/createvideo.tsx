@@ -177,6 +177,7 @@ export default function CreateVideo({
     setSubmittedAgent1,
     setSubmittedAgent2,
     setSubmittedTitle,
+    clearSubmittedVideo,
   } = useCreateVideo();
   const {
     setIsOpen: setIsGenerationTypeOpen,
@@ -204,7 +205,6 @@ export default function CreateVideo({
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
   const credits = 10;
 
-  const [generating, setGenerating] = useState(false);
   const [recommendedTopics] = useState<string[]>([
     "diddy party freak off",
     "jeffrey epstein",
@@ -250,7 +250,8 @@ export default function CreateVideo({
               error?: string;
             } | null;
 
-            setGenerating(false);
+            // Rollback optimistic state
+            clearSubmittedVideo();
             toast.error(
               payload?.error ?? "Unable to submit the generation job.",
             );
@@ -263,15 +264,10 @@ export default function CreateVideo({
               trpc.user.activeQueueCount.queryFilter(),
             ),
           ]);
-
-          setGenerating(false);
-          setSubmittedAgent1(videoDetails.agents[0]?.name ?? "");
-          setSubmittedAgent2(videoDetails.agents[1]?.name ?? "");
-          setSubmittedTitle(videoDetails.title ?? "");
-          setIsOpen(false);
-          toast.info("Your video is currently in queue", { icon: "🕒" });
         } else {
-          setGenerating(false);
+          // Invalid topic — rollback optimistic state and reopen dialog
+          clearSubmittedVideo();
+          setIsOpen(true);
           setInvalidTopic(true);
           setVideoInput("");
           toast.error("Invalid topic. Please try again.");
@@ -309,8 +305,9 @@ export default function CreateVideo({
         }
       },
       onError: (e) => {
+        // Rollback optimistic state
+        clearSubmittedVideo();
         console.log(e);
-        setGenerating(false);
         toast.error(e.message);
       },
     }),
@@ -1397,7 +1394,7 @@ export default function CreateVideo({
                   (videoDetails.mode === "monologue" && agent.length !== 1) ||
                   videoDetails.mode === "rap" ||
                   (videoInput === "" && recommendedSelect === -1) ||
-                  generating
+                  createVideoMutation.isPending
                 }
                 className="flex items-center gap-2"
                 onClick={() => {
@@ -1410,12 +1407,14 @@ export default function CreateVideo({
                     setIsInsufficientCreditsOpen(true);
                     return;
                   }
+                  const resolvedTitle =
+                    (videoInput === ""
+                      ? recommendedTopics[recommendedSelect]
+                      : videoInput) ?? "the future of the world";
+
                   setVideoDetails({
                     mode: videoDetails.mode,
-                    title:
-                      (videoInput === ""
-                        ? recommendedTopics[recommendedSelect]
-                        : videoInput) ?? "the future of the world",
+                    title: resolvedTitle,
                     agents: agent,
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
@@ -1426,7 +1425,14 @@ export default function CreateVideo({
                     fps: 60,
                     outputType: videoDetails.outputType,
                   });
-                  setGenerating(true);
+
+                  // Optimistic update: close dialog and show pending card immediately
+                  setSubmittedAgent1(agent[0]?.name ?? "");
+                  setSubmittedAgent2(agent[1]?.name ?? "");
+                  setSubmittedTitle(resolvedTitle);
+                  setIsOpen(false);
+                  toast.info("Your video is currently in queue", { icon: "🕒" });
+
                   createVideoMutation.mutate({
                     title: videoInput,
                     agent1: agent[0]?.id ?? 0,
@@ -1438,7 +1444,7 @@ export default function CreateVideo({
                   });
                 }}
               >
-                {generating ? "Generating..." : "Generate"}
+                {createVideoMutation.isPending ? "Generating..." : "Generate"}
                 <Wand className="h-4 w-4" />
               </Button>
               <div className=" flex flex-col gap-1 rounded-lg border-[2px] border-dashed bg-secondary p-2 ">
