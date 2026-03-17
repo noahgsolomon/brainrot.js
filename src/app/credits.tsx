@@ -1,9 +1,10 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { format } from "date-fns";
 import { Coins, Crown, Info } from "lucide-react";
 import Link from "next/link";
@@ -11,10 +12,11 @@ import { toast } from "sonner";
 import ProButton from "./ProButton";
 
 export default function Credits() {
-  const user = trpc.user.user.useQuery().data?.user;
+  const trpc = useTRPC();
+  const user = useQuery(trpc.user.user.queryOptions()).data?.user;
 
-  const { mutate: createStripeSession, isLoading } =
-    trpc.user.createStripeSession.useMutation({
+  const { mutate: createStripeSession } = useMutation(
+    trpc.user.createStripeSession.mutationOptions({
       onSuccess: ({ url }) => {
         console.log("url " + url);
         if (url) window.location.href = url;
@@ -24,9 +26,12 @@ export default function Credits() {
           });
         }
       },
-    });
+    }),
+  );
 
-  const subscriptionPlan = trpc.user.getSubscriptionPlan.useQuery().data;
+  const subscriptionPlan = useQuery(
+    trpc.user.getSubscriptionPlan.queryOptions(),
+  ).data;
 
   return (
     <Dialog>

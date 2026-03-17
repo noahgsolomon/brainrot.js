@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useClerk, useUser } from "@clerk/nextjs";
 import {
@@ -9,25 +10,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import Link from "next/link";
 import { Landmark, Twitter } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const UserButton = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const user = useUser();
   const clerk = useClerk();
-  const userDB = trpc.user.user.useQuery();
+  const userDB = useQuery(trpc.user.user.queryOptions());
 
-  const disconnectTwitterMutation = trpc.user.disconnectTwitter.useMutation({
-    onSuccess: () => {
-      userDB.refetch();
-      toast.success("Twitter disconnected successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to disconnect Twitter");
-    },
-  });
+  const disconnectTwitterMutation = useMutation(
+    trpc.user.disconnectTwitter.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(trpc.user.user.queryFilter());
+        toast.success("Twitter disconnected successfully");
+      },
+      onError: () => {
+        toast.error("Failed to disconnect Twitter");
+      },
+    }),
+  );
 
   const logOutHandler = async () => {
     await clerk.signOut();

@@ -34,5 +34,10 @@
     "mdx-components.tsx",
     "next.config.mjs"
   ],
-  "exclude": ["node_modules", "generate","sst.config.ts"]
+  "exclude": [
+    "node_modules",
+    "generate",
+    "sst.config.ts",
+    "fal/remotion_proxy_spike"
+  ]
 }

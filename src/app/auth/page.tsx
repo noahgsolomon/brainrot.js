@@ -1,8 +1,10 @@
 "use client";
 
-import { trpc } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
+
+import { useTRPC } from "@/trpc/client";
 
 const Page = ({
   searchParams,
@@ -22,41 +24,42 @@ const Page = ({
     fps?: string;
   };
 }) => {
-  const existsMutation = trpc.user.exists.useMutation({
-    onSuccess: () => {
-      const searchQueryString = `?loggedIn=true&agent1Id=${encodeURIComponent(
-        searchParams.agent1Id || "",
-      )}&agent2Id=${encodeURIComponent(
-        searchParams.agent2Id || "",
-      )}&agent1Name=${encodeURIComponent(
-        searchParams.agent1Name || "",
-      )}&agent2Name=${encodeURIComponent(
-        searchParams.agent2Name || "",
-      )}&title=${encodeURIComponent(
-        searchParams.title || "",
-      )}&credits=${encodeURIComponent(
-        searchParams.credits || "",
-      )}&music=${encodeURIComponent(
-        searchParams.music || "",
-      )}&background=${encodeURIComponent(
-        searchParams.background || "",
-      )}&assetType=${encodeURIComponent(
-        searchParams.assetType || "",
-      )}&duration=${encodeURIComponent(
-        searchParams.duration || "",
-      )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
-      window.location.href = `/${searchQueryString}`;
-    },
-    onError: () => {
-      window.location.href = `/?error=true`;
-    },
-  });
+  const trpc = useTRPC();
+  const existsMutation = useMutation(
+    trpc.user.exists.mutationOptions({
+      onSuccess: () => {
+        const searchQueryString = `?loggedIn=true&agent1Id=${encodeURIComponent(
+          searchParams.agent1Id || "",
+        )}&agent2Id=${encodeURIComponent(
+          searchParams.agent2Id || "",
+        )}&agent1Name=${encodeURIComponent(
+          searchParams.agent1Name || "",
+        )}&agent2Name=${encodeURIComponent(
+          searchParams.agent2Name || "",
+        )}&title=${encodeURIComponent(
+          searchParams.title || "",
+        )}&credits=${encodeURIComponent(
+          searchParams.credits || "",
+        )}&music=${encodeURIComponent(
+          searchParams.music || "",
+        )}&background=${encodeURIComponent(
+          searchParams.background || "",
+        )}&assetType=${encodeURIComponent(
+          searchParams.assetType || "",
+        )}&duration=${encodeURIComponent(
+          searchParams.duration || "",
+        )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+        window.location.href = `/${searchQueryString}`;
+      },
+      onError: () => {
+        window.location.href = `/?error=true`;
+      },
+    }),
+  );
+
   useEffect(() => {
-    const mutation = () => {
-      existsMutation.mutate();
-    };
-    mutation();
-  }, []);
+    existsMutation.mutate();
+  }, [existsMutation]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">

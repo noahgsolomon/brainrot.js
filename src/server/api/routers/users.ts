@@ -676,8 +676,8 @@ export const userRouter = createTRPCRouter({
             };
           }
 
-          let lyrics = null;
-          let downloadUrl = null;
+          const lyrics = null;
+          const downloadUrl = null;
 
           await ctx.db
             .update(brainrotusers)

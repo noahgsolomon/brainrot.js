@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
@@ -26,12 +31,11 @@ import {
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import Credits from "./credits";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { useGenerationType } from "./usegenerationtype";
-import { currentUser } from "@clerk/nextjs/server";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import { Card } from "@/components/ui/card";
@@ -86,94 +90,107 @@ type PendingVideoItem = {
   queueLength: number;
 };
 
+function isTerminalStatus(status: string | undefined) {
+  if (!status) {
+    return false;
+  }
+
+  const normalizedStatus = status.toUpperCase();
+  return normalizedStatus === "COMPLETED" || normalizedStatus === "ERROR";
+}
+
+function hasActivePendingVideos(videos: PendingVideoItem[] | undefined) {
+  return (videos ?? []).some((video) => !isTerminalStatus(video.status));
+}
+
 export default function PageClient({
   searchParams,
-  initialPendingVideos,
-  clerkUser,
-  initialActiveQueueCount,
-  initialLatestGenerations,
 }: {
   searchParams: { [key: string]: string | undefined };
-  initialPendingVideos: PendingVideoItem[];
-  clerkUser:
-    | {
-        id: string | null | undefined;
-        email: string | null | undefined;
-        firstName: string | null | undefined;
-        lastName: string | null | undefined;
-        imageUrl: string | null | undefined;
-      }
-    | null
-    | undefined;
-  initialActiveQueueCount: number;
-  initialLatestGenerations: {
-    id: number;
-    title: string;
-    url: string;
-    thumbnail: string;
-    agent1: string;
-    agent2: string;
-  }[];
 }) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const router = useRouter();
+  const { user } = useUser();
 
-  if (searchParams.subscribed === "true") {
-    toast.success("🎉 welcome to the family");
-    router.push("/");
-  }
-  if (searchParams.error === "true") {
-    toast.error("Error. Please try again.");
-    router.push("/");
-  }
+  useEffect(() => {
+    if (searchParams.subscribed === "true") {
+      toast.success("🎉 welcome to the family");
+      router.push("/");
+    } else if (searchParams.error === "true") {
+      toast.error("Error. Please try again.");
+      router.push("/");
+    }
+  }, [router, searchParams.error, searchParams.subscribed]);
 
-  const { setIsOpen: setIsGenerationTypeOpen, setVideoDetails } =
-    useGenerationType();
+  const { setIsOpen: setIsGenerationTypeOpen } = useGenerationType();
 
-  const videoStatus = trpc.user.videoStatus.useQuery();
+  const videoStatus = useQuery(
+    trpc.user.videoStatus.queryOptions(undefined, {
+      refetchInterval: (query) => {
+        const data = query.state.data as { videos: PendingVideoItem[] } | undefined;
+        return hasActivePendingVideos(data?.videos) ? 5000 : false;
+      },
+      refetchOnWindowFocus: false,
+    }),
+  );
 
-  const pendingVideos = videoStatus.data?.videos ?? initialPendingVideos;
+  const pendingVideos = videoStatus.data?.videos ?? [];
   const hasPendingVideos = pendingVideos.length > 0;
 
-  // Refetch while any videos are pending
-  useEffect(() => {
-    if (!hasPendingVideos) return;
-    const id = setInterval(() => videoStatus.refetch(), 5000);
-    return () => clearInterval(id);
-  }, [hasPendingVideos]);
-
   const {
-    setIsOpen,
-    isInQueue,
-    setIsInQueue,
     submittedAgent1,
     submittedAgent2,
     submittedTitle,
+    clearSubmittedVideo,
   } = useCreateVideo();
-  const { setIsOpen: setIsYourVideosOpen, setRefetchVideos } = useYourVideos();
+  const { setIsOpen: setIsYourVideosOpen } = useYourVideos();
 
-  const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
-    onSuccess: () => {
-      videoStatus.refetch();
-    },
-  });
+  const deletePendingVideoMutation = useMutation(
+    trpc.user.deletePendingVideo.mutationOptions({
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter()),
+          queryClient.invalidateQueries(
+            trpc.user.activeQueueCount.queryFilter(),
+          ),
+        ]);
+      },
+    }),
+  );
 
-  const cancelPendingVideoMutation = trpc.user.cancelPendingVideo.useMutation({
-    onSuccess: () => {
-      toast.success("Cancelled video generation!");
-      videoStatus.refetch();
-    },
-  });
+  const cancelPendingVideoMutation = useMutation(
+    trpc.user.cancelPendingVideo.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Cancelled video generation!");
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter()),
+          queryClient.invalidateQueries(
+            trpc.user.activeQueueCount.queryFilter(),
+          ),
+          queryClient.invalidateQueries(trpc.user.user.queryFilter()),
+        ]);
+      },
+    }),
+  );
+
+  useEffect(() => {
+    if (hasPendingVideos) {
+      clearSubmittedVideo();
+    }
+  }, [clearSubmittedVideo, hasPendingVideos]);
 
   // Handle completions and errors for each video
   const handledVideoIds = useRef(new Set<number>());
   useEffect(() => {
-    if (!clerkUser?.id) return;
+    if (!user?.id) return;
+
     for (const video of pendingVideos) {
       if (handledVideoIds.current.has(video.id)) continue;
       if (video.status === "COMPLETED") {
         handledVideoIds.current.add(video.id);
         toast.success("Your media has been generated!", { icon: "🎉" });
-        setRefetchVideos(true);
+        void queryClient.invalidateQueries(trpc.user.userVideos.queryFilter());
         deletePendingVideoMutation.mutate({ id: video.id });
         setIsYourVideosOpen(true);
       } else if (video.status === "ERROR") {
@@ -185,16 +202,14 @@ export default function PageClient({
         deletePendingVideoMutation.mutate({ id: video.id });
       }
     }
-  }, [pendingVideos]);
-
-  const userVideosQuery = trpc.user.userVideos.useQuery();
-
-  useEffect(() => {
-    if (isInQueue) {
-      toast.info("Your video is currently in queue", { icon: "🕒" });
-      videoStatus.refetch();
-    }
-  }, [isInQueue]);
+  }, [
+    deletePendingVideoMutation,
+    pendingVideos,
+    queryClient,
+    setIsYourVideosOpen,
+    trpc.user.userVideos,
+    user?.id,
+  ]);
 
   const handleCancel = useCallback(
     (video: PendingVideoItem) => {
@@ -229,7 +244,7 @@ export default function PageClient({
           </Button>
         </div>
 
-        {clerkUser?.id && (
+        {user?.id && (
           <div className="flex flex-col items-center gap-4">
             <Credits />
             <div>
@@ -247,7 +262,7 @@ export default function PageClient({
       </div>
 
       {/* Live Queue Activity */}
-      <LiveQueueActivity initialCount={initialActiveQueueCount} />
+      <LiveQueueActivity />
 
       {/* How it works */}
       <div className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6">
@@ -296,7 +311,7 @@ export default function PageClient({
       </div>
 
       {/* Latest Generations */}
-      <LatestGenerations initialData={initialLatestGenerations} />
+      <LatestGenerations />
 
       {/* Not Trusted By marquee */}
       <div className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3">
@@ -611,13 +626,16 @@ const FAKE_COMPANIES = [
   { name: "The Krusty Krab", icon: Anchor },
 ];
 
-function LiveQueueActivity({ initialCount }: { initialCount: number }) {
-  const activeQueue = trpc.user.activeQueueCount.useQuery(undefined, {
-    refetchInterval: 10000,
-    initialData: { count: initialCount },
-  });
+function LiveQueueActivity() {
+  const trpc = useTRPC();
+  const activeQueue = useQuery(
+    trpc.user.activeQueueCount.queryOptions(undefined, {
+      refetchInterval: 10000,
+      refetchOnWindowFocus: false,
+    }),
+  );
 
-  const count = activeQueue.data?.count ?? initialCount;
+  const count = activeQueue.data?.count ?? 0;
 
   if (count === 0) return null;
 

@@ -3,7 +3,6 @@ import Providers from "./providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import NavBar from "@/components/nav/navbar";
 import { TRPCReactProvider } from "@/trpc/react";
-import { headers } from "next/headers";
 import { type Metadata } from "next";
 import ProgressBarProvider from "./progressbar";
 import { Background } from "@/components/ui/background";
@@ -106,7 +105,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${gaegu.variable} antialiased`}>
-        <TRPCReactProvider headers={headers()}>
+        <TRPCReactProvider>
           <ClerkProvider>
             <TooltipProvider delayDuration={50}>
               <Providers>

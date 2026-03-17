@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import XIcon from "@/components/svg/XIcon";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -12,15 +13,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { DownloadCloud, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 
 export default function Page() {
+  const trpc = useTRPC();
   const [page, setPage] = useState(1);
 
-  const videosQuery = trpc.user.getVideos.useQuery({ page });
+  const videosQuery = useQuery(trpc.user.getVideos.queryOptions({ page }));
 
   const [videos, setVideos] = useState<
     {
@@ -37,17 +39,24 @@ export default function Page() {
   const [canScrollNext, setCanScrollNext] = useState(false);
 
   useEffect(() => {
-    if (videosQuery.data?.videos) {
-      if (
-        videos.length > 0 &&
-        videosQuery.data?.videos[0]?.url !== videos[0]?.url
-      ) {
-        setVideos((prev) => [...prev, ...videosQuery.data?.videos]);
-      } else if (videos.length === 0) {
-        setVideos((prev) => [...prev, ...videosQuery.data?.videos]);
-      }
+    const nextVideos = videosQuery.data?.videos ?? [];
+
+    if (nextVideos.length === 0) {
+      return;
     }
-  }, [videosQuery.isFetching]);
+
+    setVideos((currentVideos) => {
+      if (currentVideos.length === 0) {
+        return nextVideos;
+      }
+
+      if (nextVideos[0]?.url !== currentVideos[0]?.url) {
+        return [...currentVideos, ...nextVideos];
+      }
+
+      return currentVideos;
+    });
+  }, [videosQuery.data?.videos]);
 
   useEffect(() => {
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {

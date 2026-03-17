@@ -1,10 +1,12 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useCallback } from "react";
-import { trpc } from "@/trpc/client";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import Image from "next/image";
+
+import { useTRPC } from "@/trpc/client";
 
 // Track whether we've been forced to mute by the browser (no user gesture yet)
 let browserRequiresMuted = true;
@@ -60,7 +62,7 @@ function VideoCard({
       // Browser hasn't gotten a gesture yet, or user chose mute — play muted
       el.muted = true;
       setIsMuted(true);
-      el.play().catch(() => {});
+      el.play().catch(() => undefined);
     } else {
       // Try unmuted first
       el.muted = false;
@@ -70,7 +72,7 @@ function VideoCard({
         browserRequiresMuted = true;
         el.muted = true;
         setIsMuted(true);
-        el.play().catch(() => {});
+        el.play().catch(() => undefined);
       });
     }
   }, []);
@@ -139,25 +141,14 @@ function VideoCard({
   );
 }
 
-export default function LatestGenerations({
-  initialData,
-}: {
-  initialData?: {
-    id: number;
-    title: string;
-    url: string;
-    thumbnail: string;
-    agent1: string;
-    agent2: string;
-  }[];
-}) {
-  const { data } = trpc.user.getLatestGenerations.useQuery(
-    undefined,
-    {
+export default function LatestGenerations() {
+  const trpc = useTRPC();
+
+  const { data } = useQuery(
+    trpc.user.getLatestGenerations.queryOptions(undefined, {
       staleTime: 60_000,
       refetchOnWindowFocus: false,
-      initialData: initialData?.length ? { videos: initialData } : undefined,
-    },
+    }),
   );
 
   const videos = data?.videos;

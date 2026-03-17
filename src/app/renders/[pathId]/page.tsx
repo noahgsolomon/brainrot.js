@@ -1,7 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 import { Metadata, ResolvingMetadata } from "next";
-import { api } from "@/trpc/server";
 
 type Props = {
   params: { pathId: string };

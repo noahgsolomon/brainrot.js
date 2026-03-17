@@ -1,4 +1,5 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -9,12 +10,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { Box, Crown, ScrollText, Skull, Mic, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useGenerationType } from "./usegenerationtype";
 //@ts-ignore
@@ -26,6 +27,7 @@ import ProButton from "./ProButton";
 import BuyCreditsDialog from "./buy-credits-dialog";
 
 export default function GenerationType() {
+  const trpc = useTRPC();
   const [typeSelected, _] = useState<
     "math" | "brainrot" | "podcast" | "monologue" | "rap" | ""
   >("");
@@ -39,22 +41,12 @@ export default function GenerationType() {
     setIsOpen: setIsCreateVideoOpen,
   } = useCreateVideo();
 
-  const userDB = trpc.user.user.useQuery().data?.user;
+  const userDB = useQuery(trpc.user.user.queryOptions()).data?.user;
 
   const user = useAuth();
 
-  const [searchQueryString, setSearchQueryString] = useState("");
-
-  useEffect(() => {
-    const allParamsExist =
-      videoDetails.title &&
-      videoDetails.cost &&
-      videoDetails.assetType &&
-      videoDetails.duration &&
-      videoDetails.fps &&
-      videoDetails.assetType;
-
-    setSearchQueryString(
+  const searchQueryString = useMemo(
+    () =>
       `?agent1Id=${encodeURIComponent(
         videoDetails.agents[0]?.id!,
       )}&agent2Id=${encodeURIComponent(
@@ -76,8 +68,8 @@ export default function GenerationType() {
       )}&duration=${encodeURIComponent(
         videoDetails.duration,
       )}&fps=${encodeURIComponent(videoDetails.fps)}`,
-    );
-  }, [videoDetails]);
+    [videoDetails],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

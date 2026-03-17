@@ -3,8 +3,6 @@ import { create } from "zustand";
 interface UseCreateVideoProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  isInQueue: boolean;
-  setIsInQueue: (isInQueue: boolean) => void;
   invalidTopic: boolean;
   setInvalidTopic: (invalidTopic: boolean) => void;
   videoInput: string;
@@ -15,13 +13,12 @@ interface UseCreateVideoProps {
   setSubmittedAgent2: (agent: string) => void;
   submittedTitle: string;
   setSubmittedTitle: (title: string) => void;
+  clearSubmittedVideo: () => void;
 }
 
 export const useCreateVideo = create<UseCreateVideoProps>((set) => ({
   isOpen: false,
   setIsOpen: (isOpen) => set({ isOpen }),
-  setIsInQueue: (isInQueue) => set({ isInQueue }),
-  isInQueue: false,
   invalidTopic: false,
   setInvalidTopic: (invalidTopic) => set({ invalidTopic }),
   videoInput: "",
@@ -32,4 +29,10 @@ export const useCreateVideo = create<UseCreateVideoProps>((set) => ({
   setSubmittedAgent2: (agent) => set({ submittedAgent2: agent }),
   submittedTitle: "",
   setSubmittedTitle: (title) => set({ submittedTitle: title }),
+  clearSubmittedVideo: () =>
+    set({
+      submittedAgent1: "",
+      submittedAgent2: "",
+      submittedTitle: "",
+    }),
 }));

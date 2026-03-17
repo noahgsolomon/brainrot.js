@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { type getUserSubscriptionPlan } from "@/lib/stripe";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -19,8 +20,9 @@ interface BillingFormProps {
 }
 
 const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
-  const { mutate: createStripeSession, isLoading } =
-    trpc.user.createStripeSession.useMutation({
+  const trpc = useTRPC();
+  const { mutate: createStripeSession, isPending } = useMutation(
+    trpc.user.createStripeSession.mutationOptions({
       onSuccess: ({ url }) => {
         console.log("url " + url);
         if (url) window.location.href = url;
@@ -30,7 +32,8 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
           });
         }
       },
-    });
+    }),
+  );
 
   return (
     <form
@@ -49,7 +52,7 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
         </CardHeader>
         <CardFooter className="flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-4">
           <Button type="submit" className="py-6">
-            {isLoading ? (
+            {isPending ? (
               <Loader2 className="mr-4 h-4 w-4 animate-spin" />
             ) : null}
             {subscriptionPlan.isSubscribed

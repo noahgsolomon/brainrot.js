@@ -27,12 +27,12 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   };
 };
 
-export const createTRPCContext = (opts: { req: NextRequest }) => {
+export const createTRPCContext = async (opts?: Partial<CreateContextOptions>) => {
   return createInnerTRPCContext({
-    headers: opts.req.headers,
+    headers: opts?.headers ?? new Headers(),
   });
 };
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<Awaited<ReturnType<typeof createTRPCContext>>>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {

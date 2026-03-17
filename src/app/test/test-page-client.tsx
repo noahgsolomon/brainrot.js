@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -20,7 +25,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
 
 function isTerminalStatus(status: string | undefined) {
@@ -33,6 +38,8 @@ function isTerminalStatus(status: string | undefined) {
 }
 
 export default function TestPageClient() {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [lastStartedVideoId, setLastStartedVideoId] = useState<string | null>(
     null,
   );
@@ -57,53 +64,72 @@ export default function TestPageClient() {
     number | null
   >(null);
 
-  const videoStatusQuery = trpc.user.videoStatus.useQuery(undefined, {
-    refetchInterval: (data) => (data?.videos ? 2000 : false),
-  });
-  const userVideosQuery = trpc.user.userVideos.useQuery();
+  const videoStatusQuery = useQuery(
+    trpc.user.videoStatus.queryOptions(undefined, {
+      refetchInterval: (query) => {
+        const data = query.state.data as
+          | { videos: Array<{ status: string }> }
+          | undefined;
 
-  const deletePendingVideoMutation = trpc.user.deletePendingVideo.useMutation({
-    onSuccess: () => {
-      void videoStatusQuery.refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+        return data?.videos?.some((video) => !isTerminalStatus(video.status))
+          ? 2000
+          : false;
+      },
+      refetchOnWindowFocus: false,
+    }),
+  );
+  const userVideosQuery = useQuery(trpc.user.userVideos.queryOptions());
 
-  const startFalWebhookTestMutation = trpc.user.startFalWebhookTest.useMutation(
-    {
+  const deletePendingVideoMutation = useMutation(
+    trpc.user.deletePendingVideo.mutationOptions({
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter()),
+          queryClient.invalidateQueries(
+            trpc.user.activeQueueCount.queryFilter(),
+          ),
+        ]);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+
+  const startFalWebhookTestMutation = useMutation(
+    trpc.user.startFalWebhookTest.mutationOptions({
       onSuccess: (data) => {
         setLastStartedVideoId(data.videoId);
         setLastRequestId(data.requestId);
         setLastTerminalStatus(null);
         setHandledTerminalPendingId(null);
         toast.success("Submitted fal smoke test job.");
-        void videoStatusQuery.refetch();
+        void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
       },
       onError: (error) => {
         toast.error(error.message);
-        void videoStatusQuery.refetch();
+        void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
       },
-    },
+    }),
   );
-  const startFalBrainrotRenderTestMutation =
-    trpc.user.startFalBrainrotRenderTest.useMutation({
+  const startFalBrainrotRenderTestMutation = useMutation(
+    trpc.user.startFalBrainrotRenderTest.mutationOptions({
       onSuccess: (data) => {
         setLastStartedVideoId(data.videoId);
         setLastRequestId(data.requestId);
         setLastTerminalStatus(null);
         setHandledTerminalPendingId(null);
         toast.success("Submitted fal brainrot render test.");
-        void videoStatusQuery.refetch();
+        void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
       },
       onError: (error) => {
         toast.error(error.message);
-        void videoStatusQuery.refetch();
+        void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
       },
-    });
-  const testFalOpenRouterCompatibilityMutation =
-    trpc.user.testFalOpenRouterCompatibility.useMutation({
+    }),
+  );
+  const testFalOpenRouterCompatibilityMutation = useMutation(
+    trpc.user.testFalOpenRouterCompatibility.mutationOptions({
       onSuccess: (data) => {
         setOpenRouterRequestId(data.requestId);
         setOpenRouterModel(data.model);
@@ -115,7 +141,8 @@ export default function TestPageClient() {
       onError: (error) => {
         toast.error(error.message);
       },
-    });
+    }),
+  );
 
   const currentPendingVideo = videoStatusQuery.data?.videos?.[0] ?? null;
   const currentPendingStatus = currentPendingVideo?.status?.toUpperCase();
@@ -165,7 +192,7 @@ export default function TestPageClient() {
 
     if (currentPendingVideo.status.toUpperCase() === "COMPLETED") {
       toast.success("fal test job completed.");
-      void userVideosQuery.refetch();
+      void queryClient.invalidateQueries(trpc.user.userVideos.queryFilter());
     } else {
       toast.error("fal test job failed.");
     }
@@ -175,7 +202,8 @@ export default function TestPageClient() {
     currentPendingVideo,
     deletePendingVideoMutation,
     handledTerminalPendingId,
-    userVideosQuery,
+    queryClient,
+    trpc.user.userVideos,
   ]);
 
   return (
@@ -195,11 +223,11 @@ export default function TestPageClient() {
               <Button
                 className="gap-2"
                 disabled={
-                  hasActivePendingJob || startFalWebhookTestMutation.isLoading
+                  hasActivePendingJob || startFalWebhookTestMutation.isPending
                 }
                 onClick={() => startFalWebhookTestMutation.mutate()}
               >
-                {startFalWebhookTestMutation.isLoading ? (
+                {startFalWebhookTestMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
@@ -211,11 +239,11 @@ export default function TestPageClient() {
                 className="gap-2"
                 disabled={
                   hasActivePendingJob ||
-                  startFalBrainrotRenderTestMutation.isLoading
+                  startFalBrainrotRenderTestMutation.isPending
                 }
                 onClick={() => startFalBrainrotRenderTestMutation.mutate()}
               >
-                {startFalBrainrotRenderTestMutation.isLoading ? (
+                {startFalBrainrotRenderTestMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
@@ -240,7 +268,7 @@ export default function TestPageClient() {
                 <Button
                   variant="outline"
                   className="gap-2"
-                  disabled={deletePendingVideoMutation.isLoading}
+                  disabled={deletePendingVideoMutation.isPending}
                   onClick={() =>
                     deletePendingVideoMutation.mutate({
                       id: currentPendingVideo.id,
@@ -341,10 +369,10 @@ export default function TestPageClient() {
             <div className="flex flex-wrap gap-3">
               <Button
                 className="gap-2"
-                disabled={testFalOpenRouterCompatibilityMutation.isLoading}
+                disabled={testFalOpenRouterCompatibilityMutation.isPending}
                 onClick={() => testFalOpenRouterCompatibilityMutation.mutate()}
               >
-                {testFalOpenRouterCompatibilityMutation.isLoading ? (
+                {testFalOpenRouterCompatibilityMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />

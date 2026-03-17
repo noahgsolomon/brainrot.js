@@ -1,10 +1,11 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useYourVideos } from "./useyourvideos";
 import { useCreateVideo } from "./usecreatevideo";
-import { trpc } from "@/trpc/client";
-import { Suspense, useEffect, useState } from "react";
+import { useTRPC } from "@/trpc/client";
+import { Suspense } from "react";
 import { DownloadCloud, Loader2, Play, Pause, Music } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -23,53 +24,15 @@ import { useAudioStore } from "@/store/audioStore";
 import Image from "next/image";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
-  const { isOpen, setIsOpen, refetchVideos, setRefetchVideos } =
-    useYourVideos();
+  const trpc = useTRPC();
+  const { isOpen, setIsOpen } = useYourVideos();
   const audioStore = useAudioStore();
 
-  const userVideosQuery = trpc.user.userVideos.useQuery();
-  const userRapAudioQuery = trpc.user.userRapAudio.useQuery();
+  const userVideosQuery = useQuery(trpc.user.userVideos.queryOptions());
+  const userRapAudioQuery = useQuery(trpc.user.userRapAudio.queryOptions());
 
-  useEffect(() => {
-    if (refetchVideos) {
-      userVideosQuery.refetch();
-      userRapAudioQuery.refetch();
-      setRefetchVideos(false);
-    }
-  }, [refetchVideos]);
-
-  const [videos, setVideos] = useState<
-    {
-      id: number;
-      user_id: number;
-      agent1: string;
-      agent2: string;
-      title: string;
-      url: string;
-      thumbnail: string | null;
-      videoId: string;
-    }[]
-  >(userVideosQuery.data?.videos ?? []);
-
-  const [rapAudio, setRapAudio] = useState<
-    {
-      id: number;
-      user_id: number;
-      rapper: string;
-      song_name: string;
-      artist_name: string;
-      url: string;
-      video_id: string;
-    }[]
-  >(userRapAudioQuery.data?.rapAudio ?? []);
-
-  useEffect(() => {
-    setRapAudio(userRapAudioQuery.data?.rapAudio ?? []);
-  }, [userRapAudioQuery.data?.rapAudio]);
-
-  useEffect(() => {
-    setVideos(userVideosQuery.data?.videos ?? []);
-  }, [userVideosQuery.data?.videos]);
+  const videos = userVideosQuery.data?.videos ?? [];
+  const rapAudio = userRapAudioQuery.data?.rapAudio ?? [];
 
   return (
     <>

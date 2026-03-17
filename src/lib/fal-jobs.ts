@@ -27,8 +27,8 @@ export function verifyFalWebhookKey(
   }
 
   const actualHash = hashFalWebhookKey(providedKey);
-  const expectedBuffer = Buffer.from(expectedHash, "hex");
-  const actualBuffer = Buffer.from(actualHash, "hex");
+  const expectedBuffer = new Uint8Array(Buffer.from(expectedHash, "hex"));
+  const actualBuffer = new Uint8Array(Buffer.from(actualHash, "hex"));
 
   if (
     expectedBuffer.length === 0 ||

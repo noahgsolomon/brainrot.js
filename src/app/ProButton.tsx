@@ -1,7 +1,9 @@
 "use client";
 
-import { trpc } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { ReactNode } from "react";
+
+import { useTRPC } from "@/trpc/client";
 
 export default function ProButton({
   children,
@@ -24,12 +26,15 @@ export default function ProButton({
   };
   searchQueryString?: string;
 }) {
-  const { mutate: createStripeSession } =
-    trpc.user.createStripeSession.useMutation({
+  const trpc = useTRPC();
+
+  const { mutate: createStripeSession } = useMutation(
+    trpc.user.createStripeSession.mutationOptions({
       onSuccess: (data) => {
         window.location.href = data.url ?? "settings/billing";
       },
-    });
+    }),
+  );
 
   const obj = searchQueryString
     ? { searchQueryString }

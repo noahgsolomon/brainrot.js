@@ -1,6 +1,12 @@
 import Image from "next/image";
 import NumberTicker from "@/components/magicui/number-ticker";
-import { api } from "@/trpc/server";
+import type { RouterOutput } from "@/trpc/client";
+import {
+  HydrateClient,
+  fetchTRPC,
+  prefetchTRPC,
+  trpc,
+} from "@/trpc/server";
 import PageClient from "./page-client";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
@@ -31,68 +37,31 @@ export default async function Home({
     fps?: string;
   };
 }) {
-  let userDB;
-  let clerkUser;
-  let initialPendingVideos: {
-    id: number;
-    title: string | null;
-    agent1: string | null;
-    agent2: string | null;
-    status: string;
-    progress: number;
-    credits: number;
-    phaseKey: string | null;
-    estimatedMsRemaining: number | null;
-    estimatedMsTotal: number | null;
-    etaConfidence: "none" | "low" | "medium" | "high";
-    etaSampleSize: number;
-    queueLength: number;
-  }[] = [];
-  let initialActiveQueueCount = 0;
-  let initialLatestGenerations: {
-    id: number;
-    title: string;
-    url: string;
-    thumbnail: string;
-    agent1: string;
-    agent2: string;
-  }[] = [];
-  try {
-    userDB = await api.user.user.query();
-    clerkUser = await currentUser();
-  } catch (e) {
-    userDB = null;
-  }
-  try {
-    const videoStatus = await api.user.videoStatus.query();
-    initialPendingVideos = videoStatus?.videos ?? [];
-  } catch {
-    // user not authenticated or no pending videos
-  }
-  try {
-    const [queueResult, generationsResult] = await Promise.all([
-      api.user.activeQueueCount.query(),
-      api.user.getLatestGenerations.query(),
-    ]);
-    initialActiveQueueCount = queueResult?.count ?? 0;
-    initialLatestGenerations = (generationsResult?.videos ??
-      []) as typeof initialLatestGenerations;
-  } catch {
-    // non-critical, will hydrate client-side
-  }
+  const clerkUser = await currentUser();
 
-  const safeUserData = clerkUser
-    ? {
-        id: clerkUser.id,
-        email: clerkUser.emailAddresses[0]?.emailAddress,
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        imageUrl: clerkUser.imageUrl,
-      }
+  const userDB = clerkUser
+    ? ((await fetchTRPC(
+        trpc.user.user.queryOptions(),
+      )) as RouterOutput["user"]["user"])
     : null;
 
+  const prefetches = [
+    prefetchTRPC(trpc.user.activeQueueCount.queryOptions()),
+    prefetchTRPC(trpc.user.getLatestGenerations.queryOptions()),
+  ];
+
+  if (clerkUser) {
+    prefetches.push(
+      prefetchTRPC(trpc.user.videoStatus.queryOptions()),
+      prefetchTRPC(trpc.user.userVideos.queryOptions()),
+      prefetchTRPC(trpc.user.getSubscriptionPlan.queryOptions()),
+    );
+  }
+
+  await Promise.all(prefetches);
+
   return (
-    <>
+    <HydrateClient>
       <main className="relative flex flex-col items-center justify-center gap-4">
         <div className="mt-[140px] flex w-[90%] flex-col items-center justify-center bg-opacity-60 text-4xl lg:w-[80%] xl:w-[75%]">
           <div className="flex flex-col items-center justify-center gap-8 pb-8">
@@ -152,10 +121,6 @@ export default async function Home({
 
             <PageClient
               searchParams={searchParams}
-              initialPendingVideos={initialPendingVideos}
-              clerkUser={safeUserData}
-              initialActiveQueueCount={initialActiveQueueCount}
-              initialLatestGenerations={initialLatestGenerations}
             />
             {userDB && userDB?.user ? (
               <div className="flex w-80 flex-col gap-3">
@@ -348,6 +313,6 @@ export default async function Home({
           }),
         }}
       />
-    </>
+    </HydrateClient>
   );
 }

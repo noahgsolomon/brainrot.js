@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useMutation } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import Link from "next/link";
 import Credits from "./credits";
 import { useRouter } from "next/navigation";
@@ -74,18 +75,21 @@ export default function BuyCreditsDialog({
   setOpen?: (open: boolean) => void;
   outerTrigger?: boolean;
 }) {
+  const trpc = useTRPC();
+
   const obj = searchQueryString
     ? { searchQueryString }
     : searchParams
     ? { searchParams: searchParams }
     : undefined;
 
-  const { mutate: createStripeSession } =
-    trpc.user.createCreditPackSession.useMutation({
+  const { mutate: createStripeSession } = useMutation(
+    trpc.user.createCreditPackSession.mutationOptions({
       onSuccess: ({ url }) => {
         if (url) window.location.href = url;
       },
-    });
+    }),
+  );
 
   const [creditPacks, setCreditPacks] = useState(1);
 

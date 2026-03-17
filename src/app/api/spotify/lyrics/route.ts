@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 let accessToken: string | null = null;
-let tokenExpiration: number = 0;
+let tokenExpiration = 0;
 
 async function getSpotifyToken() {
   if (accessToken && tokenExpiration > Date.now()) {

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -29,13 +34,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useCreateVideo } from "./usecreatevideo";
 import { useAuth } from "@clerk/nextjs";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
@@ -156,11 +161,11 @@ export default function CreateVideo({
 }: {
   visible?: boolean;
 }) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const user = useAuth();
 
-  const userDB = trpc.user.user.useQuery().data?.user;
-
-  const videoStatus = trpc.user.videoStatus.useQuery();
+  const userDB = useQuery(trpc.user.user.queryOptions()).data?.user;
 
   const {
     isOpen,
@@ -169,7 +174,6 @@ export default function CreateVideo({
     setInvalidTopic,
     setVideoInput,
     videoInput,
-    setIsInQueue,
     setSubmittedAgent1,
     setSubmittedAgent2,
     setSubmittedTitle,
@@ -213,96 +217,107 @@ export default function CreateVideo({
   const [isInsufficientCreditsOpen, setIsInsufficientCreditsOpen] =
     useState(false);
 
-  const createVideoMutation = trpc.user.createVideo.useMutation({
-    onSuccess: async (data) => {
-      if (data?.valid) {
-        console.log(data);
-        const uuidVal = uuidv4();
-        const createResponse = await fetch("/api/create", {
-          method: "POST",
-          body: JSON.stringify({
-            topic: videoDetails.title,
-            agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
-            agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
-            videoId: uuidVal,
-            music: videoDetails.music,
-            credits: videoDetails.cost,
-            apiKey: data.apiKey,
-            mode: videoDetails.mode,
-            videoMode: videoDetails.mode,
-            outputType: videoDetails.outputType,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${data.apiKey}`,
-          },
-        });
+  const createVideoMutation = useMutation(
+    trpc.user.createVideo.mutationOptions({
+      onSuccess: async (data) => {
+        await queryClient.invalidateQueries(trpc.user.user.queryFilter());
 
-        if (!createResponse.ok) {
-          const payload = (await createResponse.json().catch(() => null)) as {
-            error?: string;
-          } | null;
+        if (data?.valid) {
+          console.log(data);
+          const uuidVal = uuidv4();
+          const createResponse = await fetch("/api/create", {
+            method: "POST",
+            body: JSON.stringify({
+              topic: videoDetails.title,
+              agent1: videoDetails.agents[0]?.name ?? "JORDAN_PETERSON",
+              agent2: videoDetails.agents[1]?.name ?? "BEN_SHAPIRO",
+              videoId: uuidVal,
+              music: videoDetails.music,
+              credits: videoDetails.cost,
+              apiKey: data.apiKey,
+              mode: videoDetails.mode,
+              videoMode: videoDetails.mode,
+              outputType: videoDetails.outputType,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${data.apiKey}`,
+            },
+          });
+
+          if (!createResponse.ok) {
+            const payload = (await createResponse.json().catch(() => null)) as {
+              error?: string;
+            } | null;
+
+            setGenerating(false);
+            toast.error(
+              payload?.error ?? "Unable to submit the generation job.",
+            );
+            return;
+          }
+
+          await Promise.all([
+            queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter()),
+            queryClient.invalidateQueries(
+              trpc.user.activeQueueCount.queryFilter(),
+            ),
+          ]);
 
           setGenerating(false);
-          toast.error(payload?.error ?? "Unable to submit the generation job.");
-          return;
+          setSubmittedAgent1(videoDetails.agents[0]?.name ?? "");
+          setSubmittedAgent2(videoDetails.agents[1]?.name ?? "");
+          setSubmittedTitle(videoDetails.title ?? "");
+          setIsOpen(false);
+          toast.info("Your video is currently in queue", { icon: "🕒" });
+        } else {
+          setGenerating(false);
+          setInvalidTopic(true);
+          setVideoInput("");
+          toast.error("Invalid topic. Please try again.");
         }
 
+        if (data?.comment) {
+          data.comment = data.comment
+            .replace(/[\u2018\u2019\u201B\u2032\u2035\u275B\u275C']/g, "'")
+            .replace(/[\u201C\u201D\u201F\u275D\u275E"]/g, '"');
+
+          const selectedAgent =
+            Math.random() < 0.5
+              ? videoDetails.agents[0]?.name
+              : videoDetails.agents[1]?.name;
+
+          setTimeout(() => {
+            toast(
+              <div className="relative flex w-full items-center">
+                <div className="absolute left-0">
+                  <Image
+                    src={`/img/${selectedAgent}.png`}
+                    width={48}
+                    height={48}
+                    alt="agent"
+                    className="rounded-full"
+                  />
+                </div>
+                <div className="w-full pl-16">{data.comment}</div>
+              </div>,
+              {
+                className: "text-lg font-bold",
+              },
+            );
+          }, 3000);
+        }
+      },
+      onError: (e) => {
+        console.log(e);
         setGenerating(false);
-        setSubmittedAgent1(videoDetails.agents[0]?.name ?? "");
-        setSubmittedAgent2(videoDetails.agents[1]?.name ?? "");
-        setSubmittedTitle(videoDetails.title ?? "");
-        setIsInQueue(true);
-        setIsOpen(false);
-      } else {
-        setGenerating(false);
-        setInvalidTopic(true);
-        setVideoInput("");
-        toast.error("Invalid topic. Please try again.");
-      }
-
-      // Show comment toast regardless of valid/invalid topic
-      if (data?.comment) {
-        data.comment = data.comment
-          .replace(/[\u2018\u2019\u201B\u2032\u2035\u275B\u275C']/g, "'")
-          .replace(/[\u201C\u201D\u201F\u275D\u275E"]/g, '"');
-
-        const selectedAgent =
-          Math.random() < 0.5
-            ? videoDetails.agents[0]?.name
-            : videoDetails.agents[1]?.name;
-
-        setTimeout(() => {
-          toast(
-            <div className="relative flex w-full items-center">
-              <div className="absolute left-0">
-                <Image
-                  src={`/img/${selectedAgent}.png`}
-                  width={48}
-                  height={48}
-                  alt="agent"
-                  className="rounded-full"
-                />
-              </div>
-              <div className="w-full pl-16">{data.comment}</div>
-            </div>,
-            {
-              className: "text-lg font-bold",
-            },
-          );
-        }, 3000);
-      }
-    },
-    onError: (e) => {
-      console.log(e);
-      setGenerating(false);
-      toast.error(e.message);
-    },
-  });
+        toast.error(e.message);
+      },
+    }),
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [searchQueryString, setSearchQueryString] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [tracks, setTracks] = useState<
     {
@@ -350,17 +365,8 @@ export default function CreateVideo({
     }
   }, [debouncedSearchQuery]);
 
-  // Add back the searchQueryString effect
-  useEffect(() => {
-    const allParamsExist =
-      videoDetails.title &&
-      videoDetails.cost &&
-      videoDetails.assetType &&
-      videoDetails.duration &&
-      videoDetails.fps &&
-      videoDetails.assetType;
-
-    setSearchQueryString(
+  const searchQueryString = useMemo(
+    () =>
       `?agent1Id=${encodeURIComponent(
         videoDetails.agents[0]?.id!,
       )}&agent2Id=${encodeURIComponent(
@@ -382,8 +388,8 @@ export default function CreateVideo({
       )}&duration=${encodeURIComponent(
         videoDetails.duration,
       )}&fps=${encodeURIComponent(videoDetails.fps)}`,
-    );
-  }, [videoDetails]);
+    [videoDetails],
+  );
 
   const [isPurchaseCreditsOpen, setIsPurchaseCreditsOpen] = useState(false);
 

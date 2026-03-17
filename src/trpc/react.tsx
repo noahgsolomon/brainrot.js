@@ -1,32 +1,42 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { unstable_httpBatchStreamLink } from "@trpc/client";
-import { createTRPCReact } from "@trpc/react-query";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { useState } from "react";
 
 import { type AppRouter } from "@/server/api/root";
-import { getUrl, transformer } from "./shared";
+import { TRPCProvider, getUrl } from "./client";
+import { makeQueryClient } from "./query-client";
+import { transformer } from "./shared";
 
-export const api = createTRPCReact<AppRouter>();
+let browserQueryClient: QueryClient | undefined = undefined;
+
+function getQueryClient() {
+  if (typeof window === "undefined") {
+    return makeQueryClient();
+  }
+
+  if (!browserQueryClient) {
+    browserQueryClient = makeQueryClient();
+  }
+
+  return browserQueryClient;
+}
 
 export function TRPCReactProvider(props: {
   children: React.ReactNode;
-  headers: Headers;
 }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
-    api.createClient({
-      transformer,
+    createTRPCClient<AppRouter>({
       links: [
-        unstable_httpBatchStreamLink({
+        httpBatchLink({
           url: getUrl(),
-          headers() {
-            const heads = new Map(props.headers);
-            heads.set("x-trpc-source", "react");
-            return Object.fromEntries(heads);
-          },
+          transformer,
+          headers: () => ({
+            "x-trpc-source": "client",
+          }),
         }),
       ],
     }),
@@ -34,9 +44,9 @@ export function TRPCReactProvider(props: {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <api.Provider client={trpcClient} queryClient={queryClient}>
+      <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {props.children}
-      </api.Provider>
+      </TRPCProvider>
     </QueryClientProvider>
   );
 }
