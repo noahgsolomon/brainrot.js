@@ -15,7 +15,7 @@ export default $config({
         ...NextEnv,
       },
       buildCommand:
-        "npx --yes open-next@3.0.8 build --build-mode=experimental-compile",
+        "npx --yes @opennextjs/aws@3.9.16 build --build-mode=experimental-compile",
       domain: {
         name: "brainrotjs.com",
         dns: sst.aws.dns({
