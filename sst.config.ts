@@ -1,5 +1,4 @@
 /// <reference path="./.sst/platform/config.d.ts" />
-import { NextEnv } from "./sst.env";
 
 export default $config({
   app(input) {
@@ -10,6 +9,8 @@ export default $config({
     };
   },
   async run() {
+    const { NextEnv } = await import("./sst.env");
+
     new sst.aws.Nextjs("BrainrotjsWeb", {
       environment: {
         ...NextEnv,
