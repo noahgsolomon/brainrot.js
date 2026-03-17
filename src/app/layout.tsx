@@ -11,6 +11,7 @@ import { gaegu } from "../lib/fonts";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { Footer } from "./Footer";
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://brainrotjs.com"),
@@ -104,6 +105,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { userId } = await auth();
+  const cookieStore = await cookies();
+  const bannerDismissed = cookieStore.get("banner_dismissed")?.value === "1";
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -113,7 +116,7 @@ export default async function RootLayout({
             <TooltipProvider delayDuration={50}>
               <Providers>
                 <ProgressBarProvider>
-                  <NavBar initialSignedIn={Boolean(userId)} />
+                  <NavBar initialSignedIn={Boolean(userId)} initialBannerDismissed={bannerDismissed} />
                   <Background />
                   {children}
                   <Footer />

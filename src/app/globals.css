@@ -211,17 +211,7 @@ button {
   animation: breathe 4s infinite;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-/* 
+/*
 .animated-feature-cards::before {
   @apply pointer-events-none absolute select-none rounded-lg opacity-0 transition-opacity duration-300 hover:opacity-100;
   background: radial-gradient(

@@ -16,8 +16,10 @@ import GenerationType from "@/app/generationtype";
 
 const NavBar = ({
   initialSignedIn,
+  initialBannerDismissed,
 }: {
   initialSignedIn: boolean;
+  initialBannerDismissed: boolean;
 }) => {
   const { userId, isLoaded } = useAuth();
   const isSignedIn = isLoaded ? Boolean(userId) : initialSignedIn;
@@ -25,7 +27,7 @@ const NavBar = ({
   const path = usePathname();
 
   const [isTop, setIsTop] = useState(true);
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(!initialBannerDismissed);
 
   useEffect(() => {
     const checkScroll = () => {
@@ -42,7 +44,7 @@ const NavBar = ({
     <>
       {showBanner && (
         <div className="ocean fixed left-0 right-0 top-0 z-30 text-white">
-          <div className="text-md relative flex items-center justify-center px-10 py-2 text-center font-medium">
+          <div className="relative flex items-center justify-center px-10 py-1 text-center text-xs font-medium sm:py-2 sm:text-base">
             <span>
               Use code{" "}
               <span className="rounded bg-foreground/10 px-1.5 py-0.5 font-bold tracking-wide">
@@ -51,7 +53,10 @@ const NavBar = ({
               for a free $5 credit pack!
             </span>
             <button
-              onClick={() => setShowBanner(false)}
+              onClick={() => {
+                setShowBanner(false);
+                document.cookie = "banner_dismissed=1; path=/; max-age=31536000; samesite=lax";
+              }}
               className="absolute right-3 rounded-full p-0.5 transition-colors hover:bg-foreground/10"
               aria-label="Dismiss banner"
             >
@@ -62,7 +67,7 @@ const NavBar = ({
       )}
       <header
         className={`border-sm fixed left-0 right-0 z-20 transition-all coarse:border-b coarse:bg-card/80 coarse:backdrop-blur-3xl ${
-          showBanner ? "top-[36px]" : "top-0"
+          showBanner ? "top-[28px] sm:top-[36px]" : "top-0"
         } ${
           isTop
             ? ""

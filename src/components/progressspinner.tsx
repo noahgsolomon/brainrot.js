@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export default function ProgressSpinner({
   progress = 0,
@@ -52,8 +52,9 @@ export default function ProgressSpinner({
         animate="animate"
         variants={progressVariants}
         transition={{
-          duration: 0.5, // Duration of the animation
-          ease: "easeInOut",
+          type: "spring",
+          visualDuration: 0.4,
+          bounce: 0.15,
         }}
       />
       <motion.text

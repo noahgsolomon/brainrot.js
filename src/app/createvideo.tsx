@@ -48,7 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import ProButton from "./ProButton";
 import { useGenerationType } from "./usegenerationtype";
 import { v4 as uuidv4 } from "uuid";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import BuyCreditsDialog from "./buy-credits-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,8 +90,8 @@ const agentAnimation: Variants = {
     opacity: 1,
     transition: {
       type: "spring",
-      stiffness: 260,
-      damping: 20,
+      visualDuration: 0.3,
+      bounce: 0.25,
     },
   },
 };
@@ -104,8 +104,8 @@ const songCardAnimation: Variants = {
     y: 0,
     transition: {
       type: "spring",
-      stiffness: 300,
-      damping: 25,
+      visualDuration: 0.3,
+      bounce: 0.15,
     },
   },
   exit: {
@@ -143,8 +143,8 @@ const selectedTrackAnimation: Variants = {
     scale: 1,
     transition: {
       type: "spring",
-      stiffness: 300,
-      damping: 25,
+      visualDuration: 0.3,
+      bounce: 0.15,
     },
   },
   exit: {
@@ -565,13 +565,16 @@ export default function CreateVideo({
             </>
           )}
 
+          <AnimatePresence mode="wait">
           {videoDetails.mode === "monologue" ||
           videoDetails.mode === "brainrot" ? (
             <motion.div
+              key="brainrot-monologue"
               className="flex flex-col gap-2"
               variants={fadeIn}
               initial="hidden"
               animate="visible"
+              exit="exit"
             >
               <motion.div className="flex items-center gap-2">
                 <h4>
@@ -951,10 +954,12 @@ export default function CreateVideo({
             </motion.div>
           ) : videoDetails.mode === "podcast" ? (
             <motion.div
+              key="podcast"
               className="flex flex-col gap-8"
               variants={fadeIn}
               initial="hidden"
               animate="visible"
+              exit="exit"
             >
               <motion.div className="flex items-center gap-2">
                 <h4>2.{")"} Choose your host</h4>
@@ -1061,10 +1066,12 @@ export default function CreateVideo({
             </motion.div>
           ) : videoDetails.mode === "rap" ? (
             <motion.div
+              key="rap"
               className="flex flex-col gap-8"
               variants={fadeIn}
               initial="hidden"
               animate="visible"
+              exit="exit"
             >
               <motion.div
                 initial="hidden"
@@ -1083,7 +1090,7 @@ export default function CreateVideo({
                       className="relative"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ type: "spring", visualDuration: 0.3, bounce: 0.1 }}
                     >
                       <Input
                         placeholder="Search for a song..."
@@ -1329,6 +1336,7 @@ export default function CreateVideo({
               </motion.div> */}
             </motion.div>
           ) : null}
+          </AnimatePresence>
           {null}
 
           {videoDetails.mode === "rap" && (

@@ -40,7 +40,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ClientTweetCard from "@/components/magicui/client-tweet-card";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
@@ -53,13 +53,17 @@ const buttonVariantsAnimated = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.3,
+      type: "spring" as const,
+      visualDuration: 0.3,
+      bounce: 0.1,
     },
   },
   hover: {
     scale: 1.03,
     transition: {
-      duration: 0.2,
+      type: "spring" as const,
+      visualDuration: 0.15,
+      bounce: 0.3,
     },
   },
   tap: { scale: 0.97 },
@@ -71,6 +75,42 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
+    },
+  },
+};
+
+const sectionEntrance = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      visualDuration: 0.5,
+      bounce: 0.1,
+    },
+  },
+};
+
+const staggeredSection = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const staggeredChild = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      visualDuration: 0.4,
+      bounce: 0.15,
     },
   },
 };
@@ -269,10 +309,21 @@ export default function PageClient({
       <LiveQueueActivity />
 
       {/* How it works */}
-      <div className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6">
-        <h2 className="text-xl font-bold">How it works</h2>
+      <motion.div
+        className="mt-8 flex w-full max-w-2xl flex-col items-center gap-6"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={staggeredSection}
+      >
+        <motion.h2 className="text-xl font-bold" variants={staggeredChild}>
+          How it works
+        </motion.h2>
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+          <motion.div
+            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center"
+            variants={staggeredChild}
+          >
             <Image
               src="/idea.png"
               alt="Pick a topic"
@@ -284,8 +335,11 @@ export default function PageClient({
             <p className="text-xs text-muted-foreground">
               Choose any topic and your favorite characters
             </p>
-          </div>
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+          </motion.div>
+          <motion.div
+            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center"
+            variants={staggeredChild}
+          >
             <Image
               src="/ai.png"
               alt="AI generates"
@@ -297,8 +351,11 @@ export default function PageClient({
             <p className="text-xs text-muted-foreground">
               Our AI writes the script and creates your video
             </p>
-          </div>
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center">
+          </motion.div>
+          <motion.div
+            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card/50 p-4 text-center"
+            variants={staggeredChild}
+          >
             <Image
               src="/share.png"
               alt="Download & share"
@@ -310,15 +367,21 @@ export default function PageClient({
             <p className="text-xs text-muted-foreground">
               Get your video and post it everywhere
             </p>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Latest Generations */}
       <LatestGenerations />
 
       {/* Not Trusted By marquee */}
-      <div className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3">
+      <motion.div
+        className="mt-12 flex w-full max-w-2xl flex-col items-center gap-3"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-60px" }}
+        variants={sectionEntrance}
+      >
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Definitely Not Trusted By
         </p>
@@ -358,7 +421,7 @@ export default function PageClient({
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }
@@ -562,15 +625,19 @@ function PendingVideoStack({
       }}
     >
       {/* Count badge */}
-      {!isExpanded && videos.length > 1 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute -right-2 -top-2 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow"
-        >
-          {videos.length}
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {!isExpanded && videos.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", visualDuration: 0.2, bounce: 0.4 }}
+            className="absolute -right-2 -top-2 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow"
+          >
+            {videos.length}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="popLayout">
         {videos.map((video, index) => {
@@ -595,7 +662,7 @@ function PendingVideoStack({
                 zIndex: videos.length - index,
               }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ type: "spring", visualDuration: 0.25, bounce: 0.15 }}
               style={{
                 position:
                   isExpanded || index === 0 ? "relative" : "absolute",

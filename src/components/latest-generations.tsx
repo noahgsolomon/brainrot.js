@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Volume2, VolumeX } from "lucide-react";
 import Image from "next/image";
 
@@ -90,10 +90,12 @@ function VideoCard({
   }, []);
 
   return (
-    <div
+    <motion.div
       className="relative flex w-[270px] shrink-0 cursor-pointer flex-col gap-2"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", visualDuration: 0.2, bounce: 0.3 }}
     >
       <div className="relative aspect-[9/16] w-full overflow-hidden rounded-lg border border-border bg-card/50">
         {/* Thumbnail — always rendered, fades out on hover */}
@@ -137,7 +139,7 @@ function VideoCard({
       <p className="line-clamp-2 text-sm font-medium text-foreground/80">
         {video.title}
       </p>
-    </div>
+    </motion.div>
   );
 }
 
