@@ -111,6 +111,7 @@ export default async function Home({
 
             <PageClient
               searchParams={resolvedSearchParams}
+              initialSignedIn={Boolean(clerkUser)}
             />
             {userDB && userDB?.user ? (
               <div className="flex w-80 flex-col gap-3">

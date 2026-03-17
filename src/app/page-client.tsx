@@ -106,13 +106,16 @@ function hasActivePendingVideos(videos: PendingVideoItem[] | undefined) {
 
 export default function PageClient({
   searchParams,
+  initialSignedIn,
 }: {
   searchParams: CreateVideoSearchParams;
+  initialSignedIn: boolean;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
+  const isSignedIn = isLoaded ? Boolean(user?.id) : initialSignedIn;
 
   useEffect(() => {
     if (searchParams.subscribed === "true") {
@@ -245,7 +248,7 @@ export default function PageClient({
           </Button>
         </div>
 
-        {user?.id && (
+        {isSignedIn && (
           <div className="flex flex-col items-center gap-4">
             <Credits />
             <div>

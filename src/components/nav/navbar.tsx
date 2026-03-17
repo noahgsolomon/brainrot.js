@@ -11,11 +11,16 @@ import { useEffect, useState } from "react";
 import CreateVideo from "@/app/createvideo";
 import YourVideos from "@/app/yourvideos";
 import Image from "next/image";
-import { ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import GenerationType from "@/app/generationtype";
 
-const NavBar = () => {
-  const { userId } = useAuth();
+const NavBar = ({
+  initialSignedIn,
+}: {
+  initialSignedIn: boolean;
+}) => {
+  const { userId, isLoaded } = useAuth();
+  const isSignedIn = isLoaded ? Boolean(userId) : initialSignedIn;
 
   const path = usePathname();
 
@@ -87,7 +92,7 @@ const NavBar = () => {
             >
               Blog
             </Link>
-            {userId ? (
+            {isSignedIn ? (
               <>
                 <UserButton />
               </>
@@ -112,7 +117,7 @@ const NavBar = () => {
       </header>
       <CreateVideo />
       <GenerationType />
-      {userId && path === "/" && <YourVideos />}
+      {isSignedIn && path === "/" && <YourVideos />}
     </>
   );
 };

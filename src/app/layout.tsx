@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { gaegu } from "../lib/fonts";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { Footer } from "./Footer";
+import { auth } from "@clerk/nextjs/server";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://brainrotjs.com"),
@@ -97,11 +98,13 @@ export const metadata: Metadata = {
   category: "technology",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { userId } = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${gaegu.variable} antialiased`}>
@@ -110,7 +113,7 @@ export default function RootLayout({
             <TooltipProvider delayDuration={50}>
               <Providers>
                 <ProgressBarProvider>
-                  <NavBar />
+                  <NavBar initialSignedIn={Boolean(userId)} />
                   <Background />
                   {children}
                   <Footer />

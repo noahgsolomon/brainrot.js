@@ -47,7 +47,9 @@ const UserButton = () => {
             className={`object-cover transition-all`}
             src={userDB.data?.user?.pfp ?? user.user?.imageUrl}
           />
-          <AvatarFallback>{userDB.data?.user?.name.at(0)}</AvatarFallback>
+          <AvatarFallback>
+            {userDB.data?.user?.name?.at(0) ?? user.user?.firstName?.at(0) ?? "?"}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mx-10 min-w-[300px] p-0">
