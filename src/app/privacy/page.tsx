@@ -1,3 +1,21 @@
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Privacy Policy for Brainrot.js — learn how we collect, use, and protect your data when you use our AI brainrot video generator.",
+  alternates: {
+    canonical: "https://brainrotjs.com/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | Brainrot.js",
+    description:
+      "Privacy Policy for Brainrot.js — learn how we collect, use, and protect your data.",
+    url: "https://brainrotjs.com/privacy",
+    type: "website",
+  },
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">

@@ -1,3 +1,21 @@
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "Terms of Service for Brainrot.js — the rules and guidelines for using our AI brainrot video generator and maker.",
+  alternates: {
+    canonical: "https://brainrotjs.com/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | Brainrot.js",
+    description:
+      "Terms of Service for Brainrot.js — the rules and guidelines for using our platform.",
+    url: "https://brainrotjs.com/terms",
+    type: "website",
+  },
+};
+
 export default function TermsOfService() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">

@@ -93,7 +93,7 @@ export default async function Home({
                     src={"/brainrot_new2.png"}
                     width={48}
                     height={48}
-                    alt="brainrot"
+                    alt="Brainrot.js - AI brainrot video generator logo"
                     className="h-[48px] w-[48px] cursor-pointer rounded-full border-card bg-background shadow-lg transition-all hover:scale-[105%] active:scale-[95%] dark:border-primary"
                   />
                 </Link>
@@ -101,8 +101,8 @@ export default async function Home({
                   BRAINROT
                 </h1>
               </div>
-              <p className="mt-1 max-w-[300px] text-center text-lg text-muted-foreground">
-                Turn any topic into a viral short-form video in seconds
+              <p className="mt-1 max-w-[400px] text-center text-lg text-muted-foreground">
+                The #1 AI brainrot video generator — turn any topic into a viral short-form video in seconds
               </p>
               <p className="flex w-full flex-row items-center justify-center gap-1 text-base font-normal italic">
                 <NumberTicker value={59324} /> videos generated 💀
@@ -298,6 +298,38 @@ export default async function Home({
                 acceptedAnswer: {
                   "@type": "Answer",
                   text: "Brainrot.js offers a variety of celebrity voices including politicians, influencers, and public figures. The voices are AI-generated for entertainment purposes.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Can I use Brainrot.js to make study videos?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes! Many students use Brainrot.js to turn study notes and educational topics into engaging brainrot-style videos. Just enter your study topic and the AI will generate an entertaining educational video with celebrity voices explaining the content.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "How do I convert text to a brainrot video?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Simply paste or type your text into the Brainrot.js generator, choose your video style (brainrot, podcast, rap, or monologue), select your characters, and hit generate. The AI converts your text into a fully produced short-form video in seconds.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is there a free brainrot video generator?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes! Brainrot.js gives you free credits to start generating videos immediately — no credit card required. You can upgrade to Pro or buy additional credits if you want to create more videos.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Can I make Minecraft brainrot videos?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Absolutely! Brainrot.js supports Minecraft parkour gameplay as a background option. Select the Minecraft background when generating your video and the AI will overlay your brainrot dialogue on top of satisfying Minecraft gameplay footage.",
                 },
               },
             ],

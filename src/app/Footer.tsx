@@ -106,13 +106,25 @@ export function Footer() {
                 <ul className="grid gap-2">
                   {nav.items.map((item) => (
                     <li key={item.name}>
-                      <a
-                        href={item.href}
-                        className="group inline-flex cursor-pointer items-center justify-start gap-1 text-gray-400 duration-200 hover:text-gray-600 hover:opacity-90 dark:text-gray-400 dark:hover:text-gray-200"
-                      >
-                        {item.name}
-                        <ChevronRight className="h-4 w-4 translate-x-0 transform opacity-0 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:opacity-100" />
-                      </a>
+                      {item.href.startsWith("http") ? (
+                        <a
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex cursor-pointer items-center justify-start gap-1 text-gray-400 duration-200 hover:text-gray-600 hover:opacity-90 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                          {item.name}
+                          <ChevronRight className="h-4 w-4 translate-x-0 transform opacity-0 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:opacity-100" />
+                        </a>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          className="group inline-flex cursor-pointer items-center justify-start gap-1 text-gray-400 duration-200 hover:text-gray-600 hover:opacity-90 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                          {item.name}
+                          <ChevronRight className="h-4 w-4 translate-x-0 transform opacity-0 transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:opacity-100" />
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -138,9 +150,9 @@ export function Footer() {
           </div>
           <span className="text-sm text-gray-500 dark:text-gray-400 sm:text-center">
             Copyright © {new Date().getFullYear()}{" "}
-            <a href="/" className="cursor-pointer">
+            <Link href="/" className="cursor-pointer">
               Brainrot.js
-            </a>
+            </Link>
             . All Rights Reserved.
           </span>
         </div>

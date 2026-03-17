@@ -7,10 +7,14 @@ export const metadata: Metadata = {
   title: "Blog",
   description:
     "The Brainrot Blog — meme breakdowns, trend explainers, AI video tips, and more unhinged content.",
+  alternates: {
+    canonical: "https://brainrotjs.com/blog",
+  },
   openGraph: {
     title: "Brainrot.js Blog",
     description:
       "Meme breakdowns, trend explainers, AI video tips, and more.",
+    url: "https://brainrotjs.com/blog",
   },
 };
 

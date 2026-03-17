@@ -21,12 +21,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.description,
+    alternates: {
+      canonical: `https://brainrotjs.com/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
       type: "article",
       publishedTime: post.date,
       tags: post.tags,
+      url: `https://brainrotjs.com/blog/${slug}`,
       ...(post.image && { images: [{ url: post.image }] }),
     },
     twitter: {
