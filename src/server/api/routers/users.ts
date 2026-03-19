@@ -605,7 +605,7 @@ export const userRouter = createTRPCRouter({
         remainingCredits: z.number(),
         cost: z.number(),
         outputType: z.enum(["video", "audio"]).optional().default("video"),
-        pitchMode: z.boolean().optional().default(false),
+        pitchMode: z.boolean().optional().default(true),
         mode: z
           .enum(["brainrot", "podcast", "monologue", "rap"])
           .optional()

@@ -78,7 +78,7 @@ export const useGenerationType = create<useGenerationTypeProps>((set) => ({
     music: null,
     assetType: null,
     outputType: "audio",
-    pitchMode: false,
+    pitchMode: true,
   },
   setVideoDetails: (videoDetails) => set({ videoDetails }),
 }));

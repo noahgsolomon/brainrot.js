@@ -12,7 +12,7 @@ import {
   type RawSearchParams,
 } from "@/lib/create-video-search-params";
 import PageClient from "./page-client";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -20,16 +20,17 @@ import ProButton from "./ProButton";
 import { Crown } from "lucide-react";
 import BuyCreditsDialog from "./buy-credits-dialog";
 
-export default async function Home({
+export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<RawSearchParams>;
 }) {
   const resolvedSearchParams =
     normalizeCreateVideoSearchParams(await searchParams);
-  const clerkUser = await currentUser();
+  const { userId } = await auth();
+  const isSignedIn = Boolean(userId);
 
-  const userDB = clerkUser
+  const userDB = isSignedIn
     ? ((await fetchTRPC(
         trpc.user.user.queryOptions(),
       )) as RouterOutput["user"]["user"])
@@ -40,7 +41,7 @@ export default async function Home({
     prefetchTRPC(trpc.user.getLatestGenerations.queryOptions()),
   ];
 
-  if (clerkUser) {
+  if (isSignedIn) {
     prefetches.push(
       prefetchTRPC(trpc.user.videoStatus.queryOptions()),
       prefetchTRPC(trpc.user.userVideos.queryOptions()),
@@ -111,7 +112,7 @@ export default async function Home({
 
             <PageClient
               searchParams={resolvedSearchParams}
-              initialSignedIn={Boolean(clerkUser)}
+              initialSignedIn={isSignedIn}
             />
             {userDB && userDB?.user ? (
               <div className="flex w-80 flex-col gap-3">

@@ -90,7 +90,7 @@ export async function POST(request: Request) {
           agentA: body.agent1 ?? "JORDAN_PETERSON",
           agentB: body.agent2 ?? "BEN_SHAPIRO",
           music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
-          pitchMode: body.pitchMode ?? false,
+          pitchMode: body.pitchMode ?? true,
         });
 
         await db
