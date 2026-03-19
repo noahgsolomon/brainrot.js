@@ -190,6 +190,20 @@ function splitTranscriptWords(text) {
     .filter((word) => word.trim().length > 0);
 }
 
+function sanitizePlaintextDialogueText(text) {
+  let sanitized = String(text ?? "");
+
+  sanitized = sanitized.replace(/\r?\n+/g, " ");
+  sanitized = sanitized.replace(/```+/g, " ");
+  sanitized = sanitized.replace(/[*_`~]+/g, "");
+  sanitized = sanitized.replace(/[<>{}\[\]]+/g, "");
+  sanitized = sanitized.replace(/^\s*[-•]+\s*/g, "");
+  sanitized = sanitized.replace(/^["']+|["']+$/g, "");
+  sanitized = sanitized.replace(/\s+/g, " ").trim();
+
+  return sanitized;
+}
+
 function normalizeSearchToken(token) {
   return String(token)
     .toLowerCase()
@@ -230,9 +244,14 @@ function parseTranscriptPayload(payload) {
       throw new Error(`Invalid transcript entry at index ${index}`);
     }
 
+    const sanitizedText = sanitizePlaintextDialogueText(entry.text);
+    if (!sanitizedText) {
+      throw new Error(`Transcript entry at index ${index} has empty text`);
+    }
+
     return {
       agentId: entry.agentId.trim(),
-      text: entry.text.trim(),
+      text: sanitizedText,
     };
   });
 }
@@ -254,13 +273,18 @@ function parsePitchSlowMomentsPayload(payload) {
       throw new Error(`Invalid pitch-mode moment at index ${index}`);
     }
 
+    const sanitizedPhrase = sanitizePlaintextDialogueText(moment.phrase);
+    if (!sanitizedPhrase) {
+      throw new Error(`Invalid pitch-mode moment phrase at index ${index}`);
+    }
+
     return {
       entryIndex: moment.entryIndex,
       agentId:
         typeof moment.agentId === "string" && moment.agentId.trim().length > 0
           ? moment.agentId.trim()
           : null,
-      phrase: moment.phrase.trim(),
+      phrase: sanitizedPhrase,
       reason:
         typeof moment.reason === "string" && moment.reason.trim().length > 0
           ? moment.reason.trim()
@@ -451,7 +475,7 @@ async function getTranscriptWithRetry({
 
   const agentAHuman = humanizeAgentName(agentA);
   const agentBHuman = humanizeAgentName(agentB);
-  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${agentA} or ${agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agentA}","text":"line here"}]}. Do not include markdown fences or any explanation outside the JSON.`;
+  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${agentA} or ${agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agentA}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
   const prompt = `Generate a video transcript about ${topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
 
   return runStructuredOpenRouterTaskWithRetry({
