@@ -6,7 +6,7 @@ export const generateFillerContext = (videoMode: VideoMode) => {
 
             export const music: string = 'NONE';
             export const initialAgentName = 'JORDAN_PETERSON';
-            export const videoFileName = '/background/MINECRAFT-0.mp4';
+            export const videoFileName = '/background/MINECRAFT-1.mp4';
             
             export const subtitlesFileName = [];
             `;

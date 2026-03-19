@@ -83,7 +83,7 @@ const topic = args.topic;
 const agentA = args.agentA || "BARACK_OBAMA";
 const agentB = args.agentB || "JORDAN_PETERSON";
 const music = args.music || "WII_SHOP_CHANNEL_TRAP";
-const videoFileName = args.videoFileName || "/background/MINECRAFT-0.mp4";
+const videoFileName = args.videoFileName || "/background/MINECRAFT-1.mp4";
 const mock = args.mock === "true";
 const pitchMode = args.pitchMode === "true";
 
@@ -219,10 +219,13 @@ async function main() {
 
   // Step 4: Clean existing generated files
   const srtDir = path.join(GENERATE_DIR, "public", "srt");
+  const debugDir = path.join(GENERATE_DIR, "public", "debug");
   const tmpDir = path.join(GENERATE_DIR, "src", "tmp");
   await fs.rm(srtDir, { recursive: true, force: true });
+  await fs.rm(debugDir, { recursive: true, force: true });
   await fs.mkdir(srtDir, { recursive: true });
   await fs.mkdir(tmpDir, { recursive: true });
+  await fs.mkdir(debugDir, { recursive: true });
 
   // Step 5: Download and place files
   await downloadFile(
@@ -243,6 +246,35 @@ async function main() {
     await downloadFile(
       artifacts.transcriptUrl,
       path.join(GENERATE_DIR, "src", "tmp", "transcript.json"),
+    );
+  }
+
+  if (artifacts.manifestUrl) {
+    await downloadFile(
+      artifacts.manifestUrl,
+      path.join(GENERATE_DIR, "src", "tmp", "audio-manifest.json"),
+    );
+  }
+
+  for (const audioFile of artifacts.originalVoiceFiles ?? []) {
+    const relativePath =
+      typeof audioFile.relativePath === "string" && audioFile.relativePath.length > 0
+        ? audioFile.relativePath
+        : path.join("voice", audioFile.fileName);
+    await downloadFile(
+      audioFile.url,
+      path.join(debugDir, relativePath),
+    );
+  }
+
+  for (const audioFile of artifacts.pitchVoiceFiles ?? []) {
+    const relativePath =
+      typeof audioFile.relativePath === "string" && audioFile.relativePath.length > 0
+        ? audioFile.relativePath
+        : path.join("voice-pitch", audioFile.fileName);
+    await downloadFile(
+      audioFile.url,
+      path.join(debugDir, relativePath),
     );
   }
 

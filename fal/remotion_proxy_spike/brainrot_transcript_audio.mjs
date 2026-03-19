@@ -20,9 +20,10 @@ const FALLBACK_OPENROUTER_MODELS = [
   "minimax/minimax-m2.5",
   "z-ai/glm-5",
 ];
-const DEFAULT_BACKGROUND_VIDEO = `/background/MINECRAFT-${Math.floor(
-  Math.random() * 12,
-)}.mp4`;
+const DEFAULT_BACKGROUND_VIDEO_FILE_NAMES = Array.from(
+  { length: 11 },
+  (_, index) => `MINECRAFT-${index + 1}.mp4`,
+);
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
 const OPENROUTER_REQUEST_TIMEOUT_MS = Number.parseInt(
   process.env.BRAINROT_OPENROUTER_TIMEOUT_MS ?? "45000",
@@ -57,6 +58,70 @@ function resolveAgentName(props, preferredKey, fallbackKey) {
 
 function parseBooleanProp(value) {
   return value === true || value === "true";
+}
+
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function listAvailableBackgroundVideoFileNames() {
+  const candidateDirs = [
+    path.join(process.cwd(), "generate", "public", "background"),
+    "/app/generate/public/background",
+  ];
+
+  for (const candidateDir of candidateDirs) {
+    if (!(await pathExists(candidateDir))) {
+      continue;
+    }
+
+    const entries = await fs.readdir(candidateDir);
+    const fileNames = entries
+      .filter((entry) => /^MINECRAFT-\d+\.mp4$/i.test(entry))
+      .sort((left, right) => {
+        const leftNumber = Number.parseInt(left.match(/\d+/)?.[0] ?? "0", 10);
+        const rightNumber = Number.parseInt(right.match(/\d+/)?.[0] ?? "0", 10);
+        return leftNumber - rightNumber;
+      });
+
+    if (fileNames.length > 0) {
+      return fileNames;
+    }
+  }
+
+  return DEFAULT_BACKGROUND_VIDEO_FILE_NAMES;
+}
+
+async function resolveBackgroundVideoFileName(requestedVideoFileName) {
+  const availableFileNames = await listAvailableBackgroundVideoFileNames();
+  const normalizedRequestedBaseName =
+    typeof requestedVideoFileName === "string" &&
+    requestedVideoFileName.trim().length > 0
+      ? path.basename(requestedVideoFileName.trim())
+      : null;
+
+  if (
+    normalizedRequestedBaseName &&
+    availableFileNames.includes(normalizedRequestedBaseName)
+  ) {
+    return `/background/${normalizedRequestedBaseName}`;
+  }
+
+  if (normalizedRequestedBaseName) {
+    console.warn(
+      `[background] Requested background ${normalizedRequestedBaseName} is unavailable, falling back to an existing bundled video.`,
+    );
+  }
+
+  const selectedIndex = Math.floor(Math.random() * availableFileNames.length);
+  const selectedFileName =
+    availableFileNames[selectedIndex] ?? DEFAULT_BACKGROUND_VIDEO_FILE_NAMES[0];
+  return `/background/${selectedFileName}`;
 }
 
 function sleep(ms) {
@@ -567,16 +632,16 @@ async function generateVoiceClip({
 function buildContextContent({
   music,
   initialAgentName,
-  audioFiles,
+  subtitleFiles,
   backgroundVideoFileName,
 }) {
   const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
 
-  const subtitleEntries = audioFiles
+  const subtitleEntries = subtitleFiles
     .map(
       (entry) => `{
     name: '${entry.person}',
-    file: staticFile('srt/${entry.person}-${entry.index}.srt'),
+    file: staticFile('srt/${entry.fileName ?? `${entry.person}-${entry.index}.srt`}'),
   }`,
     )
     .join(",\n  ");
@@ -610,11 +675,14 @@ export async function runBrainrotTranscriptAudioJob(input) {
     typeof input.props.music === "string" && input.props.music.trim().length > 0
       ? input.props.music.trim()
       : DEFAULT_MUSIC;
-  const backgroundVideoFileName =
+  const requestedBackgroundVideoFileName =
     typeof input.props.videoFileName === "string" &&
     input.props.videoFileName.trim().length > 0
       ? input.props.videoFileName.trim()
-      : DEFAULT_BACKGROUND_VIDEO;
+      : null;
+  const backgroundVideoFileName = await resolveBackgroundVideoFileName(
+    requestedBackgroundVideoFileName,
+  );
   const useMockServices = parseBooleanProp(input.props.use_mock_services);
   const pitchModeEnabled = parseBooleanProp(
     input.props.pitchMode ?? input.props.pitch_mode,
@@ -793,10 +861,9 @@ export async function runBrainrotTranscriptAudioJob(input) {
   );
 
   let finalAudioFiles = generatedAudioFiles;
+  let alignmentData = [];
 
   if (pitchModeApplied) {
-    let alignmentData = [];
-
     if (resolvedPitchSlowMoments.length > 0) {
       await input.reportProgress("Aligning audio for pitch mode", 24, {
         phase: "brainrot_transcript_audio",
@@ -858,8 +925,10 @@ export async function runBrainrotTranscriptAudioJob(input) {
         pitchSlowMomentSelections,
         pitchSlowMoments: resolvedPitchSlowMoments,
         sourceAudioFiles: generatedAudioFiles,
+        alignmentData,
         audioFiles: finalAudioFiles,
         outputAudioPath: subtitlePipelineResult.outputAudioPath,
+        splitSrtFiles: subtitlePipelineResult.splitSrtFiles,
         srtFiles: subtitlePipelineResult.srtFiles,
       },
       null,
@@ -873,7 +942,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     buildContextContent({
       music,
       initialAgentName: finalAudioFiles[0]?.person ?? agentA,
-      audioFiles: finalAudioFiles,
+      subtitleFiles: subtitlePipelineResult.srtFiles,
       backgroundVideoFileName,
     }),
     "utf8",
@@ -891,8 +960,10 @@ export async function runBrainrotTranscriptAudioJob(input) {
     transcriptPath,
     contextPath,
     manifestPath,
+    sourceAudioFiles: generatedAudioFiles,
     audioFiles: finalAudioFiles,
     outputAudioPath: subtitlePipelineResult.outputAudioPath,
+    splitSrtFiles: subtitlePipelineResult.splitSrtFiles,
     srtFiles: subtitlePipelineResult.srtFiles,
     pitchModeEnabled,
     pitchModeApplied,

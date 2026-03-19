@@ -11,15 +11,18 @@ const FAST_PITCH_FACTOR = Number.parseFloat(
 const SLOW_PITCH_FACTOR = Number.parseFloat(
   process.env.BRAINROT_PITCH_MODE_SLOW_FACTOR ?? "0.84",
 );
-const SEGMENT_PADDING_SECONDS = Number.parseFloat(
-  process.env.BRAINROT_PITCH_MODE_SEGMENT_PADDING_SECONDS ?? "0.04",
-);
 const MIN_INTERVAL_SECONDS = Number.parseFloat(
   process.env.BRAINROT_PITCH_MODE_MIN_INTERVAL_SECONDS ?? "0.04",
+);
+const MIN_RENDER_DURATION_SECONDS = Number.parseFloat(
+  process.env.BRAINROT_PITCH_MODE_MIN_RENDER_DURATION_SECONDS ?? "0.08",
 );
 const PITCH_MODE_AUDIO_CONCURRENCY = Number.parseInt(
   process.env.BRAINROT_PITCH_MODE_AUDIO_CONCURRENCY ?? "2",
   10,
+);
+const DIALOGUE_GAP_SECONDS = Number.parseFloat(
+  process.env.BRAINROT_DIALOGUE_GAP_SECONDS ?? "0.2",
 );
 
 function clamp(value, min, max) {
@@ -93,91 +96,375 @@ function mergeTimeRanges(ranges) {
   return mergedRanges;
 }
 
-function buildSlowTimeRanges({
-  alignedWords,
-  resolvedSlowMoments,
-  durationSeconds,
-}) {
-  if (!Array.isArray(alignedWords) || alignedWords.length === 0) {
+function splitTranscriptWords(text) {
+  return String(text)
+    .split(/\s+/)
+    .filter((word) => word.trim().length > 0);
+}
+
+function mergeSlowWordRanges(resolvedSlowMoments) {
+  const sortedRanges = [...(resolvedSlowMoments ?? [])]
+    .map((moment) => ({
+      startWordIndexInclusive: Number(moment.startWordIndexInclusive),
+      endWordIndexInclusive: Number(moment.endWordIndexInclusive),
+    }))
+    .filter(
+      (range) =>
+        Number.isInteger(range.startWordIndexInclusive) &&
+        Number.isInteger(range.endWordIndexInclusive) &&
+        range.startWordIndexInclusive >= 0 &&
+        range.endWordIndexInclusive >= range.startWordIndexInclusive,
+    )
+    .sort(
+      (left, right) =>
+        left.startWordIndexInclusive - right.startWordIndexInclusive ||
+        left.endWordIndexInclusive - right.endWordIndexInclusive,
+    );
+
+  if (sortedRanges.length === 0) {
     return [];
   }
 
-  const candidateRanges = resolvedSlowMoments
-    .map((moment) => {
-      const startWord = alignedWords[moment.startWordIndexInclusive];
-      const endWord = alignedWords[moment.endWordIndexInclusive];
+  const mergedRanges = [{ ...sortedRanges[0] }];
+  for (const range of sortedRanges.slice(1)) {
+    const previousRange = mergedRanges[mergedRanges.length - 1];
 
-      if (!startWord || !endWord) {
-        return null;
-      }
-
-      const start = clamp(
-        Number(startWord.start ?? 0) - SEGMENT_PADDING_SECONDS,
-        0,
-        durationSeconds,
+    if (
+      range.startWordIndexInclusive <= previousRange.endWordIndexInclusive + 1
+    ) {
+      previousRange.endWordIndexInclusive = Math.max(
+        previousRange.endWordIndexInclusive,
+        range.endWordIndexInclusive,
       );
-      const end = clamp(
-        Number(endWord.end ?? durationSeconds) + SEGMENT_PADDING_SECONDS,
-        0,
-        durationSeconds,
-      );
+      continue;
+    }
 
-      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-        return null;
-      }
+    mergedRanges.push({ ...range });
+  }
 
-      return { start, end };
-    })
-    .filter(Boolean);
-
-  return mergeTimeRanges(candidateRanges);
+  return mergedRanges;
 }
 
-function buildIntervals({ durationSeconds, slowTimeRanges }) {
-  const intervals = [];
-  let cursor = 0;
+function buildWholeClipSegment({ audioFile, durationSeconds, mode = "fast" }) {
+  return {
+    startSeconds: 0,
+    endSeconds: durationSeconds,
+    factor: mode === "slow" ? SLOW_PITCH_FACTOR : FAST_PITCH_FACTOR,
+    mode,
+    text: String(audioFile.text ?? "").trim(),
+    startWordIndexInclusive: 0,
+    endWordIndexInclusive:
+      Math.max(splitTranscriptWords(audioFile.text).length - 1, 0),
+  };
+}
 
-  for (const slowRange of slowTimeRanges) {
-    if (slowRange.start - cursor >= MIN_INTERVAL_SECONDS) {
-      intervals.push({
-        start: cursor,
-        end: slowRange.start,
-        factor: FAST_PITCH_FACTOR,
+function buildSegmentFromWordRange({
+  transcriptWords,
+  alignedWords,
+  startWordIndexInclusive,
+  endWordIndexInclusive,
+  durationSeconds,
+  mode,
+}) {
+  if (endWordIndexInclusive < startWordIndexInclusive) {
+    return null;
+  }
+
+  const text = transcriptWords
+    .slice(startWordIndexInclusive, endWordIndexInclusive + 1)
+    .join(" ")
+    .trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const firstWord = alignedWords[startWordIndexInclusive];
+  const nextWord = alignedWords[endWordIndexInclusive + 1];
+  const lastWord = alignedWords[endWordIndexInclusive];
+
+  let startSeconds =
+    startWordIndexInclusive === 0 ? 0 : Number(firstWord?.start ?? 0);
+  let endSeconds =
+    endWordIndexInclusive + 1 < alignedWords.length
+      ? Number(nextWord?.start ?? durationSeconds)
+      : Number(lastWord?.end ?? durationSeconds);
+
+  if (!Number.isFinite(startSeconds)) {
+    startSeconds = 0;
+  }
+
+  if (!Number.isFinite(endSeconds)) {
+    endSeconds = durationSeconds;
+  }
+
+  startSeconds = clamp(startSeconds, 0, durationSeconds);
+  endSeconds = clamp(endSeconds, startSeconds, durationSeconds);
+
+  if (endWordIndexInclusive === transcriptWords.length - 1) {
+    endSeconds = durationSeconds;
+  }
+
+  return {
+    startSeconds,
+    endSeconds,
+    factor: mode === "slow" ? SLOW_PITCH_FACTOR : FAST_PITCH_FACTOR,
+    mode,
+    text,
+    startWordIndexInclusive,
+    endWordIndexInclusive,
+  };
+}
+
+function segmentDuration(segment) {
+  return Math.max(0, Number(segment.endSeconds) - Number(segment.startSeconds));
+}
+
+function mergeSegments(left, right, keepMode = "left") {
+  if (keepMode === "right") {
+    return {
+      ...right,
+      startSeconds: left.startSeconds,
+      text: `${left.text} ${right.text}`.trim(),
+      startWordIndexInclusive: left.startWordIndexInclusive,
+    };
+  }
+
+  return {
+    ...left,
+    endSeconds: right.endSeconds,
+    text: `${left.text} ${right.text}`.trim(),
+    endWordIndexInclusive: right.endWordIndexInclusive,
+  };
+}
+
+function normalizeClipSegments(segments, durationSeconds) {
+  const clampedSegments = [];
+
+  for (const rawSegment of segments) {
+    if (!rawSegment || rawSegment.text.length === 0) {
+      continue;
+    }
+
+    const previousSegment = clampedSegments[clampedSegments.length - 1] ?? null;
+    const startSeconds = clamp(
+      Math.max(
+        Number(rawSegment.startSeconds) || 0,
+        previousSegment?.endSeconds ?? 0,
+      ),
+      0,
+      durationSeconds,
+    );
+    const endSeconds = clamp(
+      Math.max(Number(rawSegment.endSeconds) || startSeconds, startSeconds),
+      startSeconds,
+      durationSeconds,
+    );
+    const normalizedSegment = {
+      ...rawSegment,
+      startSeconds,
+      endSeconds,
+    };
+
+    if (
+      previousSegment &&
+      previousSegment.mode === normalizedSegment.mode &&
+      previousSegment.endSeconds >= normalizedSegment.startSeconds
+    ) {
+      clampedSegments[clampedSegments.length - 1] = mergeSegments(
+        previousSegment,
+        normalizedSegment,
+      );
+      continue;
+    }
+
+    clampedSegments.push(normalizedSegment);
+  }
+
+  if (clampedSegments.length <= 1) {
+    return clampedSegments.filter(
+      (segment) => segmentDuration(segment) > 0 && segment.text.length > 0,
+    );
+  }
+
+  const mergedSegments = [...clampedSegments];
+  let segmentIndex = 0;
+
+  while (segmentIndex < mergedSegments.length) {
+    const currentSegment = mergedSegments[segmentIndex];
+    if (
+      currentSegment &&
+      segmentDuration(currentSegment) >= MIN_RENDER_DURATION_SECONDS
+    ) {
+      segmentIndex += 1;
+      continue;
+    }
+
+    if (mergedSegments.length === 1) {
+      break;
+    }
+
+    const previousSegment = segmentIndex > 0 ? mergedSegments[segmentIndex - 1] : null;
+    const nextSegment =
+      segmentIndex + 1 < mergedSegments.length ? mergedSegments[segmentIndex + 1] : null;
+
+    if (!previousSegment && nextSegment) {
+      mergedSegments.splice(
+        segmentIndex,
+        2,
+        mergeSegments(currentSegment, nextSegment, "right"),
+      );
+      continue;
+    }
+
+    if (previousSegment && !nextSegment) {
+      mergedSegments.splice(
+        segmentIndex - 1,
+        2,
+        mergeSegments(previousSegment, currentSegment),
+      );
+      segmentIndex = Math.max(0, segmentIndex - 1);
+      continue;
+    }
+
+    if (!previousSegment || !nextSegment) {
+      break;
+    }
+
+    if (
+      previousSegment.mode === currentSegment.mode &&
+      nextSegment.mode !== currentSegment.mode
+    ) {
+      mergedSegments.splice(
+        segmentIndex - 1,
+        2,
+        mergeSegments(previousSegment, currentSegment),
+      );
+      segmentIndex = Math.max(0, segmentIndex - 1);
+      continue;
+    }
+
+    if (
+      nextSegment.mode === currentSegment.mode &&
+      previousSegment.mode !== currentSegment.mode
+    ) {
+      mergedSegments.splice(
+        segmentIndex,
+        2,
+        mergeSegments(currentSegment, nextSegment, "right"),
+      );
+      continue;
+    }
+
+    if (segmentDuration(previousSegment) >= segmentDuration(nextSegment)) {
+      mergedSegments.splice(
+        segmentIndex - 1,
+        2,
+        mergeSegments(previousSegment, currentSegment),
+      );
+      segmentIndex = Math.max(0, segmentIndex - 1);
+      continue;
+    }
+
+    mergedSegments.splice(
+      segmentIndex,
+      2,
+      mergeSegments(currentSegment, nextSegment, "right"),
+    );
+  }
+
+  return mergedSegments.filter(
+    (segment) => segmentDuration(segment) > 0 && segment.text.length > 0,
+  );
+}
+
+function buildClipSegments({
+  audioFile,
+  alignment,
+  resolvedSlowMoments,
+  durationSeconds,
+}) {
+  const transcriptWords = splitTranscriptWords(audioFile.text);
+  const alignedWords = Array.isArray(alignment?.alignedWords)
+    ? alignment.alignedWords
+    : [];
+
+  if (
+    transcriptWords.length === 0 ||
+    alignedWords.length === 0 ||
+    alignedWords.length !== transcriptWords.length
+  ) {
+    return [buildWholeClipSegment({ audioFile, durationSeconds })];
+  }
+
+  const slowWordRanges = mergeSlowWordRanges(resolvedSlowMoments);
+  if (slowWordRanges.length === 0) {
+    return [
+      buildSegmentFromWordRange({
+        transcriptWords,
+        alignedWords,
+        startWordIndexInclusive: 0,
+        endWordIndexInclusive: transcriptWords.length - 1,
+        durationSeconds,
         mode: "fast",
-      });
+      }),
+    ].filter(Boolean);
+  }
+
+  const segments = [];
+  let cursorWordIndex = 0;
+
+  for (const slowRange of slowWordRanges) {
+    if (slowRange.startWordIndexInclusive > cursorWordIndex) {
+      segments.push(
+        buildSegmentFromWordRange({
+          transcriptWords,
+          alignedWords,
+          startWordIndexInclusive: cursorWordIndex,
+          endWordIndexInclusive: slowRange.startWordIndexInclusive - 1,
+          durationSeconds,
+          mode: "fast",
+        }),
+      );
     }
 
-    if (slowRange.end - slowRange.start >= MIN_INTERVAL_SECONDS) {
-      intervals.push({
-        start: slowRange.start,
-        end: slowRange.end,
-        factor: SLOW_PITCH_FACTOR,
+    segments.push(
+      buildSegmentFromWordRange({
+        transcriptWords,
+        alignedWords,
+        startWordIndexInclusive: slowRange.startWordIndexInclusive,
+        endWordIndexInclusive: Math.min(
+          slowRange.endWordIndexInclusive,
+          transcriptWords.length - 1,
+        ),
+        durationSeconds,
         mode: "slow",
-      });
-    }
+      }),
+    );
 
-    cursor = Math.max(cursor, slowRange.end);
+    cursorWordIndex = slowRange.endWordIndexInclusive + 1;
   }
 
-  if (durationSeconds - cursor >= MIN_INTERVAL_SECONDS) {
-    intervals.push({
-      start: cursor,
-      end: durationSeconds,
-      factor: FAST_PITCH_FACTOR,
-      mode: "fast",
-    });
+  if (cursorWordIndex < transcriptWords.length) {
+    segments.push(
+      buildSegmentFromWordRange({
+        transcriptWords,
+        alignedWords,
+        startWordIndexInclusive: cursorWordIndex,
+        endWordIndexInclusive: transcriptWords.length - 1,
+        durationSeconds,
+        mode: "fast",
+      }),
+    );
   }
 
-  if (intervals.length === 0) {
-    intervals.push({
-      start: 0,
-      end: durationSeconds,
-      factor: FAST_PITCH_FACTOR,
-      mode: "fast",
-    });
+  const normalizedSegments = normalizeClipSegments(segments, durationSeconds);
+
+  if (normalizedSegments.length === 0) {
+    return [buildWholeClipSegment({ audioFile, durationSeconds })];
   }
 
-  return intervals;
+  return normalizedSegments;
 }
 
 async function renderSegment({
@@ -189,9 +476,10 @@ async function renderSegment({
   sampleRate,
 }) {
   const segmentDuration = Math.max(
-    MIN_INTERVAL_SECONDS,
+    MIN_RENDER_DURATION_SECONDS,
     endSeconds - startSeconds,
   );
+  const safeEndSeconds = startSeconds + segmentDuration;
 
   await execFileP(
     "ffmpeg",
@@ -199,15 +487,16 @@ async function renderSegment({
       "-y",
       "-i",
       inputPath,
-      "-ss",
-      startSeconds.toFixed(3),
-      "-t",
-      segmentDuration.toFixed(3),
       "-vn",
       "-ac",
       "1",
       "-af",
-      `asetrate=${sampleRate}*${factor},aresample=${sampleRate}`,
+      [
+        `atrim=start=${startSeconds.toFixed(3)}:end=${safeEndSeconds.toFixed(3)}`,
+        "asetpts=PTS-STARTPTS",
+        `asetrate=${sampleRate}*${factor}`,
+        `aresample=${sampleRate}`,
+      ].join(","),
       "-ar",
       String(sampleRate),
       "-c:a",
@@ -222,80 +511,93 @@ async function renderSegment({
   );
 }
 
-async function concatSegments(segmentPaths, outputPath) {
-  const concatListPath = `${outputPath}.segments.txt`;
-  const concatList = segmentPaths
-    .map((segmentPath) => `file '${segmentPath.replaceAll("'", "'\\''")}'`)
-    .join("\n");
-
-  await fs.writeFile(concatListPath, `${concatList}\n`, "utf8");
-
-  await execFileP(
-    "ffmpeg",
-    [
-      "-y",
-      "-f",
-      "concat",
-      "-safe",
-      "0",
-      "-i",
-      concatListPath,
-      "-c:a",
-      "libmp3lame",
-      "-q:a",
-      "2",
-      outputPath,
-    ],
-    {
-      maxBuffer: 1024 * 1024 * 20,
-    },
-  );
+async function ensureReadableRenderedSegment({
+  segmentPath,
+  segmentBaseName,
+  startSeconds,
+  endSeconds,
+  factor,
+}) {
+  try {
+    await probeAudioFile(segmentPath);
+  } catch (error) {
+    throw new Error(
+      [
+        `Rendered pitch segment is unreadable: ${segmentBaseName}`,
+        `path=${segmentPath}`,
+        `start=${startSeconds.toFixed(3)}`,
+        `end=${endSeconds.toFixed(3)}`,
+        `factor=${factor}`,
+        error instanceof Error ? error.message : String(error),
+      ].join(" "),
+    );
+  }
 }
 
 async function transformAudioFile({
   audioFile,
-  outputPath,
+  outputDir,
   alignment,
   resolvedSlowMoments,
 }) {
   const { sampleRate, durationSeconds } = await probeAudioFile(audioFile.path);
-  const slowTimeRanges = buildSlowTimeRanges({
-    alignedWords: alignment?.alignedWords ?? [],
+  const clipSegments = buildClipSegments({
+    audioFile,
+    alignment,
     resolvedSlowMoments,
     durationSeconds,
   });
-  const intervals = buildIntervals({
-    durationSeconds,
-    slowTimeRanges,
-  });
-  const segmentDir = `${outputPath}.segments`;
+  const segmentDir = path.join(outputDir, `${audioFile.person}-${audioFile.index}`);
 
   await fs.rm(segmentDir, { recursive: true, force: true });
   await fs.mkdir(segmentDir, { recursive: true });
 
-  const segmentPaths = [];
-  for (const [segmentIndex, interval] of intervals.entries()) {
+  const renderedSegments = [];
+  for (const [segmentIndex, segment] of clipSegments.entries()) {
+    const segmentBaseName = `${audioFile.person}-${audioFile.index}-${segmentIndex}-${segment.mode}`;
     const segmentPath = path.join(
       segmentDir,
-      `${String(segmentIndex).padStart(2, "0")}-${interval.mode}.mp3`,
+      `${segmentBaseName}.mp3`,
     );
     await renderSegment({
       inputPath: audioFile.path,
       outputPath: segmentPath,
-      startSeconds: interval.start,
-      endSeconds: interval.end,
-      factor: interval.factor,
+      startSeconds: segment.startSeconds,
+      endSeconds: segment.endSeconds,
+      factor: segment.factor,
       sampleRate,
     });
-    segmentPaths.push(segmentPath);
-  }
+    await ensureReadableRenderedSegment({
+      segmentPath,
+      segmentBaseName,
+      startSeconds: segment.startSeconds,
+      endSeconds: segment.endSeconds,
+      factor: segment.factor,
+    });
 
-  await concatSegments(segmentPaths, outputPath);
+    renderedSegments.push({
+      ...audioFile,
+      path: segmentPath,
+      text: segment.text,
+      srtFileName: `${segmentBaseName}.srt`,
+      pitchModeSegmentIndex: segmentIndex,
+      pitchModeSegmentMode: segment.mode,
+      pitchModeInterval: {
+        start: segment.startSeconds,
+        end: segment.endSeconds,
+        factor: segment.factor,
+        mode: segment.mode,
+        startWordIndexInclusive: segment.startWordIndexInclusive,
+        endWordIndexInclusive: segment.endWordIndexInclusive,
+      },
+      silenceAfterSeconds: 0,
+    });
+  }
 
   return {
     sampleRate,
     durationSeconds,
-    intervals,
+    segments: renderedSegments,
   };
 }
 
@@ -359,29 +661,38 @@ export async function applyPitchModeToAudioFiles({
   await fs.rm(transformedVoiceDir, { recursive: true, force: true });
   await fs.mkdir(transformedVoiceDir, { recursive: true });
 
-  const transformedAudioFiles = await mapWithConcurrency(
+  const transformedAudioResults = await mapWithConcurrency(
     audioFiles,
     PITCH_MODE_AUDIO_CONCURRENCY,
     async (audioFile) => {
-      const outputPath = path.join(transformedVoiceDir, path.basename(audioFile.path));
       const alignment = alignmentsByKey.get(toKey(audioFile.person, audioFile.index));
       const clipSlowMoments = slowMomentsByIndex.get(audioFile.index) ?? [];
       const transformResult = await transformAudioFile({
         audioFile,
-        outputPath,
+        outputDir: transformedVoiceDir,
         alignment,
         resolvedSlowMoments: clipSlowMoments,
       });
 
-      return {
-        ...audioFile,
-        path: outputPath,
-        pitchModeIntervals: transformResult.intervals,
-      };
+      return transformResult.segments;
     },
   );
 
+  const flattenedAudioFiles = transformedAudioResults.flatMap((segments) => segments);
+
+  for (const segments of transformedAudioResults) {
+    if (segments.length === 0) {
+      continue;
+    }
+
+    segments[segments.length - 1].silenceAfterSeconds = DIALOGUE_GAP_SECONDS;
+  }
+
+  if (flattenedAudioFiles.length > 0) {
+    flattenedAudioFiles[flattenedAudioFiles.length - 1].silenceAfterSeconds = 0;
+  }
+
   return {
-    audioFiles: transformedAudioFiles,
+    audioFiles: flattenedAudioFiles,
   };
 }

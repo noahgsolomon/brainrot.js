@@ -11,6 +11,20 @@ import {
 } from './tmp/context';
 import { getAudioDuration } from '@remotion/media-utils';
 
+const FALLBACK_VIDEO_FILE_NAME = '/background/MINECRAFT-1.mp4';
+
+const normalizeVideoFileName = (fileName?: string) => {
+	if (!fileName || fileName.trim().length === 0) {
+		return FALLBACK_VIDEO_FILE_NAME;
+	}
+
+	if (fileName.trim() === '/background/MINECRAFT-0.mp4') {
+		return FALLBACK_VIDEO_FILE_NAME;
+	}
+
+	return fileName;
+};
+
 export const RemotionRoot: React.FC = () => {
 	const compositionFps = 30;
 	const compositionWidth = 720;
@@ -26,7 +40,7 @@ export const RemotionRoot: React.FC = () => {
 			titleColor: 'rgba(186, 186, 186, 0.93)',
 			initialAgentName,
 			// Video settings
-			videoFileName,
+			videoFileName: normalizeVideoFileName(videoFileName),
 			// Subtitles settings
 			subtitlesFileName: subtitlesFileName.map((sub) => ({
 				...sub,

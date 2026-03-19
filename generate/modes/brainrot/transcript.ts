@@ -209,7 +209,7 @@ export const music: string = ${
 			music === 'NONE' ? `'NONE'` : `'/music/${music}.MP3'`
 		};
 export const initialAgentName = '${initialAgentName}';
-export const videoFileName = '/background/MINECRAFT-0.mp4';
+export const videoFileName = '/background/MINECRAFT-1.mp4';
 export const videoMode = 'brainrot';
 
 export const subtitlesFileName = [

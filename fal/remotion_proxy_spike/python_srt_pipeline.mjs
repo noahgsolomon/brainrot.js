@@ -109,8 +109,13 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
   await fs.mkdir(srtDir, { recursive: true });
 
   const srtFiles = [];
+  let totalDurationSeconds = 0;
   for (const audioFile of audioFiles) {
-    const srtPath = path.join(srtDir, `${audioFile.person}-${audioFile.index}.srt`);
+    const fileName =
+      typeof audioFile.srtFileName === "string" && audioFile.srtFileName.length > 0
+        ? audioFile.srtFileName
+        : `${audioFile.person}-${audioFile.index}.srt`;
+    const srtPath = path.join(srtDir, fileName);
     await fs.writeFile(
       srtPath,
       `1\n00:00:00,000 --> 00:00:00,500\n${audioFile.text.split(/\s+/)[0] ?? "mock"}\n`,
@@ -119,8 +124,10 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
     srtFiles.push({
       person: audioFile.person,
       index: audioFile.index,
+      fileName,
       path: srtPath,
     });
+    totalDurationSeconds += 0.5 + Number(audioFile.silenceAfterSeconds ?? 0);
   }
 
   await fs.writeFile(
@@ -132,8 +139,71 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
     ok: true,
     outputAudioPath,
     srtFiles,
-    totalDurationSeconds: audioFiles.length,
+    totalDurationSeconds,
   };
+}
+
+function extractSrtBlocks(srtContent) {
+  return String(srtContent)
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+}
+
+function renumberSrtBlocks(blocks) {
+  return blocks
+    .map((block, index) => {
+      const lines = block.split("\n");
+      const bodyLines =
+        /^\d+$/.test(lines[0]?.trim() ?? "") ? lines.slice(1) : lines;
+      return `${index + 1}\n${bodyLines.join("\n").trim()}`;
+    })
+    .join("\n\n")
+    .concat(blocks.length > 0 ? "\n" : "");
+}
+
+async function mergeSrtFilesByDialogueTurn({ workDir, srtFiles }) {
+  const mergedSrtDir = path.join(workDir, "srt-merged");
+  await fs.rm(mergedSrtDir, { recursive: true, force: true });
+  await fs.mkdir(mergedSrtDir, { recursive: true });
+
+  const groups = [];
+  const groupsByKey = new Map();
+
+  for (const srtFile of srtFiles) {
+    const groupKey = `${srtFile.person}:${srtFile.index}`;
+    let group = groupsByKey.get(groupKey);
+
+    if (!group) {
+      group = {
+        person: srtFile.person,
+        index: srtFile.index,
+        fileName: `${srtFile.person}-${srtFile.index}.srt`,
+        blocks: [],
+      };
+      groupsByKey.set(groupKey, group);
+      groups.push(group);
+    }
+
+    const srtContent = await fs.readFile(srtFile.path, "utf8");
+    group.blocks.push(...extractSrtBlocks(srtContent));
+  }
+
+  const mergedSrtFiles = [];
+  for (const group of groups) {
+    const mergedPath = path.join(mergedSrtDir, group.fileName);
+    const mergedContent = renumberSrtBlocks(group.blocks);
+    await fs.writeFile(mergedPath, mergedContent, "utf8");
+    mergedSrtFiles.push({
+      person: group.person,
+      index: group.index,
+      fileName: group.fileName,
+      path: mergedPath,
+    });
+  }
+
+  return mergedSrtFiles;
 }
 
 async function runAlignmentOnlyPythonPipeline({ workDir, audioFiles }) {
@@ -195,13 +265,21 @@ export async function runPythonSrtPipeline({
       workDir,
       audioFiles,
     });
+    const mergedSrtFiles = await mergeSrtFilesByDialogueTurn({
+      workDir,
+      srtFiles: mockResult.srtFiles,
+    });
 
     await reportProgress("Subtitle files ready", completeProgress, {
       phase: "brainrot_transcript_audio",
       phaseKey: "subtitle_generation_complete",
-      subtitleFileCount: mockResult.srtFiles.length,
+      subtitleFileCount: mergedSrtFiles.length,
     });
-    return mockResult;
+    return {
+      ...mockResult,
+      splitSrtFiles: mockResult.srtFiles,
+      srtFiles: mergedSrtFiles,
+    };
   }
 
   const inputJsonPath = path.join(workDir, "subtitle-input.json");
@@ -211,12 +289,20 @@ export async function runPythonSrtPipeline({
     outputAudioPath: path.join(workDir, "audio.mp3"),
     outputSrtDir: path.join(workDir, "srt"),
     silenceDurationSeconds: 0.2,
-    audioFiles: audioFiles.map((audioFile) => ({
-      person: audioFile.person,
-      index: audioFile.index,
-      path: audioFile.path,
-      text: audioFile.text,
-    })),
+    audioFiles: audioFiles.map((audioFile) => {
+      const silenceAfterSeconds = Number(audioFile.silenceAfterSeconds);
+      return {
+        person: audioFile.person,
+        index: audioFile.index,
+        path: audioFile.path,
+        text: audioFile.text,
+        srtFileName:
+          typeof audioFile.srtFileName === "string" ? audioFile.srtFileName : undefined,
+        silenceAfterSeconds: Number.isFinite(silenceAfterSeconds)
+          ? silenceAfterSeconds
+          : undefined,
+      };
+    }),
   };
 
   await fs.writeFile(inputJsonPath, JSON.stringify(inputPayload, null, 2), "utf8");
@@ -228,11 +314,20 @@ export async function runPythonSrtPipeline({
     inputJsonPath,
   ]);
 
+  const mergedSrtFiles = await mergeSrtFilesByDialogueTurn({
+    workDir,
+    srtFiles: Array.isArray(result.srtFiles) ? result.srtFiles : [],
+  });
+
   await reportProgress("Subtitle files ready", completeProgress, {
     phase: "brainrot_transcript_audio",
     phaseKey: "subtitle_generation_complete",
-    subtitleFileCount: Array.isArray(result.srtFiles) ? result.srtFiles.length : 0,
+    subtitleFileCount: mergedSrtFiles.length,
   });
 
-  return result;
+  return {
+    ...result,
+    splitSrtFiles: Array.isArray(result.srtFiles) ? result.srtFiles : [],
+    srtFiles: mergedSrtFiles,
+  };
 }

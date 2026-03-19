@@ -97,9 +97,13 @@ async function stageGeneratedAssets(input) {
   );
 
   for (const subtitleFile of input.prepResult.srtFiles) {
+    const fileName =
+      typeof subtitleFile.fileName === "string" && subtitleFile.fileName.length > 0
+        ? subtitleFile.fileName
+        : `${subtitleFile.person}-${subtitleFile.index}.srt`;
     const destination = path.join(
       srtDir,
-      `${subtitleFile.person}-${subtitleFile.index}.srt`,
+      fileName,
     );
     await fs.copyFile(subtitleFile.path, destination);
   }

@@ -30,6 +30,29 @@ async function uploadFile(filePath, fileName, contentType) {
   return fal.storage.upload(blob, { lifecycle: { expiresIn: "7d" } });
 }
 
+function buildDebugRelativePath(workDir, filePath) {
+  const relativePath = path.relative(workDir, filePath);
+  return relativePath.split(path.sep).join("/");
+}
+
+async function uploadDebugAudioFiles({ workDir, audioFiles }) {
+  return Promise.all(
+    (audioFiles ?? []).map(async (audioFile) => {
+      const filePath = String(audioFile.path);
+      const relativePath = buildDebugRelativePath(workDir, filePath);
+      const fileName = path.basename(filePath);
+      const url = await uploadFile(filePath, fileName, "audio/mpeg");
+      return {
+        person: audioFile.person,
+        index: audioFile.index,
+        fileName,
+        relativePath,
+        url,
+      };
+    }),
+  );
+}
+
 /**
  * @param {{
  *   jobId: string;
@@ -69,13 +92,32 @@ export async function runBrainrotPrepUploadJob(input) {
     "application/json",
   );
 
+  const manifestUrl = await uploadFile(
+    prepResult.manifestPath,
+    "audio-manifest.json",
+    "application/json",
+  );
+
   const srtUploads = await Promise.all(
     prepResult.srtFiles.map(async (srtFile) => {
-      const fileName = `${srtFile.person}-${srtFile.index}.srt`;
+      const fileName =
+        typeof srtFile.fileName === "string" && srtFile.fileName.length > 0
+          ? srtFile.fileName
+          : `${srtFile.person}-${srtFile.index}.srt`;
       const url = await uploadFile(srtFile.path, fileName, "text/plain");
       return { person: srtFile.person, index: srtFile.index, fileName, url };
     }),
   );
+
+  const originalVoiceFiles = await uploadDebugAudioFiles({
+    workDir: prepResult.workDir,
+    audioFiles: prepResult.sourceAudioFiles,
+  });
+
+  const pitchVoiceFiles = await uploadDebugAudioFiles({
+    workDir: prepResult.workDir,
+    audioFiles: prepResult.audioFiles,
+  });
 
   await input.reportProgress("Prep artifacts uploaded", 48, {
     phase: "brainrot_prep_upload",
@@ -90,7 +132,10 @@ export async function runBrainrotPrepUploadJob(input) {
       audioUrl,
       contextUrl,
       transcriptUrl,
+      manifestUrl,
       srtFiles: srtUploads,
+      originalVoiceFiles,
+      pitchVoiceFiles,
     },
   };
 }
