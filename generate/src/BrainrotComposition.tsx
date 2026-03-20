@@ -11,7 +11,7 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
-import { music, speakerOrder } from './tmp/context';
+import { music, slowModeIntervals, speakerOrder } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
 	SubtitleEntry,
@@ -142,6 +142,17 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	const activeSpeakerIndex = resolvedSpeakerOrder.indexOf(activeSpeakerName);
 	const useRightSide =
 		activeSpeakerIndex === -1 ? true : activeSpeakerIndex % 2 === 0;
+	const currentTimeSeconds = frame / fps;
+	const isSlowModeActive = slowModeIntervals.some((interval) => {
+		const startSeconds = Number(interval?.startSeconds);
+		const endSeconds = Number(interval?.endSeconds);
+		return (
+			Number.isFinite(startSeconds) &&
+			Number.isFinite(endSeconds) &&
+			currentTimeSeconds >= startSeconds &&
+			currentTimeSeconds < endSeconds
+		);
+	});
 
 	return (
 		<div ref={ref}>
@@ -172,14 +183,15 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 								currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
 							} ${useRightSide ? 'justify-end' : 'justify-start'}`}
 						>
-							<Img
-								width={400}
-								height={400}
-								style={{
-									transform: `translateY(${-getCurrentAmplitude() * 17}px)`,
-								}}
-								className="z-30 transition-all rounded-full"
-								src={staticFile(
+								<Img
+									width={400}
+									height={400}
+									style={{
+										transform: `translateY(${-getCurrentAmplitude() * 17}px)`,
+										filter: isSlowModeActive ? 'grayscale(1)' : 'grayscale(0)',
+									}}
+									className="z-30 transition-all rounded-full"
+									src={staticFile(
 									`/pose/${
 										useRightSide ? 'right' : 'left'
 									}/${activeSpeakerName}.png`

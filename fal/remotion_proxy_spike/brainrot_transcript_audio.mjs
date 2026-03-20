@@ -741,11 +741,13 @@ function buildContextContent({
   music,
   initialAgentName,
   speakerOrder,
+  slowModeIntervals,
   subtitleFiles,
   backgroundVideoFileName,
 }) {
   const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
   const speakerOrderValue = JSON.stringify(speakerOrder);
+  const slowModeIntervalsValue = JSON.stringify(slowModeIntervals);
 
   const subtitleEntries = subtitleFiles
     .map(
@@ -763,6 +765,7 @@ export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '${backgroundVideoFileName}';
 export const videoMode = 'brainrot';
 export const speakerOrder = ${speakerOrderValue};
+export const slowModeIntervals = ${slowModeIntervalsValue};
 
 export const subtitlesFileName = [
   ${subtitleEntries}
@@ -1017,6 +1020,28 @@ export async function runBrainrotTranscriptAudioJob(input) {
     startProgress: pitchModeApplied ? 28 : 24,
     completeProgress: 35,
   });
+  const timelineEntries = Array.isArray(subtitlePipelineResult.timelineEntries)
+    ? subtitlePipelineResult.timelineEntries
+    : [];
+  const slowModeIntervals = timelineEntries
+    .filter((entry) => {
+      const startSeconds = Number(entry?.startSeconds);
+      const endSeconds = Number(entry?.endSeconds);
+      return (
+        entry?.pitchModeSegmentMode === "slow" &&
+        Number.isFinite(startSeconds) &&
+        Number.isFinite(endSeconds) &&
+        endSeconds > startSeconds
+      );
+    })
+    .map((entry) => ({
+      agentName:
+        typeof entry.person === "string" && entry.person.length > 0
+          ? entry.person
+          : null,
+      startSeconds: Number(entry.startSeconds),
+      endSeconds: Number(entry.endSeconds),
+    }));
 
   await fs.writeFile(
     manifestPath,
@@ -1040,6 +1065,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
         outputAudioPath: subtitlePipelineResult.outputAudioPath,
         splitSrtFiles: subtitlePipelineResult.splitSrtFiles,
         srtFiles: subtitlePipelineResult.srtFiles,
+        timelineEntries,
+        slowModeIntervals,
       },
       null,
       2,
@@ -1053,6 +1080,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
       music,
       initialAgentName: finalAudioFiles[0]?.person ?? agents[0],
       speakerOrder: agents,
+      slowModeIntervals,
       subtitleFiles: subtitlePipelineResult.srtFiles,
       backgroundVideoFileName,
     }),
@@ -1076,6 +1104,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
     outputAudioPath: subtitlePipelineResult.outputAudioPath,
     splitSrtFiles: subtitlePipelineResult.splitSrtFiles,
     srtFiles: subtitlePipelineResult.srtFiles,
+    timelineEntries,
+    slowModeIntervals,
     pitchModeEnabled,
     pitchModeApplied,
     pitchSlowMoments: resolvedPitchSlowMoments,

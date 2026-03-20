@@ -109,7 +109,9 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
   await fs.mkdir(srtDir, { recursive: true });
 
   const srtFiles = [];
+  const timelineEntries = [];
   let totalDurationSeconds = 0;
+  let timelineOffsetSeconds = 0;
   for (const audioFile of audioFiles) {
     const fileName =
       typeof audioFile.srtFileName === "string" && audioFile.srtFileName.length > 0
@@ -127,7 +129,24 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
       fileName,
       path: srtPath,
     });
-    totalDurationSeconds += 0.5 + Number(audioFile.silenceAfterSeconds ?? 0);
+    timelineEntries.push({
+      person: audioFile.person,
+      index: audioFile.index,
+      fileName,
+      startSeconds: timelineOffsetSeconds,
+      endSeconds: timelineOffsetSeconds + 0.5,
+      pitchModeSegmentIndex:
+        typeof audioFile.pitchModeSegmentIndex === "number"
+          ? audioFile.pitchModeSegmentIndex
+          : null,
+      pitchModeSegmentMode:
+        typeof audioFile.pitchModeSegmentMode === "string"
+          ? audioFile.pitchModeSegmentMode
+          : null,
+    });
+    const silenceAfterSeconds = Number(audioFile.silenceAfterSeconds ?? 0);
+    totalDurationSeconds += 0.5 + silenceAfterSeconds;
+    timelineOffsetSeconds += 0.5 + silenceAfterSeconds;
   }
 
   await fs.writeFile(
@@ -139,6 +158,7 @@ async function writeMockSubtitleOutputs({ workDir, audioFiles }) {
     ok: true,
     outputAudioPath,
     srtFiles,
+    timelineEntries,
     totalDurationSeconds,
   };
 }
@@ -298,6 +318,14 @@ export async function runPythonSrtPipeline({
         text: audioFile.text,
         srtFileName:
           typeof audioFile.srtFileName === "string" ? audioFile.srtFileName : undefined,
+        pitchModeSegmentIndex:
+          typeof audioFile.pitchModeSegmentIndex === "number"
+            ? audioFile.pitchModeSegmentIndex
+            : undefined,
+        pitchModeSegmentMode:
+          typeof audioFile.pitchModeSegmentMode === "string"
+            ? audioFile.pitchModeSegmentMode
+            : undefined,
         silenceAfterSeconds: Number.isFinite(silenceAfterSeconds)
           ? silenceAfterSeconds
           : undefined,

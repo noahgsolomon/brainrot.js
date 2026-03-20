@@ -224,6 +224,7 @@ export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/MINECRAFT-1.mp4';
 export const videoMode = 'brainrot';
 export const speakerOrder = ${JSON.stringify(selectedAgents)};
+export const slowModeIntervals = [];
 
 export const subtitlesFileName = [
   ${audios

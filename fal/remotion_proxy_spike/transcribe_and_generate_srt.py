@@ -550,6 +550,8 @@ def process_audio_file(audio_file: dict) -> dict:
     transcript_text = str(audio_file["text"])
     srt_file_name = str(audio_file.get("srtFileName") or f"{person}-{index}.srt")
     silence_after_seconds = float(audio_file.get("silenceAfterSeconds", 0))
+    pitch_mode_segment_index = audio_file.get("pitchModeSegmentIndex")
+    pitch_mode_segment_mode = audio_file.get("pitchModeSegmentMode")
 
     duration_seconds = ffprobe_duration(audio_path)
     recognized_words = transcribe_audio(audio_path)
@@ -566,6 +568,8 @@ def process_audio_file(audio_file: dict) -> dict:
         "srtFileName": srt_file_name,
         "silenceAfterSeconds": silence_after_seconds,
         "durationSeconds": duration_seconds,
+        "pitchModeSegmentIndex": pitch_mode_segment_index,
+        "pitchModeSegmentMode": pitch_mode_segment_mode,
         "alignedWords": aligned_words,
     }
 
@@ -586,6 +590,7 @@ def main() -> None:
     log(f"Generating SRTs for {len(audio_files)} clips")
 
     srt_files = []
+    timeline_entries = []
     timeline_offset = 0.0
     transcribe_concurrency = resolve_transcribe_concurrency(len(audio_files))
     log(
@@ -647,6 +652,17 @@ def main() -> None:
                 "path": str(srt_path),
             }
         )
+        timeline_entries.append(
+            {
+                "person": person,
+                "index": index,
+                "fileName": srt_file_name,
+                "startSeconds": timeline_offset,
+                "endSeconds": timeline_offset + duration_seconds,
+                "pitchModeSegmentIndex": processed_audio.get("pitchModeSegmentIndex"),
+                "pitchModeSegmentMode": processed_audio.get("pitchModeSegmentMode"),
+            }
+        )
         timeline_offset += duration_seconds
         if order < len(audio_files) - 1:
             timeline_offset += max(silence_after_seconds, 0.0)
@@ -663,14 +679,15 @@ def main() -> None:
 
     print(
         json.dumps(
-            {
-                "ok": True,
-                "outputAudioPath": concatenated_audio_path,
-                "srtFiles": srt_files,
-                "totalDurationSeconds": timeline_offset,
-            }
+                {
+                    "ok": True,
+                    "outputAudioPath": concatenated_audio_path,
+                    "srtFiles": srt_files,
+                    "timelineEntries": timeline_entries,
+                    "totalDurationSeconds": timeline_offset,
+                }
+            )
         )
-    )
 
 
 if __name__ == "__main__":
