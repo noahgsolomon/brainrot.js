@@ -62,9 +62,12 @@ generate/venv/*
 fal/remotion_proxy_spike/.venv/*
 fal/remotion_proxy_spike/.venv312/*
 fal/remotion_proxy_spike/__pycache__/*
+scripts/__pycache__/
 
 generate/hidden/*
 generate/src/tmp/*
+generate/public/emotions/
+generate/public/emotions_cutout/
 # generate/public/*
 .env
 bun.lockb
