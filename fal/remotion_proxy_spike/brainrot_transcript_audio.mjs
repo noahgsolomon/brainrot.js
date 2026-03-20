@@ -37,6 +37,21 @@ const AUDIO_GENERATION_CONCURRENCY = Number.parseInt(
   process.env.BRAINROT_AUDIO_CONCURRENCY ?? "4",
   10,
 );
+const SUPPORTED_DIALOGUE_EMOTIONS = [
+  "neutral",
+  "smug",
+  "angry",
+  "shocked",
+  "confused",
+  "laughing",
+  "deadpan",
+  "panic",
+  "sad_defeated",
+  "locked_in",
+  "disgusted",
+  "evil_grin",
+];
+const DEFAULT_DIALOGUE_EMOTION = "neutral";
 
 function sanitizeJobId(jobId) {
   return String(jobId || "job").replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -344,6 +359,156 @@ function parsePitchSlowMomentsPayload(payload) {
   });
 }
 
+function parseDialogueEmotionsPayload(payload, { transcript, allowedAgentIds }) {
+  const candidatePayload =
+    payload && typeof payload === "object" ? payload : {};
+  const rawDialogueEmotions = Array.isArray(candidatePayload.dialogueEmotions)
+    ? candidatePayload.dialogueEmotions
+    : [];
+  const allowedAgentIdSet = new Set(allowedAgentIds);
+  const supportedEmotionSet = new Set(SUPPORTED_DIALOGUE_EMOTIONS);
+  const emotionsByEntryIndex = new Map();
+
+  if (rawDialogueEmotions.length === 0) {
+    throw new Error(
+      "Dialogue emotion model response did not include a dialogueEmotions array",
+    );
+  }
+
+  for (const [index, selection] of rawDialogueEmotions.entries()) {
+    if (
+      !selection ||
+      typeof selection !== "object" ||
+      !Number.isInteger(selection.entryIndex) ||
+      typeof selection.agentId !== "string" ||
+      typeof selection.emotion !== "string"
+    ) {
+      throw new Error(`Invalid dialogue emotion entry at index ${index}`);
+    }
+
+    const transcriptEntry = transcript[selection.entryIndex];
+    if (!transcriptEntry) {
+      throw new Error(
+        `Dialogue emotion entry ${index} referenced invalid transcript entryIndex ${selection.entryIndex}`,
+      );
+    }
+
+    const agentId = selection.agentId.trim();
+    const emotion = selection.emotion.trim();
+
+    if (allowedAgentIdSet.size > 0 && !allowedAgentIdSet.has(agentId)) {
+      throw new Error(
+        `Dialogue emotion entry ${index} used unsupported agentId ${agentId}`,
+      );
+    }
+
+    if (transcriptEntry.agentId !== agentId) {
+      throw new Error(
+        `Dialogue emotion entry ${index} used agentId ${agentId}, but transcript entry ${selection.entryIndex} belongs to ${transcriptEntry.agentId}`,
+      );
+    }
+
+    if (!supportedEmotionSet.has(emotion)) {
+      throw new Error(
+        `Dialogue emotion entry ${index} used unsupported emotion ${emotion}`,
+      );
+    }
+
+    if (emotionsByEntryIndex.has(selection.entryIndex)) {
+      throw new Error(
+        `Dialogue emotion response contained duplicate entryIndex ${selection.entryIndex}`,
+      );
+    }
+
+    emotionsByEntryIndex.set(selection.entryIndex, {
+      entryIndex: selection.entryIndex,
+      agentId,
+      emotion,
+      reason:
+        typeof selection.reason === "string" && selection.reason.trim().length > 0
+          ? selection.reason.trim()
+          : null,
+    });
+  }
+
+  const missingEntries = transcript
+    .map((_, entryIndex) => entryIndex)
+    .filter((entryIndex) => !emotionsByEntryIndex.has(entryIndex));
+
+  if (missingEntries.length > 0) {
+    throw new Error(
+      `Dialogue emotion response missed transcript entries: ${missingEntries.join(
+        ", ",
+      )}`,
+    );
+  }
+
+  const normalizedSelections = transcript.map((entry, entryIndex) => {
+    const selection = emotionsByEntryIndex.get(entryIndex);
+    return {
+      entryIndex,
+      agentId: entry.agentId,
+      emotion: selection?.emotion ?? DEFAULT_DIALOGUE_EMOTION,
+      reason: selection?.reason ?? null,
+    };
+  });
+
+  assertDialogueEmotionVariety(normalizedSelections, transcript);
+
+  return normalizedSelections;
+}
+
+function getMinimumUniqueEmotionCountForLineCount(lineCount) {
+  if (lineCount >= 3) {
+    return 3;
+  }
+
+  return Math.max(1, lineCount);
+}
+
+function buildDialogueEmotionSpeakerTargets(transcript) {
+  const turnsByAgentId = new Map();
+
+  for (const entry of transcript) {
+    if (!entry?.agentId) {
+      continue;
+    }
+
+    turnsByAgentId.set(entry.agentId, (turnsByAgentId.get(entry.agentId) ?? 0) + 1);
+  }
+
+  return Array.from(turnsByAgentId.entries())
+    .sort(([leftAgentId], [rightAgentId]) => leftAgentId.localeCompare(rightAgentId))
+    .map(([agentId, lineCount]) => ({
+      agentId,
+      lineCount,
+      minimumUniqueEmotions:
+        getMinimumUniqueEmotionCountForLineCount(lineCount),
+    }));
+}
+
+function assertDialogueEmotionVariety(dialogueEmotions, transcript) {
+  const targets = buildDialogueEmotionSpeakerTargets(transcript);
+
+  for (const target of targets) {
+    if (target.minimumUniqueEmotions <= 1) {
+      continue;
+    }
+
+    const selectedEmotions = new Set(
+      dialogueEmotions
+        .filter((selection) => selection.agentId === target.agentId)
+        .map((selection) => selection.emotion),
+    );
+
+    if (selectedEmotions.size < target.minimumUniqueEmotions) {
+      throw new Error(
+        `Dialogue emotion response used only ${selectedEmotions.size} unique emotions for ${target.agentId} across ${target.lineCount} lines; expected at least ${target.minimumUniqueEmotions}`,
+      );
+    }
+  }
+}
+
 async function callFalOpenRouter({
   taskName,
   prompt,
@@ -571,6 +736,145 @@ async function getTranscriptWithRetry({
   });
 }
 
+function inferDialogueEmotionFromText(text) {
+  const normalizedText = String(text ?? "").toLowerCase();
+
+  if (
+    /\b(ha|haha|lmao|lmfao|rofl|laugh|hilarious)\b/.test(normalizedText)
+  ) {
+    return "laughing";
+  }
+
+  if (
+    /\b(gross|disgusting|vile|revolting|nasty|ew|eww)\b/.test(normalizedText)
+  ) {
+    return "disgusted";
+  }
+
+  if (
+    /\b(oh no|we are cooked|we're cooked|i'm cooked|im cooked|panic|doomed|help)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "panic";
+  }
+
+  if (
+    /\b(checkmate|i won|i just won|cooked you|owned you|obviously|clearly)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "smug";
+  }
+
+  if (
+    /\b(wait|what|no way|are you serious|i can't believe|i cant believe|unbelievable)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "shocked";
+  }
+
+  if (
+    /\b(huh|confused|what are you talking about|that makes no sense|doesn't make sense|doesnt make sense)\b/.test(
+      normalizedText,
+    ) || normalizedText.includes("?")
+  ) {
+    return "confused";
+  }
+
+  if (
+    /\b(focus|listen|pay attention|let me explain|stay with me)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "locked_in";
+  }
+
+  if (
+    /\b(over|i lost|we lost|finished|done for|can't do this|cant do this)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "sad_defeated";
+  }
+
+  if (
+    /\b(perfect|excellent|exactly what i wanted|hehe|mwahaha|evil)\b/.test(
+      normalizedText,
+    )
+  ) {
+    return "evil_grin";
+  }
+
+  if (
+    normalizedText.includes("!") ||
+    /\b(shut up|idiot|moron|liar|insane|crazy)\b/.test(normalizedText)
+  ) {
+    return "angry";
+  }
+
+  if (normalizedText.split(/\s+/).filter(Boolean).length <= 4) {
+    return "deadpan";
+  }
+
+  return DEFAULT_DIALOGUE_EMOTION;
+}
+
+function buildFallbackDialogueEmotions(transcript) {
+  return transcript.map((entry, entryIndex) => ({
+    entryIndex,
+    agentId: entry.agentId,
+    emotion: inferDialogueEmotionFromText(entry.text),
+    reason: "fallback heuristic",
+  }));
+}
+
+async function getDialogueEmotionsWithRetry({
+  transcript,
+  agents,
+  model,
+  useMockServices,
+}) {
+  if (useMockServices) {
+    return buildFallbackDialogueEmotions(transcript);
+  }
+
+  const transcriptForPrompt = transcript.map((entry, entryIndex) => ({
+    entryIndex,
+    agentId: entry.agentId,
+    text: entry.text,
+  }));
+  const speakerTargets = buildDialogueEmotionSpeakerTargets(transcript);
+  const supportedEmotionList = SUPPORTED_DIALOGUE_EMOTIONS.join(", ");
+  const systemPrompt = `You are assigning a single sprite emotion label to every dialogue turn in a chaotic short-form video conversation. For every transcript entry, choose exactly one emotion from this fixed list and do not invent any new labels: ${supportedEmotionList}. Pick the emotion for how the speaking character should visually look while delivering that line, not how the listeners feel. Across the full transcript, each speaker should feel expressive and dynamic rather than locked into one default face. For any speaker with 3 or more lines, use at least 3 distinct emotions across their lines unless the transcript truly makes that impossible. Avoid flattening an entire speaker into one repeated expression like all neutral, all smug, or all angry. Let the emotions evolve with the joke beats, rebuttals, panic moments, punchlines, and recoveries. You must return exactly one emotion label for every transcript entry. Return valid JSON only with this exact shape: {"dialogueEmotions":[{"entryIndex":0,"agentId":"${agents[0]}","emotion":"neutral","reason":"brief why"}]}. Preserve the original entryIndex values and agentId values exactly.`;
+  const prompt = `Assign one sprite emotion to every transcript entry.
+
+Speaker variety targets:
+${JSON.stringify(speakerTargets, null, 2)}
+
+The best answers use expressive variety for each speaker while still fitting the line itself. Do not keep a speaker in the same emotion for the whole conversation unless it is absolutely unavoidable.
+
+Transcript:
+${JSON.stringify(
+    transcriptForPrompt,
+    null,
+    2,
+  )}`;
+
+  return runStructuredOpenRouterTaskWithRetry({
+    taskName: "dialogue_emotions",
+    primaryModel: model,
+    prompt,
+    systemPrompt,
+    parseOutput: (payload) =>
+      parseDialogueEmotionsPayload(payload, {
+        transcript,
+        allowedAgentIds: agents,
+      }),
+  });
+}
+
 function buildFallbackPitchSlowMomentSelections(transcript) {
   return transcript
     .slice(0, Math.min(transcript.length, 5))
@@ -741,12 +1045,14 @@ function buildContextContent({
   music,
   initialAgentName,
   speakerOrder,
+  dialogueEmotions,
   slowModeIntervals,
   subtitleFiles,
   backgroundVideoFileName,
 }) {
   const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
   const speakerOrderValue = JSON.stringify(speakerOrder);
+  const dialogueEmotionsValue = JSON.stringify(dialogueEmotions);
   const slowModeIntervalsValue = JSON.stringify(slowModeIntervals);
 
   const subtitleEntries = subtitleFiles
@@ -765,6 +1071,7 @@ export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '${backgroundVideoFileName}';
 export const videoMode = 'brainrot';
 export const speakerOrder = ${speakerOrderValue};
+export const dialogueEmotions = ${dialogueEmotionsValue};
 export const slowModeIntervals = ${slowModeIntervalsValue};
 
 export const subtitlesFileName = [
@@ -813,6 +1120,11 @@ export async function runBrainrotTranscriptAudioJob(input) {
     input.props.pitchAnalysisModel.trim().length > 0
       ? input.props.pitchAnalysisModel.trim()
       : process.env.BRAINROT_PITCH_ANALYSIS_MODEL?.trim() || transcriptModel;
+  const emotionAnalysisModel =
+    typeof input.props.emotionAnalysisModel === "string" &&
+    input.props.emotionAnalysisModel.trim().length > 0
+      ? input.props.emotionAnalysisModel.trim()
+      : process.env.BRAINROT_EMOTION_ANALYSIS_MODEL?.trim() || transcriptModel;
 
   const safeJobId = sanitizeJobId(input.jobId);
   const workDir = path.join("/tmp", "brainrot", safeJobId);
@@ -844,18 +1156,6 @@ export async function runBrainrotTranscriptAudioJob(input) {
     useMockServices,
   });
 
-  await fs.writeFile(
-    transcriptPath,
-    JSON.stringify(
-      {
-        transcript,
-      },
-      null,
-      2,
-    ),
-    "utf8",
-  );
-
   await input.reportProgress("Transcript ready", 8, {
     phase: "brainrot_transcript_audio",
     phaseKey: "transcript_ready",
@@ -864,23 +1164,66 @@ export async function runBrainrotTranscriptAudioJob(input) {
 
   let pitchSlowMomentSelections = [];
   let resolvedPitchSlowMoments = [];
+  let dialogueEmotions = buildFallbackDialogueEmotions(transcript);
+
+  await input.reportProgress("Analyzing dialogue emotions", 9, {
+    phase: "brainrot_transcript_audio",
+    phaseKey: "dialogue_emotion_selection_start",
+  });
+
+  const dialogueEmotionPromise = getDialogueEmotionsWithRetry({
+    transcript,
+    agents,
+    model: emotionAnalysisModel,
+    useMockServices,
+  });
+
+  const pitchSlowMomentPromise = pitchModeEnabled
+    ? (async () => {
+        await input.reportProgress("Selecting pitch mode moments", 10, {
+          phase: "brainrot_transcript_audio",
+          phaseKey: "pitch_mode_selection_start",
+        });
+
+        return getPitchSlowMomentsWithRetry({
+          transcript,
+          model: pitchAnalysisModel,
+          useMockServices,
+        });
+      })()
+    : Promise.resolve([]);
+
+  const [dialogueEmotionResult, pitchSlowMomentResult] = await Promise.allSettled(
+    [dialogueEmotionPromise, pitchSlowMomentPromise],
+  );
+
+  if (dialogueEmotionResult.status === "fulfilled") {
+    dialogueEmotions = dialogueEmotionResult.value;
+  } else {
+    console.error(
+      `[dialogue_emotions] Falling back to heuristic selections after analysis failure: ${
+        dialogueEmotionResult.reason instanceof Error
+          ? dialogueEmotionResult.reason.message
+          : "unknown error"
+      }`,
+    );
+  }
+
+  await input.reportProgress("Dialogue emotions ready", 10, {
+    phase: "brainrot_transcript_audio",
+    phaseKey: "dialogue_emotion_selection_complete",
+    dialogueEmotionCount: dialogueEmotions.length,
+  });
 
   if (pitchModeEnabled) {
-    await input.reportProgress("Selecting pitch mode moments", 9, {
-      phase: "brainrot_transcript_audio",
-      phaseKey: "pitch_mode_selection_start",
-    });
-
-    try {
-      pitchSlowMomentSelections = await getPitchSlowMomentsWithRetry({
-        transcript,
-        model: pitchAnalysisModel,
-        useMockServices,
-      });
-    } catch (error) {
+    if (pitchSlowMomentResult.status === "fulfilled") {
+      pitchSlowMomentSelections = pitchSlowMomentResult.value;
+    } else {
       console.error(
         `[pitch_mode] Falling back to heuristic selections after analysis failure: ${
-          error instanceof Error ? error.message : "unknown error"
+          pitchSlowMomentResult.reason instanceof Error
+            ? pitchSlowMomentResult.reason.message
+            : "unknown error"
         }`,
       );
       pitchSlowMomentSelections =
@@ -901,7 +1244,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
       });
     }
 
-    await input.reportProgress("Pitch mode moments ready", 10, {
+    await input.reportProgress("Pitch mode moments ready", 11, {
       phase: "brainrot_transcript_audio",
       phaseKey: "pitch_mode_selection_complete",
       pitchModeApplied,
@@ -909,8 +1252,27 @@ export async function runBrainrotTranscriptAudioJob(input) {
     });
   }
 
+  const transcriptWithEmotions = transcript.map((entry, entryIndex) => ({
+    ...entry,
+    emotion:
+      dialogueEmotions[entryIndex]?.emotion ?? DEFAULT_DIALOGUE_EMOTION,
+  }));
+
+  await fs.writeFile(
+    transcriptPath,
+    JSON.stringify(
+      {
+        transcript: transcriptWithEmotions,
+        dialogueEmotions,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+
   if (!useMockServices) {
-    await input.reportProgress("Preparing MiniMax voice assets", 11, {
+    await input.reportProgress("Preparing MiniMax voice assets", 12, {
       phase: "brainrot_transcript_audio",
       phaseKey: "voice_assets_prepare",
     });
@@ -931,7 +1293,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
   let completedAudioCount = 0;
   let audioProgressChain = Promise.resolve();
   const generatedAudioFiles = await mapWithConcurrency(
-    transcript,
+    transcriptWithEmotions,
     AUDIO_GENERATION_CONCURRENCY,
     async (entry, index) => {
       if (!entry) {
@@ -1055,8 +1417,10 @@ export async function runBrainrotTranscriptAudioJob(input) {
         music,
         transcriptModel,
         pitchAnalysisModel,
+        emotionAnalysisModel,
         pitchModeEnabled,
         pitchModeApplied,
+        dialogueEmotions,
         pitchSlowMomentSelections,
         pitchSlowMoments: resolvedPitchSlowMoments,
         sourceAudioFiles: generatedAudioFiles,
@@ -1080,6 +1444,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
       music,
       initialAgentName: finalAudioFiles[0]?.person ?? agents[0],
       speakerOrder: agents,
+      dialogueEmotions,
       slowModeIntervals,
       subtitleFiles: subtitlePipelineResult.srtFiles,
       backgroundVideoFileName,
@@ -1095,7 +1460,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
   return {
     phase: "brainrot_transcript_audio",
     workDir,
-    transcript,
+    transcript: transcriptWithEmotions,
     transcriptPath,
     contextPath,
     manifestPath,
@@ -1105,6 +1470,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     splitSrtFiles: subtitlePipelineResult.splitSrtFiles,
     srtFiles: subtitlePipelineResult.srtFiles,
     timelineEntries,
+    dialogueEmotions,
     slowModeIntervals,
     pitchModeEnabled,
     pitchModeApplied,

@@ -224,6 +224,14 @@ export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/MINECRAFT-1.mp4';
 export const videoMode = 'brainrot';
 export const speakerOrder = ${JSON.stringify(selectedAgents)};
+export const dialogueEmotions = ${JSON.stringify(
+			transcript.map((entry, entryIndex) => ({
+				entryIndex,
+				agentId: entry.agentId,
+				emotion: 'neutral',
+				reason: 'legacy-local-default',
+			}))
+		)};
 export const slowModeIntervals = [];
 
 export const subtitlesFileName = [

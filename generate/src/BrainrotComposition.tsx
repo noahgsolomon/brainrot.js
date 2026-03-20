@@ -11,7 +11,12 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
-import { music, slowModeIntervals, speakerOrder } from './tmp/context';
+import {
+	dialogueEmotions,
+	music,
+	slowModeIntervals,
+	speakerOrder,
+} from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
 	SubtitleEntry,
@@ -138,11 +143,22 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		speakerOrder.length > 0
 			? speakerOrder
 			: Array.from(new Set(subtitlesFileName.map(({ name }) => name)));
-	const activeSpeakerName = currentAgentName || initialAgentName;
+	const subtitleAgentName = currentSubtitle
+		? subtitlesFileName[currentSubtitle.srtFileIndex]?.name
+		: null;
+	const activeSpeakerName =
+		subtitleAgentName || currentAgentName || initialAgentName;
 	const activeSpeakerIndex = resolvedSpeakerOrder.indexOf(activeSpeakerName);
 	const useRightSide =
 		activeSpeakerIndex === -1 ? true : activeSpeakerIndex % 2 === 0;
 	const currentTimeSeconds = frame / fps;
+	const currentDialogueEmotion =
+		currentSubtitle &&
+		dialogueEmotions[currentSubtitle.srtFileIndex]?.agentId === activeSpeakerName
+			? dialogueEmotions[currentSubtitle.srtFileIndex]
+			: null;
+	const activeEmotion = currentDialogueEmotion?.emotion ?? 'neutral';
+	const poseSide = useRightSide ? 'right' : 'left';
 	const isSlowModeActive = slowModeIntervals.some((interval) => {
 		const startSeconds = Number(interval?.startSeconds);
 		const endSeconds = Number(interval?.endSeconds);
@@ -195,9 +211,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 									}}
 									className="z-30 transition-all rounded-full"
 									src={staticFile(
-										`/pose/${
-											useRightSide ? 'right' : 'left'
-										}/${activeSpeakerName}.png`
+										`/pose/${poseSide}/${activeEmotion}/${activeSpeakerName}.png`
 									)}
 								/>
 							</div>
