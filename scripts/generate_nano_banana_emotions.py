@@ -54,7 +54,7 @@ EMOTION_DESCRIPTIONS: dict[str, str] = {
     "panic": "alarmed eyes, stressed expression, overwhelmed energy, visibly anxious",
     "sad_defeated": "slumped or softened expression, downturned mouth, tired defeated look",
     "locked_in": "intense focused eyes, serious face, high concentration, hyper-engaged",
-    "disgusted": "recoiling expression, side-eye or narrowed eyes, curled lip, repulsed reaction",
+    "disgusted": "skeptical side-eye, mildly grossed-out expression, curled upper lip, annoyed and unimpressed rather than extreme",
     "evil_grin": "sinister grin, mischievous eyes, menacing satisfaction, slightly cursed energy",
 }
 

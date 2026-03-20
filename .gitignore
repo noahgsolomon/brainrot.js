@@ -68,6 +68,8 @@ generate/hidden/*
 generate/src/tmp/*
 generate/public/emotions/
 generate/public/emotions_cutout/
+generate/public/pose/*collage.png
+generate/public/pose/custom-character-manifest.json
 # generate/public/*
 .env
 bun.lockb
