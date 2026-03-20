@@ -10,15 +10,17 @@ const groq = new Groq({
 	apiKey: process.env.GROQ_API_KEY,
 });
 
+function getMinimumExchangeCount(agents: string[]) {
+	return Math.max(5, agents.length * 2);
+}
+
 async function generateBrainrotTranscript(
 	topic: string,
-	agentA: string,
-	agentB: string
+	agents: string[]
 ) {
 	console.log('📝 Starting generateTranscript with params:', {
 		topic,
-		agentA,
-		agentB,
+		agents,
 	});
 
 	try {
@@ -27,26 +29,19 @@ async function generateBrainrotTranscript(
 			messages: [
 				{
 					role: 'system',
-					content: `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should be between two agents, ${agentA.replace(
-						'_',
-						' '
-					)} and ${agentB}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentA.replace(
-						'_',
-						' '
-					)} and ${agentB.replace(
-						'_',
-						' '
-					)} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of ${7} exchanges, aiming for a concise transcript that would last for 1 minute. The agentId attribute should either be ${agentA} or ${agentB}. The text attribute should be that character's line of dialogue. Make it as edgy and controversial as possible while still being funny. Remember, ${agentA} and ${agentB} are both ${agentA.replace(
-						'_',
-						' '
-					)} and ${agentB.replace(
-						'_',
-						' '
-					)} behaving like they would in real life, but more inflammatory. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { transcript: { [ {'agentId': 'the exact value of ${agentA} or ${agentB} depending on who is talking', 'text': 'their line of conversation in the dialog'} ] } }`,
+					content: `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should include these agents: ${agents
+						.map((agent) => agent.split('_').join(' '))
+						.join(', ')}. Every selected agent should speak at least once. Use a minimum of ${getMinimumExchangeCount(
+						agents
+					)} exchanges, and when there are many selected agents, let the conversation run longer so multiple speakers get multiple turns instead of rushing to the finish. There is no hard maximum exchange count. They should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. The agentId attribute must be one of ${agents.join(
+						', '
+					)}. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { "transcript": [ { "agentId": "${
+						agents[0]
+					}", "text": "their line of conversation in the dialog" } ] }`,
 				},
 				{
 					role: 'user',
-					content: `generate a video about ${topic}. Both the agents should talk about it in a way they would, but extremify their qualities and make the conversation risque so that it would be interesting to watch and edgy.`,
+					content: `generate a video about ${topic}. Every selected agent should talk about it in a way they would, but extremify their qualities and make the conversation risque so that it would be interesting to watch and edgy. If there are lots of speakers, make the conversation substantially longer instead of wrapping up quickly.`,
 				},
 			],
 			response_format: { type: 'json_object' },
@@ -77,13 +72,11 @@ function delay(ms: number) {
 
 export default async function brainrotTranscript(
 	topic: string,
-	agentA: string,
-	agentB: string
+	agents: string[]
 ) {
 	console.log('🎬 Starting transcriptFunction with params:', {
 		topic,
-		agentA,
-		agentB,
+		agents,
 	});
 
 	let transcript: Transcript[] | null = null;
@@ -93,7 +86,7 @@ export default async function brainrotTranscript(
 		console.log(`🔄 Attempt ${attempts + 1}/5`);
 		try {
 			console.log('📝 Generating transcript...');
-			const content = await generateBrainrotTranscript(topic, agentA, agentB);
+			const content = await generateBrainrotTranscript(topic, agents);
 
 			console.log('🔍 Parsing content...');
 			const parsedContent = content === '' ? null : JSON.parse(content);
@@ -101,6 +94,22 @@ export default async function brainrotTranscript(
 			transcript = parsedContent?.transcript || null;
 
 			if (transcript !== null && Array.isArray(transcript)) {
+				const validAgentIds = new Set(agents);
+				const presentAgentIds = new Set<string>();
+				for (const entry of transcript) {
+					if (!validAgentIds.has(entry.agentId)) {
+						throw new Error(`Unexpected agentId in transcript: ${entry.agentId}`);
+					}
+					presentAgentIds.add(entry.agentId);
+				}
+
+				const missingAgents = agents.filter((agent) => !presentAgentIds.has(agent));
+				if (missingAgents.length > 0) {
+					throw new Error(
+						`Transcript did not include every selected agent: ${missingAgents.join(', ')}`
+					);
+				}
+
 				console.log('✅ Valid transcript generated');
 				console.log('📜 Transcript lines:');
 				transcript.forEach((entry, index) => {
@@ -127,6 +136,7 @@ export default async function brainrotTranscript(
 export async function generateBrainrotTranscriptAudio({
 	local,
 	topic,
+	agents,
 	agentA,
 	agentB,
 	music,
@@ -134,6 +144,7 @@ export async function generateBrainrotTranscriptAudio({
 }: {
 	local: boolean;
 	topic: string;
+	agents?: string[];
 	agentA: string;
 	agentB: string;
 	music: string;
@@ -142,7 +153,7 @@ export async function generateBrainrotTranscriptAudio({
 	console.log('⭐ Starting generateTranscriptAudio with params:', {
 		local,
 		topic,
-		agentA,
+		agents,
 	});
 
 	try {
@@ -155,10 +166,11 @@ export async function generateBrainrotTranscriptAudio({
 		}
 
 		console.log('📜 Getting transcript from transcriptFunction');
+		const selectedAgents =
+			agents && agents.length >= 2 ? agents : [agentA, agentB];
 		let transcript = (await brainrotTranscript(
 			topic,
-			agentA,
-			agentB
+			selectedAgents
 		)) as Transcript[];
 		console.log('✅ Transcript generated:', transcript.length, 'entries');
 
@@ -211,6 +223,7 @@ export const music: string = ${
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '/background/MINECRAFT-1.mp4';
 export const videoMode = 'brainrot';
+export const speakerOrder = ${JSON.stringify(selectedAgents)};
 
 export const subtitlesFileName = [
   ${audios

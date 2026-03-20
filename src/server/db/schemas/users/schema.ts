@@ -45,6 +45,7 @@ export const videos = mysqlTable(
   {
     id: int("id").primaryKey().autoincrement(),
     user_id: int("user_id").notNull(),
+    agents: text("agents"),
     agent1: varchar("agent1", { length: 100 }).notNull(),
     agent2: varchar("agent2", { length: 100 }).notNull(),
     title: varchar("title", { length: 2000 }).notNull().default(""),
@@ -87,6 +88,7 @@ export const pendingVideos = mysqlTable(
   {
     id: int("id").primaryKey().autoincrement(),
     user_id: int("user_id").notNull(),
+    agents: text("agents"),
     agent1: varchar("agent1", { length: 100 }),
     agent2: varchar("agent2", { length: 100 }),
     title: varchar("title", { length: 2000 }).default(""),

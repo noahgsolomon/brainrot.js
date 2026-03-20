@@ -7,12 +7,14 @@ export const generateFillerContext = (videoMode: VideoMode) => {
             export const music: string = 'NONE';
             export const initialAgentName = 'JORDAN_PETERSON';
             export const videoFileName = '/background/MINECRAFT-1.mp4';
+            export const speakerOrder = [];
             
             export const subtitlesFileName = [];
             `;
 		case 'brainrot':
 			return `
 
+            export const speakerOrder = [];
             export const rapper: string = 'SPONGEBOB';
             export const imageBackground: string = '/rap/SPONGEBOB.png';
             `;

@@ -9,6 +9,7 @@ import { generateBrainrotTranscriptAudio } from './transcript';
 export default async function generateBrainrot({
 	local,
 	topic,
+	agents,
 	agentA,
 	agentB,
 	music,
@@ -16,6 +17,7 @@ export default async function generateBrainrot({
 }: {
 	local: boolean;
 	topic: string;
+	agents?: string[];
 	agentA: string;
 	agentB: string;
 	music: string;
@@ -24,6 +26,7 @@ export default async function generateBrainrot({
 	const { audios, transcript } = await generateBrainrotTranscriptAudio({
 		local,
 		topic,
+		agents,
 		agentA,
 		agentB,
 		music,

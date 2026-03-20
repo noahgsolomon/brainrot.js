@@ -37,7 +37,11 @@ import {
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { buildCreateVideoSearchQuery } from "@/lib/create-video-search-params";
+import {
+  MAX_BRAINROT_SPEAKERS,
+  MIN_BRAINROT_SPEAKERS,
+} from "@/lib/brainrot-speakers";
 import { useCreateVideo } from "./usecreatevideo";
 import { useAuth } from "@clerk/nextjs";
 import { useTRPC } from "@/trpc/client";
@@ -175,8 +179,7 @@ export default function CreateVideo({
     setInvalidTopic,
     setVideoInput,
     videoInput,
-    setSubmittedAgent1,
-    setSubmittedAgent2,
+    setSubmittedAgents,
     setSubmittedTitle,
     clearSubmittedVideo,
   } = useCreateVideo();
@@ -232,6 +235,9 @@ export default function CreateVideo({
               topic: variables.title,
               agent1: variables.agent1Name ?? "JORDAN_PETERSON",
               agent2: variables.agent2Name ?? "BEN_SHAPIRO",
+              agents:
+                variables.agentNames ??
+                [variables.agent1Name, variables.agent2Name].filter(Boolean),
               videoId: uuidVal,
               music: variables.music,
               credits: variables.cost,
@@ -281,9 +287,9 @@ export default function CreateVideo({
             .replace(/[\u201C\u201D\u201F\u275D\u275E"]/g, '"');
 
           const selectedAgent =
-            Math.random() < 0.5
-              ? videoDetails.agents[0]?.name
-              : videoDetails.agents[1]?.name;
+            variables.agentNames?.[
+              Math.floor(Math.random() * variables.agentNames.length)
+            ] ?? videoDetails.agents[0]?.name;
 
           setTimeout(() => {
             toast(
@@ -366,27 +372,20 @@ export default function CreateVideo({
 
   const searchQueryString = useMemo(
     () =>
-      `?agent1Id=${encodeURIComponent(
-        videoDetails.agents[0]?.id!,
-      )}&agent2Id=${encodeURIComponent(
-        videoDetails.agents[1]?.id!,
-      )}&agent1Name=${encodeURIComponent(
-        videoDetails.agents[0]?.name!,
-      )}&agent2Name=${encodeURIComponent(
-        videoDetails.agents[1]?.name!,
-      )}&title=${encodeURIComponent(
-        videoDetails.title,
-      )}&credits=${encodeURIComponent(
-        videoDetails.cost,
-      )}&music=${encodeURIComponent(
-        videoDetails.music ?? "NONE",
-      )}&background=${encodeURIComponent(
-        videoDetails.background ?? "MINECRAFT",
-      )}&assetType=${encodeURIComponent(
-        videoDetails.assetType ?? "GOOGLE",
-      )}&duration=${encodeURIComponent(
-        videoDetails.duration,
-      )}&fps=${encodeURIComponent(videoDetails.fps)}`,
+      buildCreateVideoSearchQuery({
+        agents: videoDetails.agents.map((currentAgent) => currentAgent.name),
+        agent1Id: String(videoDetails.agents[0]?.id ?? ""),
+        agent2Id: String(videoDetails.agents[1]?.id ?? ""),
+        agent1Name: videoDetails.agents[0]?.name,
+        agent2Name: videoDetails.agents[1]?.name,
+        title: videoDetails.title,
+        credits: String(videoDetails.cost),
+        music: videoDetails.music ?? "NONE",
+        background: videoDetails.background ?? "MINECRAFT",
+        assetType: videoDetails.assetType ?? "GOOGLE",
+        duration: String(videoDetails.duration),
+        fps: String(videoDetails.fps),
+      }),
     [videoDetails],
   );
 
@@ -411,14 +410,34 @@ export default function CreateVideo({
       }
     } else if (videoDetails.mode === "rap") {
       setAgent([newAgent]);
-    } else {
+    } else if (videoDetails.mode === "brainrot") {
       setAgent((currentAgents) => {
         const isAgentPresent = currentAgents.some(
-          (agent) => agent.name === newAgent.name,
+          (currentAgent) => currentAgent.name === newAgent.name,
         );
 
         if (isAgentPresent) {
-          return currentAgents.filter((agent) => agent.name !== newAgent.name);
+          return currentAgents.filter(
+            (currentAgent) => currentAgent.name !== newAgent.name,
+          );
+        }
+
+        if (currentAgents.length < MAX_BRAINROT_SPEAKERS) {
+          return [...currentAgents, newAgent];
+        }
+
+        return currentAgents;
+      });
+    } else {
+      setAgent((currentAgents) => {
+        const isAgentPresent = currentAgents.some(
+          (currentAgent) => currentAgent.name === newAgent.name,
+        );
+
+        if (isAgentPresent) {
+          return currentAgents.filter(
+            (currentAgent) => currentAgent.name !== newAgent.name,
+          );
         } else if (currentAgents.length < 2) {
           return [...currentAgents, newAgent];
         }
@@ -481,6 +500,14 @@ export default function CreateVideo({
       setSearchQuery("");
     }
   };
+
+  const hasValidSpeakerSelection =
+    videoDetails.mode === "brainrot"
+      ? agent.length >= MIN_BRAINROT_SPEAKERS &&
+        agent.length <= MAX_BRAINROT_SPEAKERS
+      : videoDetails.mode === "monologue" || videoDetails.mode === "rap"
+        ? agent.length === 1
+        : agent.length === 2;
 
   return (
     <>
@@ -1429,10 +1456,7 @@ export default function CreateVideo({
             <DialogFooter className="flex flex-row items-center justify-between">
               <Button
                 disabled={
-                  (videoDetails.mode !== "monologue" &&
-                    videoDetails.mode !== "rap" &&
-                    agent.length !== 2) ||
-                  (videoDetails.mode === "monologue" && agent.length !== 1) ||
+                  !hasValidSpeakerSelection ||
                   videoDetails.mode === "rap" ||
                   (videoInput === "" && recommendedSelect === -1) ||
                   createVideoMutation.isPending
@@ -1469,8 +1493,7 @@ export default function CreateVideo({
                   });
 
                   // Optimistic update: close dialog and show pending card immediately
-                  setSubmittedAgent1(agent[0]?.name ?? "");
-                  setSubmittedAgent2(agent[1]?.name ?? "");
+                  setSubmittedAgents(agent.map((selectedAgent) => selectedAgent.name));
                   setSubmittedTitle(resolvedTitle);
                   setIsOpen(false);
                   toast.info("Your video is currently in queue", { icon: "🕒" });
@@ -1479,8 +1502,10 @@ export default function CreateVideo({
                     title: resolvedTitle,
                     agent1: agent[0]?.id ?? 0,
                     agent2: agent[1]?.id ?? 1,
+                    agents: agent.map((selectedAgent) => selectedAgent.id),
                     agent1Name: agent[0]?.name ?? "JORDAN_PETERSON",
                     agent2Name: agent[1]?.name ?? "BEN_SHAPIRO",
+                    agentNames: agent.map((selectedAgent) => selectedAgent.name),
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
                     music: "WII_SHOP_CHANNEL_TRAP",

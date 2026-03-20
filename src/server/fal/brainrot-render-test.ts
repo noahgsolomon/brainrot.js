@@ -12,8 +12,7 @@ interface SubmitFalBrainrotRenderJobOptions {
   webhookUrl: string;
   webhookKey: string;
   topic: string;
-  agentA: string;
-  agentB: string;
+  agents: string[];
   music: string;
   pitchMode?: boolean;
 }
@@ -40,8 +39,7 @@ export async function submitFalBrainrotRenderJob({
   webhookUrl,
   webhookKey,
   topic,
-  agentA,
-  agentB,
+  agents,
   music,
   pitchMode = false,
 }: SubmitFalBrainrotRenderJobOptions) {
@@ -56,8 +54,7 @@ export async function submitFalBrainrotRenderJob({
       props: {
         pipeline: "brainrot_lambda_render",
         topic,
-        agentA,
-        agentB,
+        agents,
         music,
         pitchMode,
         video_id: videoId,
@@ -75,15 +72,14 @@ export async function submitFalBrainrotRenderTest({
   webhookKey,
 }: Omit<
   SubmitFalBrainrotRenderJobOptions,
-  "topic" | "agentA" | "agentB" | "music"
+  "topic" | "agents" | "music"
 >) {
   return submitFalBrainrotRenderJob({
     videoId,
     webhookUrl,
     webhookKey,
     topic: "fal spike migration",
-    agentA: "JOE_ROGAN",
-    agentB: "JOE_BIDEN",
+    agents: ["JOE_ROGAN", "JOE_BIDEN"],
     music: "WII_SHOP_CHANNEL_TRAP",
     pitchMode: false,
   });

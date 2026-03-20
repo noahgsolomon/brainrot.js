@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
+import { buildCreateVideoSearchQuery } from "@/lib/create-video-search-params";
 import { Box, Crown, ScrollText, Skull, Mic, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,27 +48,20 @@ export default function GenerationType() {
 
   const searchQueryString = useMemo(
     () =>
-      `?agent1Id=${encodeURIComponent(
-        videoDetails.agents[0]?.id!,
-      )}&agent2Id=${encodeURIComponent(
-        videoDetails.agents[1]?.id!,
-      )}&agent1Name=${encodeURIComponent(
-        videoDetails.agents[0]?.name!,
-      )}&agent2Name=${encodeURIComponent(
-        videoDetails.agents[1]?.name!,
-      )}&title=${encodeURIComponent(
-        videoDetails.title,
-      )}&credits=${encodeURIComponent(
-        videoDetails.cost,
-      )}&music=${encodeURIComponent(
-        videoDetails.music ?? "NONE",
-      )}&background=${encodeURIComponent(
-        videoDetails.background ?? "MINECRAFT",
-      )}&assetType=${encodeURIComponent(
-        videoDetails.assetType ?? "GOOGLE",
-      )}&duration=${encodeURIComponent(
-        videoDetails.duration,
-      )}&fps=${encodeURIComponent(videoDetails.fps)}`,
+      buildCreateVideoSearchQuery({
+        agents: videoDetails.agents.map((agent) => agent.name),
+        agent1Id: String(videoDetails.agents[0]?.id ?? ""),
+        agent2Id: String(videoDetails.agents[1]?.id ?? ""),
+        agent1Name: videoDetails.agents[0]?.name,
+        agent2Name: videoDetails.agents[1]?.name,
+        title: videoDetails.title,
+        credits: String(videoDetails.cost),
+        music: videoDetails.music ?? "NONE",
+        background: videoDetails.background ?? "MINECRAFT",
+        assetType: videoDetails.assetType ?? "GOOGLE",
+        duration: String(videoDetails.duration),
+        fps: String(videoDetails.fps),
+      }),
     [videoDetails],
   );
 

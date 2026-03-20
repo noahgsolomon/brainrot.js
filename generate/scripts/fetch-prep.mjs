@@ -8,8 +8,7 @@
  * Usage:
  *   node scripts/fetch-prep.mjs \
  *     --topic "AI taking over the world" \
- *     --agentA BARACK_OBAMA \
- *     --agentB JORDAN_PETERSON \
+ *     --agents BARACK_OBAMA,JORDAN_PETERSON,JOE_ROGAN \
  *     --music WII_SHOP_CHANNEL_TRAP \
  *     --pitchMode
  *
@@ -80,8 +79,15 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv);
 const topic = args.topic;
-const agentA = args.agentA || "BARACK_OBAMA";
-const agentB = args.agentB || "JORDAN_PETERSON";
+const agents =
+  typeof args.agents === "string" && args.agents.trim().length > 0
+    ? args.agents
+        .split(",")
+        .map((agent) => agent.trim())
+        .filter((agent) => agent.length > 0)
+    : [args.agentA || "BARACK_OBAMA", args.agentB || "JORDAN_PETERSON"];
+const agentA = agents[0] || "BARACK_OBAMA";
+const agentB = agents[1] || "JORDAN_PETERSON";
 const music = args.music || "WII_SHOP_CHANNEL_TRAP";
 const videoFileName = args.videoFileName || "/background/MINECRAFT-1.mp4";
 const mock = args.mock === "true";
@@ -89,7 +95,7 @@ const pitchMode = args.pitchMode === "true";
 
 if (!topic) {
   console.error(
-    "Usage: node scripts/fetch-prep.mjs --topic 'your topic' [--agentA X] [--agentB Y] [--music Z] [--pitchMode] [--mock]",
+    "Usage: node scripts/fetch-prep.mjs --topic 'your topic' [--agents A,B,C] [--agentA X] [--agentB Y] [--music Z] [--pitchMode] [--mock]",
   );
   process.exit(1);
 }
@@ -135,7 +141,7 @@ function sleep(ms) {
 async function main() {
   console.log("\n=== Brainrot Prep Fetch ===\n");
   console.log(`  Topic:  ${topic}`);
-  console.log(`  Agents: ${agentA} vs ${agentB}`);
+  console.log(`  Agents: ${agents.join(", ")}`);
   console.log(`  Music:  ${music}`);
   console.log(`  Mock:   ${mock}`);
   console.log(`  Pitch:  ${pitchMode}`);
@@ -151,6 +157,7 @@ async function main() {
       props: {
         pipeline: "brainrot_prep_upload",
         topic,
+        agents,
         agentA,
         agentB,
         music,

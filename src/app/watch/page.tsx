@@ -2,9 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import XIcon from "@/components/svg/XIcon";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { SpeakerAvatarStack } from "@/components/speaker-avatar-stack";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselApi,
@@ -13,6 +12,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  formatSpeakerNames,
+  serializeSpeakerNamesForQueryParam,
+} from "@/lib/brainrot-speakers";
 import { useTRPC } from "@/trpc/client";
 import { DownloadCloud, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -25,12 +28,13 @@ export default function Page() {
   const videosQuery = useQuery(trpc.user.getVideos.queryOptions({ page }));
 
   const [videos, setVideos] = useState<
-    {
-      id: number;
-      user_id: number;
-      agent1: string;
-      agent2: string;
-      title: string;
+      {
+        id: number;
+        user_id: number;
+        agents: string[];
+        agent1: string;
+        agent2: string;
+        title: string;
       url: string;
       videoId: string;
     }[]
@@ -131,49 +135,38 @@ export default function Page() {
         >
           <CarouselContent className="h-[750px]">
             {videos.map((video, index) => {
-              const agent1 = video.agent1;
-
-              const agent2 = video.agent2;
-
               const url = video.url;
+              const speakers =
+                video.agents.length > 0
+                  ? video.agents
+                  : [video.agent1, video.agent2].filter(Boolean);
+              const renderPath = video.url
+                .replace(
+                  "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/",
+                  "",
+                )
+                .replace("/out.mp4", "");
+              const renderUrlParams = new URLSearchParams({
+                title: video.title,
+              });
+              const serializedSpeakers =
+                serializeSpeakerNamesForQueryParam(speakers);
 
-              const agent1Img =
-                agent1 === "JORDAN_PETERSON"
-                  ? "/img/JORDAN_PETERSON.png"
-                  : agent1 === "JOE_ROGAN"
-                  ? "/img/JOE_ROGAN.png"
-                  : agent1 === "BARACK_OBAMA"
-                  ? "/img/BARACK_OBAMA.png"
-                  : agent1 === "BEN_SHAPIRO"
-                  ? "/img/BEN_SHAPIRO.png"
-                  : agent1 === "DONALD_TRUMP"
-                  ? "/img/DONALD_TRUMP.png"
-                  : agent1 === "KAMALA_HARRIS"
-                  ? "/img/KAMALA_HARRIS.png"
-                  : agent1 === "JOE_BIDEN"
-                  ? "/img/JOE_BIDEN.png"
-                  : agent1 === "ANDREW_TATE"
-                  ? "/img/ANDREW_TATE.png"
-                  : "/img/BEN_SHAPIRO.png";
+              if (serializedSpeakers) {
+                renderUrlParams.set("agents", serializedSpeakers);
+              }
 
-              const agent2Img =
-                agent2 === "JORDAN_PETERSON"
-                  ? "/img/JORDAN_PETERSON.png"
-                  : agent2 === "JOE_ROGAN"
-                  ? "/img/JOE_ROGAN.png"
-                  : agent2 === "BARACK_OBAMA"
-                  ? "/img/BARACK_OBAMA.png"
-                  : agent2 === "BEN_SHAPIRO"
-                  ? "/img/BEN_SHAPIRO.png"
-                  : agent2 === "DONALD_TRUMP"
-                  ? "/img/DONALD_TRUMP.png"
-                  : agent2 === "KAMALA_HARRIS"
-                  ? "/img/KAMALA_HARRIS.png"
-                  : agent2 === "JOE_BIDEN"
-                  ? "/img/JOE_BIDEN.png"
-                  : agent2 === "ANDREW_TATE"
-                  ? "/img/ANDREW_TATE.png"
-                  : "/img/BEN_SHAPIRO.png";
+              if (video.agent1) {
+                renderUrlParams.set("agent1", video.agent1);
+              }
+
+              if (video.agent2) {
+                renderUrlParams.set("agent2", video.agent2);
+              }
+
+              const shareText = `${video.title} explained by ${formatSpeakerNames(
+                speakers,
+              )} AI with @brainrotjs \n\nhttps://brainrotjs.com/renders/${renderPath}?${renderUrlParams.toString()}`;
 
               return (
                 <CarouselItem key={video.id}>
@@ -185,12 +178,7 @@ export default function Page() {
                       {video.title}
                     </p>
                     <div className="flex w-full flex-row justify-center gap-2 py-2">
-                      <Avatar className="border shadow-sm">
-                        <AvatarImage src={agent1Img} alt="agent1" />
-                      </Avatar>
-                      <Avatar className="border shadow-sm">
-                        <AvatarImage src={agent2Img} alt="agent2" />
-                      </Avatar>
+                      <SpeakerAvatarStack speakers={speakers} />
                     </div>
 
                     <div className="relative overflow-hidden rounded-lg">
@@ -217,33 +205,7 @@ export default function Page() {
                         Download <DownloadCloud className="size-4" />
                       </Link>
                       <Link
-                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                          `${video.title} explained by ${video.agent1
-                            .split("_")
-                            .map(
-                              (word) =>
-                                word.charAt(0) + word.slice(1).toLowerCase(),
-                            )
-                            .join(" ")} AI and ${video.agent2
-                            .split("_")
-                            .map(
-                              (word) =>
-                                word.charAt(0) + word.slice(1).toLowerCase(),
-                            )
-                            .join(
-                              " ",
-                            )} AI with @brainrotjs \n\nhttps://brainrotjs.com/renders/${video.url
-                            .replace(
-                              "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/",
-                              "",
-                            )
-                            .replace(
-                              "/out.mp4",
-                              "",
-                            )}?title=${encodeURIComponent(
-                            video.title,
-                          )}&agent1=${video.agent1}&agent2=${video.agent2}`,
-                        )}`}
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={buttonVariants({

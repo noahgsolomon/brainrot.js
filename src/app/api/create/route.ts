@@ -3,6 +3,11 @@ import {
   brainrotusers,
   pendingVideos,
 } from "@/server/db/schemas/users/schema";
+import {
+  MAX_BRAINROT_SPEAKERS,
+  MIN_BRAINROT_SPEAKERS,
+  normalizeSpeakerNames,
+} from "@/lib/brainrot-speakers";
 import { isLocalWebhookUrl } from "@/lib/fal-jobs";
 import { submitFalBrainrotRenderJob } from "@/server/fal/brainrot-render-test";
 import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
@@ -13,6 +18,7 @@ export const dynamic = "force-dynamic";
 
 const createRequestSchema = z.object({
   topic: z.string().min(1).max(2000),
+  agents: z.array(z.string().max(100)).optional(),
   agent1: z.string().max(100).optional(),
   agent2: z.string().max(100).optional(),
   videoId: z.string().min(1).max(100),
@@ -55,12 +61,30 @@ export async function POST(request: Request) {
     }
 
     const body = createRequestSchema.parse(await request.json());
+    const resolvedAgents = normalizeSpeakerNames(
+      body.agents ?? [body.agent1, body.agent2],
+    );
+
+    if (
+      body.videoMode === "brainrot" &&
+      (resolvedAgents.length < MIN_BRAINROT_SPEAKERS ||
+        resolvedAgents.length > MAX_BRAINROT_SPEAKERS)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error: `Brainrot videos require between ${MIN_BRAINROT_SPEAKERS} and ${MAX_BRAINROT_SPEAKERS} speakers.`,
+        },
+        { status: 400 },
+      );
+    }
 
     // Insert record into the database using the user_id from the API key lookup
     const pendingVideo = await createPendingVideoJob({
       userId: user.id,
-      agent1: body.agent1,
-      agent2: body.agent2,
+      agents: resolvedAgents,
+      agent1: resolvedAgents[0] ?? body.agent1,
+      agent2: resolvedAgents[1] ?? body.agent2,
       title: body.topic,
       videoId: body.videoId,
       music: body.music,
@@ -87,8 +111,7 @@ export async function POST(request: Request) {
           webhookUrl: pendingVideo.falWebhookUrl,
           webhookKey: pendingVideo.falWebhookKey,
           topic: body.topic,
-          agentA: body.agent1 ?? "JORDAN_PETERSON",
-          agentB: body.agent2 ?? "BEN_SHAPIRO",
+          agents: resolvedAgents,
           music: body.music ?? "WII_SHOP_CHANNEL_TRAP",
           pitchMode: body.pitchMode ?? true,
         });

@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useMutation } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
+import type { CreateVideoSearchParams } from "@/lib/create-video-search-params";
 import { useCreateVideo } from "./usecreatevideo";
 import { useYourVideos } from "./useyourvideos";
 import { useEffect, useState } from "react";
@@ -56,19 +57,7 @@ export default function BuyCreditsDialog({
   setOpen,
   outerTrigger,
 }: {
-  searchParams?: {
-    agent1Id?: string;
-    agent2Id?: string;
-    agent1Name?: string;
-    agent2Name?: string;
-    title?: string;
-    credits?: string;
-    music?: string;
-    background?: string;
-    assetType?: string;
-    duration?: string;
-    fps?: string;
-  };
+  searchParams?: CreateVideoSearchParams;
   searchQueryString?: string;
   onClick?: () => void;
   open?: boolean;

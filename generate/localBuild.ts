@@ -42,8 +42,6 @@ async function fileExists(filePath: string): Promise<boolean> {
 	}
 }
 
-const agents = ['JORDAN_PETERSON', 'JOE_ROGAN'];
-
 const local = true;
 
 async function main() {
@@ -52,8 +50,9 @@ async function main() {
 	console.log('MODE:', process.env.MODE);
 
 	const videoMode = 'brainrot' as VideoMode;
-	const agentA = 'BARACK_OBAMA';
-	const agentB = 'JORDAN_PETERSON';
+	const agents = ['BARACK_OBAMA', 'JORDAN_PETERSON', 'JOE_ROGAN'];
+	const agentA = agents[0]!;
+	const agentB = agents[1]!;
 	const outputType = 'audio' as 'audio' | 'video';
 	const songName = 'Family Matters';
 	const artistName = 'Drake';
@@ -90,6 +89,7 @@ async function main() {
 			await generateBrainrot({
 				local,
 				topic: videoTopic,
+				agents,
 				agentA,
 				agentB,
 				music,

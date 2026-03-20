@@ -7,6 +7,7 @@ import {
   createFalWebhookKey,
   hashFalWebhookKey,
 } from "@/lib/fal-jobs";
+import { serializeSpeakerNamesForStorage } from "@/lib/brainrot-speakers";
 import {
   createInitialTimingState,
   serializeTimingState,
@@ -16,6 +17,7 @@ import { pendingVideos } from "@/server/db/schemas/users/schema";
 
 export const createPendingVideoJobSchema = z.object({
   userId: z.number().int().positive(),
+  agents: z.array(z.string().max(100)).optional().nullable(),
   agent1: z.string().max(100).optional().nullable(),
   agent2: z.string().max(100).optional().nullable(),
   title: z.string().max(2000),
@@ -43,6 +45,7 @@ export async function createPendingVideoJob(input: CreatePendingVideoJobInput) {
 
   await db.insert(pendingVideos).values({
     user_id: job.userId,
+    agents: serializeSpeakerNamesForStorage(job.agents ?? []),
     agent1: job.agent1 ?? null,
     agent2: job.agent2 ?? null,
     title: job.title,

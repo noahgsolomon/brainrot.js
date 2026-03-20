@@ -45,6 +45,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatEtaSeconds, useLiveEta } from "@/lib/use-live-eta";
 import LatestGenerations from "@/components/latest-generations";
+import { SpeakerAvatarStack } from "@/components/speaker-avatar-stack";
 import type { CreateVideoSearchParams } from "@/lib/create-video-search-params";
 
 const buttonVariantsAnimated = {
@@ -118,6 +119,7 @@ const staggeredChild = {
 type PendingVideoItem = {
   id: number;
   title: string | null;
+  agents: string[];
   agent1: string | null;
   agent2: string | null;
   status: string;
@@ -183,8 +185,7 @@ export default function PageClient({
   const hasPendingVideos = pendingVideos.length > 0;
 
   const {
-    submittedAgent1,
-    submittedAgent2,
+    submittedAgents,
     submittedTitle,
     clearSubmittedVideo,
   } = useCreateVideo();
@@ -269,8 +270,7 @@ export default function PageClient({
       <PendingVideoStack
         videos={pendingVideos}
         onCancel={handleCancel}
-        submittedAgent1={submittedAgent1}
-        submittedAgent2={submittedAgent2}
+        submittedAgents={submittedAgents}
         submittedTitle={submittedTitle}
       />
 
@@ -448,32 +448,9 @@ function PendingVideoCard({
   return (
     <div className="rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
       {/* Dashed header with avatars + topic */}
-      {(video.agent1 || video.agent2 || video.title) && (
+      {(video.agents.length > 0 || video.title) && (
         <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
-          {(video.agent1 || video.agent2) && (
-            <div className="flex justify-center">
-              <div className="flex flex-row-reverse">
-                {video.agent2 && (
-                  <Image
-                    src={`/img/${video.agent2}.png`}
-                    alt={video.agent2}
-                    width={48}
-                    height={48}
-                    className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                  />
-                )}
-                {video.agent1 && (
-                  <Image
-                    src={`/img/${video.agent1}.png`}
-                    alt={video.agent1}
-                    width={48}
-                    height={48}
-                    className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                  />
-                )}
-              </div>
-            </div>
-          )}
+          <SpeakerAvatarStack speakers={video.agents} />
           {video.title && (
             <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
               {video.title}
@@ -521,14 +498,12 @@ function PendingVideoCard({
 function PendingVideoStack({
   videos,
   onCancel,
-  submittedAgent1,
-  submittedAgent2,
+  submittedAgents,
   submittedTitle,
 }: {
   videos: PendingVideoItem[];
   onCancel: (video: PendingVideoItem) => void;
-  submittedAgent1: string;
-  submittedAgent2: string;
+  submittedAgents: string[];
   submittedTitle: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -538,8 +513,7 @@ function PendingVideoStack({
 
   // Show optimistic card when queue submitted but server hasn't responded yet
   const showOptimistic =
-    (submittedAgent1 || submittedAgent2 || submittedTitle) &&
-    videos.length === 0;
+    (submittedAgents.length > 0 || submittedTitle) && videos.length === 0;
 
   if (videos.length === 0 && !showOptimistic) return null;
 
@@ -547,32 +521,9 @@ function PendingVideoStack({
     return (
       <div className="w-80">
         <div className="rounded-lg border border-border bg-card/80 p-4 text-sm shadow-sm">
-          {(submittedAgent1 || submittedAgent2 || submittedTitle) && (
+          {(submittedAgents.length > 0 || submittedTitle) && (
             <div className="mb-3 flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-3">
-              {(submittedAgent1 || submittedAgent2) && (
-                <div className="flex justify-center">
-                  <div className="flex flex-row-reverse">
-                    {submittedAgent2 && (
-                      <Image
-                        src={`/img/${submittedAgent2}.png`}
-                        alt={submittedAgent2}
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                      />
-                    )}
-                    {submittedAgent1 && (
-                      <Image
-                        src={`/img/${submittedAgent1}.png`}
-                        alt={submittedAgent1}
-                        width={48}
-                        height={48}
-                        className="-mr-3 h-12 w-12 rounded-full border-2 border-background object-cover shadow-sm"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
+              <SpeakerAvatarStack speakers={submittedAgents} />
               {submittedTitle && (
                 <p className="w-full truncate text-center text-lg font-semibold text-foreground/70">
                   {submittedTitle}

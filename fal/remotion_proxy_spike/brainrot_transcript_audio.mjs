@@ -46,6 +46,35 @@ function humanizeAgentName(agentName) {
   return agentName.replace(/_/g, " ");
 }
 
+function parseAgentListProp(value) {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry) => typeof entry === "string")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+  }
+
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return [];
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return parseAgentListProp(parsed);
+    } catch {
+      // Fall back to comma-separated parsing below.
+    }
+  }
+
+  return trimmed
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
 function resolveAgentName(props, preferredKey, fallbackKey) {
   const value = props[preferredKey] ?? props[fallbackKey];
 
@@ -54,6 +83,19 @@ function resolveAgentName(props, preferredKey, fallbackKey) {
   }
 
   return value.trim();
+}
+
+function resolveAgentNames(props) {
+  const fromAgentsProp = [...new Set(parseAgentListProp(props.agents))];
+
+  if (fromAgentsProp.length >= 2) {
+    return fromAgentsProp;
+  }
+
+  return [
+    resolveAgentName(props, "agentA", "agent1"),
+    resolveAgentName(props, "agentB", "agent2"),
+  ];
 }
 
 function parseBooleanProp(value) {
@@ -223,10 +265,11 @@ function tokensMatch(lineToken, phraseToken) {
   return lineToken.startsWith(phraseToken) || phraseToken.startsWith(lineToken);
 }
 
-function parseTranscriptPayload(payload) {
+function parseTranscriptPayload(payload, allowedAgentIds = []) {
   const candidatePayload =
     payload && typeof payload === "object" ? payload : {};
   const transcript = candidatePayload.transcript;
+  const allowedAgentIdSet = new Set(allowedAgentIds);
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
     throw new Error(
@@ -249,8 +292,16 @@ function parseTranscriptPayload(payload) {
       throw new Error(`Transcript entry at index ${index} has empty text`);
     }
 
+    const agentId = entry.agentId.trim();
+
+    if (allowedAgentIdSet.size > 0 && !allowedAgentIdSet.has(agentId)) {
+      throw new Error(
+        `Transcript entry at index ${index} used unsupported agentId ${agentId}`,
+      );
+    }
+
     return {
-      agentId: entry.agentId.trim(),
+      agentId,
       text: sanitizedText,
     };
   });
@@ -441,49 +492,82 @@ async function runStructuredOpenRouterTaskWithRetry({
   );
 }
 
-function buildMockTranscript({ topic, agentA, agentB }) {
-  return [
-    {
-      agentId: agentA,
-      text: `I cannot believe we're actually doing a fal proof of concept about ${topic}.`,
-    },
-    {
-      agentId: agentB,
-      text: `This is the first real brainrot worker phase, and it already looks more serious than the old poller.`,
-    },
-    {
-      agentId: agentA,
-      text: `Good, because the next step is subtitles and then the real Remotion render.`,
-    },
-  ];
+function formatAgentList(agentIds) {
+  const humanized = agentIds.map(humanizeAgentName);
+
+  if (humanized.length <= 1) {
+    return humanized[0] ?? "";
+  }
+
+  if (humanized.length === 2) {
+    return `${humanized[0]} and ${humanized[1]}`;
+  }
+
+  return `${humanized.slice(0, -1).join(", ")}, and ${humanized.at(-1)}`;
+}
+
+function getMinimumExchangeCount(agentIds) {
+  return Math.max(5, agentIds.length * 2);
+}
+
+function buildMockTranscript({ topic, agents }) {
+  const safeAgents = agents.slice(0, Math.min(agents.length, 8));
+  const exchangeCount = getMinimumExchangeCount(safeAgents);
+
+  return Array.from({ length: exchangeCount }, (_, index) => {
+    const agentId = safeAgents[index % safeAgents.length];
+    const humanName = humanizeAgentName(agentId);
+
+    return {
+      agentId,
+      text:
+        index === 0
+          ? `I cannot believe we're actually doing a fal proof of concept about ${topic}.`
+          : index === exchangeCount - 1
+            ? `Good, because now ${humanName} gets another turn and the render finally feels like an actual crowd argument.`
+            : `${humanName} is still piling onto this ${topic} debate because a bigger cast needs more than seven tiny exchanges to get properly chaotic.`,
+    };
+  });
 }
 
 async function getTranscriptWithRetry({
   topic,
-  agentA,
-  agentB,
+  agents,
   model,
   useMockServices,
 }) {
   if (useMockServices) {
     return buildMockTranscript({
       topic,
-      agentA,
-      agentB,
+      agents,
     });
   }
 
-  const agentAHuman = humanizeAgentName(agentA);
-  const agentBHuman = humanizeAgentName(agentB);
-  const systemPrompt = `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should be between two agents, ${agentAHuman} and ${agentBHuman}, who should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. ${agentAHuman} and ${agentBHuman} should both be absurdly vulgar and crude in their language, cursing excessively and making outrageous statements to the point where it becomes almost comically over-the-top. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. Limit the dialogue to a maximum of 7 exchanges, aiming for a concise transcript that would last for about 1 minute. The agentId attribute must be either ${agentA} or ${agentB}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agentA}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
-  const prompt = `Generate a video transcript about ${topic}. Both agents should talk about it in the way they would, but exaggerate their qualities and make the conversation risque, edgy, and interesting to watch.`;
+  const minimumExchanges = getMinimumExchangeCount(agents);
+  const agentList = formatAgentList(agents);
+  const systemPrompt = `Create a dialogue for a conversation on the topic of ${topic}. The conversation should include these agents: ${agentList}. Every selected agent should speak at least once. Use a minimum of ${minimumExchanges} exchanges, and when there are many selected agents, let the conversation run longer so multiple speakers get multiple turns instead of rushing to the finish. There is no hard maximum exchange count. They should all act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane, shocking, and funny way possible. The agentId attribute must always be one of: ${agents.join(", ")}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agents[0]}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
+  const prompt = `Generate a video transcript about ${topic}. Every selected agent should get a distinct turn, and if the cast is large the conversation should stretch out into a much bigger chaotic back-and-forth instead of stopping after a tiny number of exchanges.`;
 
   return runStructuredOpenRouterTaskWithRetry({
     taskName: "transcript",
     primaryModel: model,
     prompt,
     systemPrompt,
-    parseOutput: parseTranscriptPayload,
+    parseOutput: (payload) => {
+      const transcript = parseTranscriptPayload(payload, agents);
+      const presentAgentIds = new Set(transcript.map((entry) => entry.agentId));
+      const missingAgents = agents.filter((agentId) => !presentAgentIds.has(agentId));
+
+      if (missingAgents.length > 0) {
+        throw new Error(
+          `Transcript did not give every selected agent a turn. Missing: ${missingAgents.join(
+            ", ",
+          )}`,
+        );
+      }
+
+      return transcript;
+    },
   });
 }
 
@@ -656,10 +740,12 @@ async function generateVoiceClip({
 function buildContextContent({
   music,
   initialAgentName,
+  speakerOrder,
   subtitleFiles,
   backgroundVideoFileName,
 }) {
   const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
+  const speakerOrderValue = JSON.stringify(speakerOrder);
 
   const subtitleEntries = subtitleFiles
     .map(
@@ -676,6 +762,7 @@ export const music: string = ${musicValue};
 export const initialAgentName = '${initialAgentName}';
 export const videoFileName = '${backgroundVideoFileName}';
 export const videoMode = 'brainrot';
+export const speakerOrder = ${speakerOrderValue};
 
 export const subtitlesFileName = [
   ${subtitleEntries}
@@ -693,8 +780,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     throw new Error("Missing required prop: topic");
   }
 
-  const agentA = resolveAgentName(input.props, "agentA", "agent1");
-  const agentB = resolveAgentName(input.props, "agentB", "agent2");
+  const agents = resolveAgentNames(input.props);
   const music =
     typeof input.props.music === "string" && input.props.music.trim().length > 0
       ? input.props.music.trim()
@@ -750,8 +836,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
 
   const transcript = await getTranscriptWithRetry({
     topic,
-    agentA,
-    agentB,
+    agents,
     model: transcriptModel,
     useMockServices,
   });
@@ -939,8 +1024,9 @@ export async function runBrainrotTranscriptAudioJob(input) {
       {
         jobId: input.jobId,
         topic,
-        agentA,
-        agentB,
+        agents,
+        agentA: agents[0] ?? null,
+        agentB: agents[1] ?? null,
         music,
         transcriptModel,
         pitchAnalysisModel,
@@ -965,7 +1051,8 @@ export async function runBrainrotTranscriptAudioJob(input) {
     contextPath,
     buildContextContent({
       music,
-      initialAgentName: finalAudioFiles[0]?.person ?? agentA,
+      initialAgentName: finalAudioFiles[0]?.person ?? agents[0],
+      speakerOrder: agents,
       subtitleFiles: subtitlePipelineResult.srtFiles,
       backgroundVideoFileName,
     }),

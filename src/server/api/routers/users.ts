@@ -15,6 +15,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import { z } from "zod";
 import OpenAI from "openai";
 import { absoluteUrl } from "@/lib/utils";
+import {
+  buildCreateVideoSearchQuery,
+  type CreateVideoSearchParams,
+} from "@/lib/create-video-search-params";
+import { resolveSpeakerNames } from "@/lib/brainrot-speakers";
 import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
 import { PLANS, getPriceId } from "@/config/stripe";
 import { TRPCError } from "@trpc/server";
@@ -33,6 +38,19 @@ const openai = new OpenAI({
 
 let accessToken: string | null = null;
 let tokenExpiration = 0;
+
+function withResolvedSpeakers<
+  T extends {
+    agents?: string | null;
+    agent1?: string | null;
+    agent2?: string | null;
+  },
+>(video: T) {
+  return {
+    ...video,
+    agents: resolveSpeakerNames(video.agents, [video.agent1, video.agent2]),
+  };
+}
 
 async function getSpotifyToken() {
   if (accessToken && tokenExpiration > Date.now()) {
@@ -285,6 +303,7 @@ export const userRouter = createTRPCRouter({
 
     const pendingJob = await createPendingVideoJob({
       userId: ctx.user_id,
+      agents: ["JOE_ROGAN", "JOE_BIDEN"],
       agent1: "JOE_ROGAN",
       agent2: "JOE_BIDEN",
       title: "fal brainrot render test",
@@ -340,6 +359,7 @@ export const userRouter = createTRPCRouter({
       where: eq(pendingVideos.user_id, ctx.user_id),
       orderBy: (pendingVideos, { asc }) => [asc(pendingVideos.timestamp)],
       columns: {
+        agents: true,
         id: true,
         title: true,
         agent1: true,
@@ -440,6 +460,7 @@ export const userRouter = createTRPCRouter({
         return {
           id: video.id,
           title: video.title,
+          agents: resolveSpeakerNames(video.agents, [video.agent1, video.agent2]),
           agent1: video.agent1,
           agent2: video.agent2,
           status: video.status,
@@ -506,7 +527,7 @@ export const userRouter = createTRPCRouter({
       limit: 10,
     });
 
-    return { videos: userVideosDb };
+    return { videos: userVideosDb.map(withResolvedSpeakers) };
   }),
 
   userRapAudio: protectedProcedure.query(async ({ ctx }) => {
@@ -526,7 +547,7 @@ export const userRouter = createTRPCRouter({
         orderBy: sql`rand()`,
       });
 
-      return { videos: userVideosDb };
+      return { videos: userVideosDb.map(withResolvedSpeakers) };
     }),
 
   getLatestGenerations: publicProcedure.query(async ({ ctx }) => {
@@ -534,6 +555,7 @@ export const userRouter = createTRPCRouter({
       where: sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
       orderBy: (videos, { desc }) => [desc(videos.id)],
       columns: {
+        agents: true,
         id: true,
         title: true,
         url: true,
@@ -552,7 +574,7 @@ export const userRouter = createTRPCRouter({
       return true;
     });
 
-    return { videos: unique.slice(0, 20) };
+    return { videos: unique.slice(0, 20).map(withResolvedSpeakers) };
   }),
 
   newUserVideo: protectedProcedure.query(async ({ ctx }) => {
@@ -562,7 +584,7 @@ export const userRouter = createTRPCRouter({
       limit: 1,
     });
 
-    return { videos: userVideosDb };
+    return { videos: userVideosDb.map(withResolvedSpeakers) };
   }),
 
   // Mutation to update the current user's name
@@ -602,6 +624,7 @@ export const userRouter = createTRPCRouter({
         title: z.string(),
         agent1: z.number(),
         agent2: z.number(),
+        agents: z.array(z.number()).optional(),
         remainingCredits: z.number(),
         cost: z.number(),
         outputType: z.enum(["video", "audio"]).optional().default("video"),
@@ -613,6 +636,7 @@ export const userRouter = createTRPCRouter({
         trackId: z.string().optional(),
         agent1Name: z.string().optional(),
         agent2Name: z.string().optional(),
+        agentNames: z.array(z.string()).optional(),
         music: z.string().optional(),
       }),
     )
@@ -712,6 +736,7 @@ export const userRouter = createTRPCRouter({
         creditPacks: z.number().min(1).max(10),
         searchParams: z
           .object({
+            agents: z.string().optional(),
             agent1Id: z.string().optional(),
             agent2Id: z.string().optional(),
             agent1Name: z.string().optional(),
@@ -729,30 +754,10 @@ export const userRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const searchParams = input?.searchParams ?? {};
+      const searchParams: CreateVideoSearchParams = input?.searchParams ?? {};
       const searchQueryString = input?.searchQueryString
         ? input?.searchQueryString
-        : `?agent1Id=${encodeURIComponent(
-            searchParams.agent1Id || "",
-          )}&agent2Id=${encodeURIComponent(
-            searchParams.agent2Id || "",
-          )}&agent1Name=${encodeURIComponent(
-            searchParams.agent1Name || "",
-          )}&agent2Name=${encodeURIComponent(
-            searchParams.agent2Name || "",
-          )}&title=${encodeURIComponent(
-            searchParams.title || "",
-          )}&credits=${encodeURIComponent(
-            searchParams.credits || "",
-          )}&music=${encodeURIComponent(
-            searchParams.music || "",
-          )}&background=${encodeURIComponent(
-            searchParams.background || "",
-          )}&assetType=${encodeURIComponent(
-            searchParams.assetType || "",
-          )}&duration=${encodeURIComponent(
-            searchParams.duration || "",
-          )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+        : buildCreateVideoSearchQuery(searchParams);
 
       const dbUser = await ctx.db.query.brainrotusers.findFirst({
         where: eq(brainrotusers.id, ctx.user_id),
@@ -791,6 +796,7 @@ export const userRouter = createTRPCRouter({
         .object({
           searchParams: z
             .object({
+              agents: z.string().optional(),
               agent1Id: z.string().optional(),
               agent2Id: z.string().optional(),
               agent1Name: z.string().optional(),
@@ -809,30 +815,10 @@ export const userRouter = createTRPCRouter({
         .optional(),
     )
     .mutation(async ({ ctx, input }) => {
-      const searchParams = input?.searchParams ?? {};
+      const searchParams: CreateVideoSearchParams = input?.searchParams ?? {};
       const searchQueryString = input?.searchQueryString
         ? input?.searchQueryString
-        : `?agent1Id=${encodeURIComponent(
-            searchParams.agent1Id || "",
-          )}&agent2Id=${encodeURIComponent(
-            searchParams.agent2Id || "",
-          )}&agent1Name=${encodeURIComponent(
-            searchParams.agent1Name || "",
-          )}&agent2Name=${encodeURIComponent(
-            searchParams.agent2Name || "",
-          )}&title=${encodeURIComponent(
-            searchParams.title || "",
-          )}&credits=${encodeURIComponent(
-            searchParams.credits || "",
-          )}&music=${encodeURIComponent(
-            searchParams.music || "",
-          )}&background=${encodeURIComponent(
-            searchParams.background || "",
-          )}&assetType=${encodeURIComponent(
-            searchParams.assetType || "",
-          )}&duration=${encodeURIComponent(
-            searchParams.duration || "",
-          )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+        : buildCreateVideoSearchQuery(searchParams);
 
       console.log("HIT CREATE STRIPE SESSION");
       // Retrieve the user from the database

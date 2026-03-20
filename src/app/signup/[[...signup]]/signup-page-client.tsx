@@ -18,7 +18,10 @@ import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import OneTimePassword from "./OneTimePassword";
 import SignUpOAuthButtons from "./SignUpOAuthButtons";
-import type { CreateVideoSearchParams } from "@/lib/create-video-search-params";
+import {
+  buildCreateVideoSearchQuery,
+  type CreateVideoSearchParams,
+} from "@/lib/create-video-search-params";
 
 const quotes = [
   {
@@ -71,7 +74,7 @@ export default function Page({
     resolver: zodResolver(formSchema),
   });
 
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { isLoaded, signUp } = useSignUp();
   const [pendingVerification, setPendingVerification] = useState(false);
   const [pendingSignUp, setPendingSignUp] = useState(false);
 
@@ -104,27 +107,7 @@ export default function Page({
 
   const randomQuote = useMemo(() => getRandomQuote(), []);
 
-  const searchQueryString = `?agent1Id=${encodeURIComponent(
-    searchParams.agent1Id || "",
-  )}&agent2Id=${encodeURIComponent(
-    searchParams.agent2Id || "",
-  )}&agent1Name=${encodeURIComponent(
-    searchParams.agent1Name || "",
-  )}&agent2Name=${encodeURIComponent(
-    searchParams.agent2Name || "",
-  )}&title=${encodeURIComponent(
-    searchParams.title || "",
-  )}&credits=${encodeURIComponent(
-    searchParams.credits || "",
-  )}&music=${encodeURIComponent(
-    searchParams.music || "",
-  )}&background=${encodeURIComponent(
-    searchParams.background || "",
-  )}&assetType=${encodeURIComponent(
-    searchParams.assetType || "",
-  )}&duration=${encodeURIComponent(
-    searchParams.duration || "",
-  )}&fps=${encodeURIComponent(searchParams.fps || "")}`;
+  const searchQueryString = buildCreateVideoSearchQuery(searchParams);
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">

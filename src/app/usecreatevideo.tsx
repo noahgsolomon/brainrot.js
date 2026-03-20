@@ -7,10 +7,8 @@ interface UseCreateVideoProps {
   setInvalidTopic: (invalidTopic: boolean) => void;
   videoInput: string;
   setVideoInput: (videoInput: string) => void;
-  submittedAgent1: string;
-  setSubmittedAgent1: (agent: string) => void;
-  submittedAgent2: string;
-  setSubmittedAgent2: (agent: string) => void;
+  submittedAgents: string[];
+  setSubmittedAgents: (agents: string[]) => void;
   submittedTitle: string;
   setSubmittedTitle: (title: string) => void;
   clearSubmittedVideo: () => void;
@@ -23,16 +21,13 @@ export const useCreateVideo = create<UseCreateVideoProps>((set) => ({
   setInvalidTopic: (invalidTopic) => set({ invalidTopic }),
   videoInput: "",
   setVideoInput: (videoInput) => set({ videoInput }),
-  submittedAgent1: "",
-  setSubmittedAgent1: (agent) => set({ submittedAgent1: agent }),
-  submittedAgent2: "",
-  setSubmittedAgent2: (agent) => set({ submittedAgent2: agent }),
+  submittedAgents: [],
+  setSubmittedAgents: (agents) => set({ submittedAgents: agents }),
   submittedTitle: "",
   setSubmittedTitle: (title) => set({ submittedTitle: title }),
   clearSubmittedVideo: () =>
     set({
-      submittedAgent1: "",
-      submittedAgent2: "",
+      submittedAgents: [],
       submittedTitle: "",
     }),
 }));

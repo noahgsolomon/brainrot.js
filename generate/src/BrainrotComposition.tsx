@@ -11,7 +11,7 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
-import { music } from './tmp/context';
+import { music, speakerOrder } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
 	SubtitleEntry,
@@ -59,7 +59,6 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		null
 	);
 	const [handle] = useState<number | null>(null);
-	const [prevImageIdx, setPrevImageIdx] = useState<number>(0);
 	const ref = useRef<HTMLDivElement>(null);
 
 	const getCurrentAmplitude = () => {
@@ -89,7 +88,6 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 			);
 
 			if (currentSubtitle) {
-				setPrevImageIdx(currentSubtitle.srtFileIndex);
 				setCurrentSubtitle(currentSubtitle);
 				const agentInfo = subtitlesFileName[currentSubtitle.srtFileIndex];
 				setCurrentAgentName(agentInfo.name);
@@ -136,6 +134,14 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	}, [handle]);
 
 	const audioOffsetInFrames = Math.round(audioOffsetInSeconds * fps);
+	const resolvedSpeakerOrder =
+		speakerOrder.length > 0
+			? speakerOrder
+			: Array.from(new Set(subtitlesFileName.map(({ name }) => name)));
+	const activeSpeakerName = currentAgentName || initialAgentName;
+	const activeSpeakerIndex = resolvedSpeakerOrder.indexOf(activeSpeakerName);
+	const useRightSide =
+		activeSpeakerIndex === -1 ? true : activeSpeakerIndex % 2 === 0;
 
 	return (
 		<div ref={ref}>
@@ -164,11 +170,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 						<div
 							className={`absolute left-0 right-0 flex flex-row p-5 z-30 transition-all duration-500 ease-in-out ${
 								currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
-							} ${
-								currentAgentName === subtitlesFileName[0].name
-									? 'justify-end'
-									: 'justify-start'
-							}`}
+							} ${useRightSide ? 'justify-end' : 'justify-start'}`}
 						>
 							<Img
 								width={400}
@@ -179,10 +181,8 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 								className="z-30 transition-all rounded-full"
 								src={staticFile(
 									`/pose/${
-										currentAgentName === subtitlesFileName[0].name
-											? 'right'
-											: 'left'
-									}/${currentAgentName || initialAgentName}.png`
+										useRightSide ? 'right' : 'left'
+									}/${activeSpeakerName}.png`
 								)}
 							/>
 						</div>

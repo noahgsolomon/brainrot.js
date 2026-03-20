@@ -5,6 +5,10 @@ import {
   getSingleSearchParam,
   type RawSearchParams,
 } from "@/lib/create-video-search-params";
+import {
+  formatSpeakerNames,
+  resolveSpeakerNames,
+} from "@/lib/brainrot-speakers";
 
 type Props = {
   params: Promise<{ pathId: string }>;
@@ -18,6 +22,11 @@ export async function generateMetadata({
   const title = getSingleSearchParam(resolvedSearchParams.title);
   const agent1 = getSingleSearchParam(resolvedSearchParams.agent1);
   const agent2 = getSingleSearchParam(resolvedSearchParams.agent2);
+  const agents = resolveSpeakerNames(
+    getSingleSearchParam(resolvedSearchParams.agents),
+    [agent1, agent2],
+  );
+  const speakerSummary = formatSpeakerNames(agents);
   // read route params
 
   // const video = await api.user.findVideo.query({
@@ -30,21 +39,9 @@ export async function generateMetadata({
 
   return {
     title: title ?? "Unresolved Video",
-    description: `${title ?? "Unresolved Video"} explained by ${
-      agent1
-        ? agent1
-            .split("_")
-            .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-            .join(" ")
-        : ""
-    } and ${
-      agent2
-        ? agent2
-            .split("_")
-            .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-            .join(" ")
-        : ""
-    }`,
+    description: speakerSummary
+      ? `${title ?? "Unresolved Video"} explained by ${speakerSummary}`
+      : title ?? "Unresolved Video",
     openGraph: {
       images: ["/brainrot_new2.png"],
     },
@@ -53,21 +50,9 @@ export async function generateMetadata({
       site: "brainrotjs.com",
       creator: "@noahgsolomon",
       title: title ?? "Unresolved Video",
-      description: `${title ?? "Unresolved Video"} explained by ${
-        agent1
-          ? agent1
-              .split("_")
-              .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-              .join(" ")
-          : ""
-      } and ${
-        agent2
-          ? agent2
-              .split("_")
-              .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-              .join(" ")
-          : ""
-      }`,
+      description: speakerSummary
+        ? `${title ?? "Unresolved Video"} explained by ${speakerSummary}`
+        : title ?? "Unresolved Video",
       images: ["/brainrot_new2.png"],
     },
   };

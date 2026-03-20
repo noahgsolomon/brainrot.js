@@ -15,13 +15,16 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import ReactPlayer from "react-player";
-import { Avatar } from "@/components/ui/avatar";
-import { AvatarImage } from "@radix-ui/react-avatar";
+import { SpeakerAvatarStack } from "@/components/speaker-avatar-stack";
 import { StopIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import XIcon from "@/components/svg/XIcon";
 import { useAudioStore } from "@/store/audioStore";
 import Image from "next/image";
+import {
+  formatSpeakerNames,
+  serializeSpeakerNamesForQueryParam,
+} from "@/lib/brainrot-speakers";
 
 export default function YourVideos({ visible = false }: { visible?: boolean }) {
   const trpc = useTRPC();
@@ -43,47 +46,38 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
             <div className="flex flex-col items-center justify-center">
               <h3 className="mb-4 text-xl font-bold">Your Videos</h3>
               {videos.map((video, index) => {
-                const agent1 = video.agent1;
-                const agent2 = video.agent2;
                 const url = video.url;
+                const speakers =
+                  video.agents.length > 0
+                    ? video.agents
+                    : [video.agent1, video.agent2].filter(Boolean);
+                const renderPath = video.url
+                  .replace(
+                    "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/",
+                    "",
+                  )
+                  .replace("/out.mp4", "");
+                const renderUrlParams = new URLSearchParams({
+                  title: video.title,
+                });
+                const serializedSpeakers =
+                  serializeSpeakerNamesForQueryParam(speakers);
 
-                const agent1Img =
-                  agent1 === "JORDAN_PETERSON"
-                    ? "/img/JORDAN_PETERSON.png"
-                    : agent1 === "JOE_ROGAN"
-                    ? "/img/JOE_ROGAN.png"
-                    : agent1 === "BARACK_OBAMA"
-                    ? "/img/BARACK_OBAMA.png"
-                    : agent1 === "BEN_SHAPIRO"
-                    ? "/img/BEN_SHAPIRO.png"
-                    : agent1 === "DONALD_TRUMP"
-                    ? "/img/DONALD_TRUMP.png"
-                    : agent1 === "KAMALA_HARRIS"
-                    ? "/img/KAMALA_HARRIS.png"
-                    : agent1 === "JOE_BIDEN"
-                    ? "/img/JOE_BIDEN.png"
-                    : agent1 === "ANDREW_TATE"
-                    ? "/img/ANDREW_TATE.png"
-                    : "/img/BEN_SHAPIRO.png";
+                if (serializedSpeakers) {
+                  renderUrlParams.set("agents", serializedSpeakers);
+                }
 
-                const agent2Img =
-                  agent2 === "JORDAN_PETERSON"
-                    ? "/img/JORDAN_PETERSON.png"
-                    : agent2 === "JOE_ROGAN"
-                    ? "/img/JOE_ROGAN.png"
-                    : agent2 === "BARACK_OBAMA"
-                    ? "/img/BARACK_OBAMA.png"
-                    : agent2 === "BEN_SHAPIRO"
-                    ? "/img/BEN_SHAPIRO.png"
-                    : agent2 === "DONALD_TRUMP"
-                    ? "/img/DONALD_TRUMP.png"
-                    : agent2 === "KAMALA_HARRIS"
-                    ? "/img/KAMALA_HARRIS.png"
-                    : agent2 === "JOE_BIDEN"
-                    ? "/img/JOE_BIDEN.png"
-                    : agent2 === "ANDREW_TATE"
-                    ? "/img/ANDREW_TATE.png"
-                    : "/img/BEN_SHAPIRO.png";
+                if (video.agent1) {
+                  renderUrlParams.set("agent1", video.agent1);
+                }
+
+                if (video.agent2) {
+                  renderUrlParams.set("agent2", video.agent2);
+                }
+
+                const shareText = `${video.title} explained by ${formatSpeakerNames(
+                  speakers,
+                )} AI with @brainrotjs \n\nhttps://brainrotjs.com/renders/${renderPath}?${renderUrlParams.toString()}`;
 
                 return (
                   <div key={video.id} className="w-full">
@@ -92,12 +86,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                       {video.title}
                     </p>
                     <div className="flex flex-row gap-2 py-2">
-                      <Avatar className="border shadow-sm">
-                        <AvatarImage src={agent1Img} alt="agent1" />
-                      </Avatar>
-                      <Avatar className="border shadow-sm">
-                        <AvatarImage src={agent2Img} alt="agent2" />
-                      </Avatar>
+                      <SpeakerAvatarStack speakers={speakers} />
                     </div>
 
                     <div className="relative overflow-hidden rounded-lg">
@@ -125,33 +114,7 @@ export default function YourVideos({ visible = false }: { visible?: boolean }) {
                         Download <DownloadCloud className="size-4" />
                       </Link>
                       <Link
-                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                          `${video.title} explained by ${video.agent1
-                            .split("_")
-                            .map(
-                              (word) =>
-                                word.charAt(0) + word.slice(1).toLowerCase(),
-                            )
-                            .join(" ")} AI and ${video.agent2
-                            .split("_")
-                            .map(
-                              (word) =>
-                                word.charAt(0) + word.slice(1).toLowerCase(),
-                            )
-                            .join(
-                              " ",
-                            )} AI with @brainrotjs \n\nhttps://brainrotjs.com/renders/${video.url
-                            .replace(
-                              "https://s3.us-east-1.amazonaws.com/remotionlambda-useast1-oaz2rkh49x/renders/",
-                              "",
-                            )
-                            .replace(
-                              "/out.mp4",
-                              "",
-                            )}?title=${encodeURIComponent(
-                            video.title,
-                          )}&agent1=${video.agent1}&agent2=${video.agent2}`,
-                        )}`}
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={buttonVariants({

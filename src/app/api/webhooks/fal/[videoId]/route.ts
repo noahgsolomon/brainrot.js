@@ -14,6 +14,7 @@ import {
 } from "@/server/jobs/generation-timing";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { serializeSpeakerNamesForStorage } from "@/lib/brainrot-speakers";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -141,6 +142,12 @@ export async function POST(
           if (!existingVideo) {
             await tx.insert(videos).values({
               user_id: pendingVideo.user_id,
+              agents:
+                pendingVideo.agents ??
+                serializeSpeakerNamesForStorage([
+                  pendingVideo.agent1,
+                  pendingVideo.agent2,
+                ]),
               agent1: pendingVideo.agent1 ?? "",
               agent2: pendingVideo.agent2 ?? "",
               title: pendingVideo.title ?? "",

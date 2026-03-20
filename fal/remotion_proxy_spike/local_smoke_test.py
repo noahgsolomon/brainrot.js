@@ -38,6 +38,7 @@ def main() -> None:
             props = {
                 "pipeline": args.pipeline,
                 "topic": "fal spike migration",
+                "agents": ["JOE_ROGAN", "JOE_BIDEN", "BARACK_OBAMA"],
                 "agentA": "JOE_ROGAN",
                 "agentB": "JOE_BIDEN",
                 "music": "WII_SHOP_CHANNEL_TRAP",
