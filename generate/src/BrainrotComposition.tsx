@@ -154,35 +154,38 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		);
 	});
 
-	return (
-		<div ref={ref}>
-			<AbsoluteFill>
-				<Sequence from={-audioOffsetInFrames}>
-					<Audio src={audioFileName} />
-					{music !== 'NONE' && <Audio volume={0.1} src={staticFile(music)} />}
-					<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
-						{videoFileName && (
-							<OffthreadVideo
-								muted
-								className="h-full w-full object-cover"
-								src={staticFile(videoFileName)}
-							/>
+		return (
+			<div ref={ref}>
+				<AbsoluteFill>
+					<Sequence from={-audioOffsetInFrames}>
+						<Audio src={audioFileName} />
+						{music !== 'NONE' && (
+							<Audio loop volume={0.1} src={staticFile(music)} />
 						)}
-						<div
-							className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-8 right-8 text-white font-bold text-5xl"
-							style={{
-								textShadow: '3px 3px 0px #000000',
-								WebkitTextStroke: '1.5px black',
-							}}
-						>
-							brainrotjs
-							<br></br>.com 🧠
-						</div>
-						<div
-							className={`absolute left-0 right-0 flex flex-row p-5 z-30 transition-all duration-500 ease-in-out ${
-								currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
-							} ${useRightSide ? 'justify-end' : 'justify-start'}`}
-						>
+						<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
+							{videoFileName && (
+								<OffthreadVideo
+									loop
+									muted
+									className="h-full w-full object-cover"
+									src={staticFile(videoFileName)}
+								/>
+							)}
+							<div
+								className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-8 right-8 text-white font-bold text-5xl"
+								style={{
+									textShadow: '3px 3px 0px #000000',
+									WebkitTextStroke: '1.5px black',
+								}}
+							>
+								brainrotjs
+								<br></br>.com 🧠
+							</div>
+							<div
+								className={`absolute left-0 right-0 flex flex-row p-5 z-30 transition-all duration-500 ease-in-out ${
+									currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
+								} ${useRightSide ? 'justify-end' : 'justify-start'}`}
+							>
 								<Img
 									width={400}
 									height={400}
@@ -192,33 +195,33 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 									}}
 									className="z-30 transition-all rounded-full"
 									src={staticFile(
-									`/pose/${
-										useRightSide ? 'right' : 'left'
-									}/${activeSpeakerName}.png`
-								)}
-							/>
-						</div>
-						<div
-							style={{
-								lineHeight: `${subtitlesLineHeight}px`,
-								textShadow: '3px 3px 0px #000000',
-								WebkitTextStroke: '1.5px black',
-							}}
-							className="font-remotionFont z-10 absolute text-center text-6xl drop-shadow-2xl text-white mx-16 top-1/2 -translate-y-1/2 left-0 right-0"
-						>
-							<PaginatedSubtitles
-								fps={fps}
-								startFrame={audioOffsetInFrames}
-								endFrame={audioOffsetInFrames + durationInFrames}
-								linesPerPage={subtitlesLinePerPage}
-								subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
-								subtitlesLineHeight={subtitlesLineHeight}
-								subtitlesData={subtitlesData}
-							/>
-						</div>
-					</div>
-				</Sequence>
-			</AbsoluteFill>
-		</div>
-	);
-};
+										`/pose/${
+											useRightSide ? 'right' : 'left'
+										}/${activeSpeakerName}.png`
+									)}
+								/>
+							</div>
+							<div
+								style={{
+									lineHeight: `${subtitlesLineHeight}px`,
+									textShadow: '3px 3px 0px #000000',
+									WebkitTextStroke: '1.5px black',
+								}}
+								className="font-remotionFont z-10 absolute text-center text-6xl drop-shadow-2xl text-white mx-16 top-1/2 -translate-y-1/2 left-0 right-0"
+							>
+								<PaginatedSubtitles
+									fps={fps}
+									startFrame={audioOffsetInFrames}
+									endFrame={audioOffsetInFrames + durationInFrames}
+									linesPerPage={subtitlesLinePerPage}
+									subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
+									subtitlesLineHeight={subtitlesLineHeight}
+									subtitlesData={subtitlesData}
+								/>
+							</div>
+							</div>
+						</Sequence>
+					</AbsoluteFill>
+				</div>
+			);
+		};
