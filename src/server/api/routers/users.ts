@@ -20,6 +20,7 @@ import {
   type CreateVideoSearchParams,
 } from "@/lib/create-video-search-params";
 import { resolveSpeakerNames } from "@/lib/brainrot-speakers";
+import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
 import { getUserSubscriptionPlan, stripe } from "@/lib/stripe";
 import { PLANS, getPriceId } from "@/config/stripe";
 import { TRPCError } from "@trpc/server";
@@ -621,7 +622,7 @@ export const userRouter = createTRPCRouter({
   createVideo: protectedProcedure
     .input(
       z.object({
-        title: z.string(),
+        title: z.string().min(1).max(MAX_VIDEO_TOPIC_LENGTH),
         agent1: z.number(),
         agent2: z.number(),
         agents: z.array(z.number()).optional(),
@@ -741,7 +742,7 @@ export const userRouter = createTRPCRouter({
             agent2Id: z.string().optional(),
             agent1Name: z.string().optional(),
             agent2Name: z.string().optional(),
-            title: z.string().optional(),
+            title: z.string().max(MAX_VIDEO_TOPIC_LENGTH).optional(),
             credits: z.string().optional(),
             music: z.string().optional(),
             background: z.string().optional(),
@@ -801,7 +802,7 @@ export const userRouter = createTRPCRouter({
               agent2Id: z.string().optional(),
               agent1Name: z.string().optional(),
               agent2Name: z.string().optional(),
-              title: z.string().optional(),
+              title: z.string().max(MAX_VIDEO_TOPIC_LENGTH).optional(),
               credits: z.string().optional(),
               music: z.string().optional(),
               background: z.string().optional(),

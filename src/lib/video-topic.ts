@@ -1,0 +1,1 @@
+export const MAX_VIDEO_TOPIC_LENGTH = 40_000;

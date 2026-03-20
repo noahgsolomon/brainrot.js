@@ -8,6 +8,7 @@ import {
   MIN_BRAINROT_SPEAKERS,
   normalizeSpeakerNames,
 } from "@/lib/brainrot-speakers";
+import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
 import { isLocalWebhookUrl } from "@/lib/fal-jobs";
 import { submitFalBrainrotRenderJob } from "@/server/fal/brainrot-render-test";
 import { createPendingVideoJob } from "@/server/jobs/create-pending-video";
@@ -17,7 +18,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const createRequestSchema = z.object({
-  topic: z.string().min(1).max(2000),
+  topic: z.string().min(1).max(MAX_VIDEO_TOPIC_LENGTH),
   agents: z.array(z.string().max(100)).optional(),
   agent1: z.string().max(100).optional(),
   agent2: z.string().max(100).optional(),

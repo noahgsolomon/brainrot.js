@@ -8,6 +8,7 @@ import {
   hashFalWebhookKey,
 } from "@/lib/fal-jobs";
 import { serializeSpeakerNamesForStorage } from "@/lib/brainrot-speakers";
+import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
 import {
   createInitialTimingState,
   serializeTimingState,
@@ -20,7 +21,7 @@ export const createPendingVideoJobSchema = z.object({
   agents: z.array(z.string().max(100)).optional().nullable(),
   agent1: z.string().max(100).optional().nullable(),
   agent2: z.string().max(100).optional().nullable(),
-  title: z.string().max(2000),
+  title: z.string().max(MAX_VIDEO_TOPIC_LENGTH),
   videoId: z.string().min(1).max(100),
   music: z.string().max(100).optional().nullable(),
   credits: z.number().int().nonnegative(),

@@ -42,6 +42,7 @@ import {
   MAX_BRAINROT_SPEAKERS,
   MIN_BRAINROT_SPEAKERS,
 } from "@/lib/brainrot-speakers";
+import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
 import { useCreateVideo } from "./usecreatevideo";
 import { useAuth } from "@clerk/nextjs";
 import { useTRPC } from "@/trpc/client";
@@ -555,13 +556,16 @@ export default function CreateVideo({
                     placeholder="// Random topic"
                     className="col-span-3"
                     value={videoInput}
-                    maxLength={2000}
+                    maxLength={MAX_VIDEO_TOPIC_LENGTH}
                     onChange={(e) => {
                       setVideoInput(e.target.value);
                       setRecommendedSelect(-1);
                       setInvalidTopic(false);
                     }}
                   />
+                  <p className="text-right text-xs text-muted-foreground">
+                    {videoInput.length}/{MAX_VIDEO_TOPIC_LENGTH}
+                  </p>
                   <p
                     className={`${
                       invalidTopic ? "" : "hidden"
