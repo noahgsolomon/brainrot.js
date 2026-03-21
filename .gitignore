@@ -40,6 +40,7 @@ query.sql
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+generate/public/debug/
 
 # local env files
 .env*.local
@@ -85,3 +86,5 @@ bun.lockb
 .cursorignore
 /plans/*
 *_docs.md
+
+generate/out/

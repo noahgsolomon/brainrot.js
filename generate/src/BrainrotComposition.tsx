@@ -178,7 +178,15 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 						{music !== 'NONE' && (
 							<Audio loop volume={0.1} src={staticFile(music)} />
 						)}
-						<div className="relative -z-20 flex flex-col w-full h-full font-remotionFont">
+						<div
+							className="relative -z-20 flex h-full w-full flex-col font-remotionFont"
+							style={{
+								filter: isSlowModeActive
+									? 'grayscale(1)'
+									: 'grayscale(0)',
+								transition: 'filter 0.35s ease-in-out',
+							}}
+						>
 							{videoFileName && (
 								<OffthreadVideo
 									loop
@@ -207,7 +215,6 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 									height={400}
 									style={{
 										transform: `translateY(${-getCurrentAmplitude() * 17}px)`,
-										filter: isSlowModeActive ? 'grayscale(1)' : 'grayscale(0)',
 									}}
 									className="z-30 transition-all rounded-full"
 									src={staticFile(
