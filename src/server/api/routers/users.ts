@@ -10,7 +10,7 @@ import {
   rapAudio,
   videos,
 } from "@/server/db/schemas/users/schema";
-import { eq, or, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 import { z } from "zod";
 import OpenAI from "openai";
@@ -39,6 +39,12 @@ const openai = new OpenAI({
 
 let accessToken: string | null = null;
 let tokenExpiration = 0;
+
+// Curated snapshot of current "latest generations" for homepage marquee.
+// Intentionally static to avoid pulling newly generated unsuitable content.
+const STATIC_LATEST_GENERATION_IDS = [
+  4512, 4509, 4508, 4504, 4501, 4499, 4498, 4495, 4491, 4490, 4483, 4482,
+] as const;
 
 function withResolvedSpeakers<
   T extends {
@@ -552,9 +558,11 @@ export const userRouter = createTRPCRouter({
     }),
 
   getLatestGenerations: publicProcedure.query(async ({ ctx }) => {
-    const allWithThumbnails = await ctx.db.query.videos.findMany({
-      where: sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
-      orderBy: (videos, { desc }) => [desc(videos.id)],
+    const curatedVideos = await ctx.db.query.videos.findMany({
+      where: and(
+        inArray(videos.id, [...STATIC_LATEST_GENERATION_IDS]),
+        sql`${videos.thumbnail} IS NOT NULL AND ${videos.thumbnail} != ''`,
+      ),
       columns: {
         agents: true,
         id: true,
@@ -566,16 +574,19 @@ export const userRouter = createTRPCRouter({
       },
     });
 
-    // Deduplicate by title — keep the most recent (first seen since sorted by id DESC)
-    const seen = new Set<string>();
-    const unique = allWithThumbnails.filter((v) => {
-      const key = v.title.toLowerCase().trim();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    const curatedOrder = new Map<number, number>(
+      STATIC_LATEST_GENERATION_IDS.map((id, index) => [id, index]),
+    );
 
-    return { videos: unique.slice(0, 20).map(withResolvedSpeakers) };
+    return {
+      videos: curatedVideos
+        .sort(
+          (a, b) =>
+            (curatedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+            (curatedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+        )
+        .map(withResolvedSpeakers),
+    };
   }),
 
   newUserVideo: protectedProcedure.query(async ({ ctx }) => {
