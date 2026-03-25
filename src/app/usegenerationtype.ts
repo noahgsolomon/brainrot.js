@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { PodcastGuest } from "./createvideo";
 import { PodcastHost } from "./createvideo";
+import { type BrainrotSpeakerId } from "@/lib/brainrot-speakers";
 
 interface useGenerationTypeProps {
   isOpen: boolean;
@@ -9,18 +10,7 @@ interface useGenerationTypeProps {
     mode: "brainrot" | "podcast" | "monologue" | "rap";
     title: string;
     agents: {
-      name:
-        | "JORDAN_PETERSON"
-        | "BEN_SHAPIRO"
-        | "JOE_ROGAN"
-        | "BARACK_OBAMA"
-        | "DONALD_TRUMP"
-        | "JOE_BIDEN"
-        | "ANDREW_TATE"
-        | "KAMALA_HARRIS"
-        | "SPONGEBOB"
-        | PodcastHost
-        | PodcastGuest;
+      name: BrainrotSpeakerId | "SPONGEBOB" | PodcastHost | PodcastGuest;
       id: number;
     }[];
     cost: number;
@@ -37,18 +27,7 @@ interface useGenerationTypeProps {
     mode: "brainrot" | "podcast" | "monologue" | "rap";
     title: string;
     agents: {
-      name:
-        | "JORDAN_PETERSON"
-        | "BEN_SHAPIRO"
-        | "JOE_ROGAN"
-        | "BARACK_OBAMA"
-        | "DONALD_TRUMP"
-        | "JOE_BIDEN"
-        | "ANDREW_TATE"
-        | "KAMALA_HARRIS"
-        | "SPONGEBOB"
-        | PodcastHost
-        | PodcastGuest;
+      name: BrainrotSpeakerId | "SPONGEBOB" | PodcastHost | PodcastGuest;
       id: number;
     }[];
     cost: number;

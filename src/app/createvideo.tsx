@@ -39,8 +39,10 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { buildCreateVideoSearchQuery } from "@/lib/create-video-search-params";
 import {
+  type BrainrotSpeakerId,
   MAX_BRAINROT_SPEAKERS,
   MIN_BRAINROT_SPEAKERS,
+  humanizeSpeakerName,
 } from "@/lib/brainrot-speakers";
 import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
 import { useCreateVideo } from "./usecreatevideo";
@@ -74,6 +76,35 @@ const PODCAST_GUEST_OPTIONS: Record<PodcastHost, PodcastGuest[]> = {
   JORDAN_PETERSON: ["JOE_ROGAN", "MARC_ANDREESSEN"],
   LEX_FRIDMAN: ["JOE_ROGAN", "JORDAN_PETERSON", "ELON_MUSK"],
 };
+
+type CharacterOption = {
+  id: number;
+  name: BrainrotSpeakerId;
+  requiresPro: boolean;
+};
+
+const BRAINROT_CHARACTER_OPTIONS: CharacterOption[] = [
+  { id: 1, name: "JORDAN_PETERSON", requiresPro: false },
+  { id: 2, name: "BEN_SHAPIRO", requiresPro: false },
+  { id: 3, name: "JOE_ROGAN", requiresPro: false },
+  { id: 4, name: "BARACK_OBAMA", requiresPro: false },
+  { id: 5, name: "DONALD_TRUMP", requiresPro: true },
+  { id: 6, name: "JOE_BIDEN", requiresPro: true },
+  { id: 7, name: "ANDREW_TATE", requiresPro: true },
+  { id: 8, name: "KAMALA_HARRIS", requiresPro: true },
+  { id: 9, name: "ADIN_ROSS", requiresPro: true },
+  { id: 10, name: "BANE", requiresPro: true },
+  { id: 11, name: "CILLIAN_MURPHY", requiresPro: true },
+  { id: 12, name: "ELON_MUSK", requiresPro: true },
+  { id: 13, name: "HOMELANDER", requiresPro: true },
+  { id: 14, name: "HUGH_JACKMAN", requiresPro: true },
+  { id: 15, name: "JOKER", requiresPro: true },
+  { id: 16, name: "NAVAL_RAVIKANT", requiresPro: true },
+  { id: 17, name: "RYAN_REYNOLDS", requiresPro: true },
+  { id: 18, name: "SAUL_GOODMAN", requiresPro: true },
+  { id: 19, name: "TYLER_DURDEN", requiresPro: true },
+  { id: 20, name: "WALTER_WHITE", requiresPro: true },
+];
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -192,21 +223,11 @@ export default function CreateVideo({
 
   const [agent, setAgent] = useState<
     {
-      name:
-        | "JORDAN_PETERSON"
-        | "JOE_ROGAN"
-        | "BARACK_OBAMA"
-        | "DONALD_TRUMP"
-        | "BEN_SHAPIRO"
-        | "ANDREW_TATE"
-        | "KAMALA_HARRIS"
-        | "JOE_BIDEN"
-        | "SPONGEBOB"
-        | PodcastHost
-        | PodcastGuest;
+      name: BrainrotSpeakerId | "SPONGEBOB" | PodcastHost | PodcastGuest;
       id: number;
     }[]
   >([]);
+  const [characterSearch, setCharacterSearch] = useState("");
   const [recommendedSelect, setRecommendedSelect] = useState(-1);
   const credits = 10;
 
@@ -221,6 +242,17 @@ export default function CreateVideo({
   ]);
   const [isInsufficientCreditsOpen, setIsInsufficientCreditsOpen] =
     useState(false);
+
+  const filteredBrainrotCharacters = useMemo(() => {
+    const term = characterSearch.trim().toLowerCase();
+    if (!term) {
+      return BRAINROT_CHARACTER_OPTIONS;
+    }
+
+    return BRAINROT_CHARACTER_OPTIONS.filter((character) =>
+      humanizeSpeakerName(character.name).toLowerCase().includes(term),
+    );
+  }, [characterSearch]);
 
   const createVideoMutation = useMutation(
     trpc.user.createVideo.mutationOptions({
@@ -609,380 +641,89 @@ export default function CreateVideo({
               animate="visible"
               exit="exit"
             >
-              <motion.div className="flex items-center gap-2">
-                <h4>
-                  2.{")"} Choose your{" "}
-                  {videoDetails.mode === "monologue" ? "speaker" : "fighters"}!
-                </h4>
-                <Image
-                  height={20}
-                  width={20}
-                  src={"/fire.gif"}
-                  alt="fire"
-                />
+              <motion.div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h4>
+                    2.{")"} Choose your{" "}
+                    {videoDetails.mode === "monologue" ? "speaker" : "fighters"}!
+                  </h4>
+                  <Image
+                    height={20}
+                    width={20}
+                    src={"/fire.gif"}
+                    alt="fire"
+                  />
+                </div>
+                <div className="w-[150px]">
+                  <Input
+                    value={characterSearch}
+                    onChange={(e) => setCharacterSearch(e.target.value)}
+                    placeholder="Search fighters"
+                    className="h-8 text-xs"
+                  />
+                </div>
               </motion.div>
 
               <motion.div
-                className="flex flex-wrap gap-2"
+                className="max-h-[176px] overflow-y-auto pr-1"
                 variants={staggerContainer}
               >
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "JORDAN_PETERSON", id: 1 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                      agent.some((a) => a.name === "JORDAN_PETERSON")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/JORDAN_PETERSON.png"}
-                    width={75}
-                    height={75}
-                    alt="jordan"
-                  />
-                </motion.div>
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "BEN_SHAPIRO", id: 2 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                      agent.some((a) => a.name === "BEN_SHAPIRO")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/BEN_SHAPIRO.png"}
-                    width={75}
-                    height={75}
-                    alt="ben shapiro"
-                  />
-                </motion.div>
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "JOE_ROGAN", id: 3 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                      agent.some((a) => a.name === "JOE_ROGAN")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[125%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/JOE_ROGAN.png"}
-                    width={75}
-                    height={75}
-                    alt="bender"
-                  />
-                </motion.div>
+                <div className="grid grid-cols-4 gap-2">
+                  {filteredBrainrotCharacters.map((character) => {
+                    const isSelected = agent.some((a) => a.name === character.name);
+                    const shouldShowProLock =
+                      character.requiresPro &&
+                      !userDB?.subscribed &&
+                      character.id <= 8;
+                    const tile = (
+                      <motion.div
+                        key={character.name}
+                        variants={agentAnimation}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                        onClick={() =>
+                          handleAgentSelection({
+                            name: character.name,
+                            id: character.id,
+                          })
+                        }
+                      >
+                        <Image
+                          className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
+                            isSelected ? "opacity-40" : "opacity-0"
+                          }`}
+                          height={75}
+                          width={75}
+                          src={"/fireball.gif"}
+                          alt="fire"
+                        />
+                        <Image
+                          className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                          src={`/img/${character.name}.png`}
+                          width={75}
+                          height={75}
+                          alt={humanizeSpeakerName(character.name)}
+                        />
+                      </motion.div>
+                    );
 
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "BARACK_OBAMA", id: 4 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0  transition-all ${
-                      agent.some((a) => a.name === "BARACK_OBAMA")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/BARACK_OBAMA.png"}
-                    width={75}
-                    height={75}
-                    alt="barack"
-                  />
-                </motion.div>
-                {!userDB?.subscribed ? (
-                  <ProButton>
-                    <motion.div
-                      variants={agentAnimation}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    >
-                      <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
-                        <Crown className="size-4 text-secondary dark:text-primary" />
-                      </div>
-                      <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                          agent.some((a) => a.name === "DONALD_TRUMP")
-                            ? "opacity-40"
-                            : "opacity-0"
-                        }`}
-                        height={75}
-                        width={75}
-                        src={"/fireball.gif"}
-                        alt="fire"
-                      />
-                      <Image
-                        className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                        src={"/img/DONALD_TRUMP.png"}
-                        width={75}
-                        height={75}
-                        alt="trump"
-                      />
-                    </motion.div>
-                  </ProButton>
-                ) : (
-                  <motion.div
-                    variants={agentAnimation}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    onClick={() =>
-                      handleAgentSelection({ name: "DONALD_TRUMP", id: 1 })
+                    if (shouldShowProLock) {
+                      return (
+                        <ProButton key={`${character.name}-pro`}>
+                          <div className="relative">
+                            <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                              <Crown className="size-4 text-secondary dark:text-primary" />
+                            </div>
+                            {tile}
+                          </div>
+                        </ProButton>
+                      );
                     }
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                        agent.some((a) => a.name === "DONALD_TRUMP")
-                          ? "opacity-40"
-                          : "opacity-0"
-                      }`}
-                      height={75}
-                      width={75}
-                      src={"/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                      src={"/img/DONALD_TRUMP.png"}
-                      width={75}
-                      height={75}
-                      alt="trump"
-                    />
-                  </motion.div>
-                )}
-                {!userDB?.subscribed ? (
-                  <ProButton>
-                    <motion.div
-                      variants={agentAnimation}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    >
-                      <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
-                        <Crown className="size-4 text-secondary dark:text-primary" />
-                      </div>
-                      <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                          agent.some((a) => a.name === "JOE_BIDEN")
-                            ? "opacity-40"
-                            : "opacity-0"
-                        }`}
-                        height={75}
-                        width={75}
-                        src={"/fireball.gif"}
-                        alt="fire"
-                      />
-                      <Image
-                        className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"/img/JOE_BIDEN.png"}
-                        width={75}
-                        height={75}
-                        alt="biden"
-                      />
-                    </motion.div>
-                  </ProButton>
-                ) : (
-                  <motion.div
-                    variants={agentAnimation}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    onClick={() =>
-                      handleAgentSelection({ name: "JOE_BIDEN", id: 5 })
-                    }
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                        agent.some((a) => a.name === "JOE_BIDEN")
-                          ? "opacity-40"
-                          : "opacity-0"
-                      }`}
-                      height={75}
-                      width={75}
-                      src={"/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"/img/JOE_BIDEN.png"}
-                      width={75}
-                      height={75}
-                      alt="biden"
-                    />
-                  </motion.div>
-                )}
-                {!userDB?.subscribed ? (
-                  <ProButton>
-                    <motion.div
-                      variants={agentAnimation}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    >
-                      <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
-                        <Crown className="size-4 text-secondary dark:text-primary" />
-                      </div>
-                      <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                          agent.some((a) => a.name === "ANDREW_TATE")
-                            ? "opacity-40"
-                            : "opacity-0"
-                        }`}
-                        height={75}
-                        width={75}
-                        src={"/fireball.gif"}
-                        alt="fire"
-                      />
-                      <Image
-                        className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"/img/ANDREW_TATE.png"}
-                        width={75}
-                        height={75}
-                        alt="andrewtate"
-                      />
-                    </motion.div>
-                  </ProButton>
-                ) : (
-                  <motion.div
-                    variants={agentAnimation}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    onClick={() =>
-                      handleAgentSelection({ name: "ANDREW_TATE", id: 7 })
-                    }
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                        agent.some((a) => a.name === "ANDREW_TATE")
-                          ? "opacity-40"
-                          : "opacity-0"
-                      }`}
-                      height={75}
-                      width={75}
-                      src={"/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"/img/ANDREW_TATE.png"}
-                      width={75}
-                      height={75}
-                      alt="andrewtate"
-                    />
-                  </motion.div>
-                )}
-                {!userDB?.subscribed ? (
-                  <ProButton>
-                    <motion.div
-                      variants={agentAnimation}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    >
-                      <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
-                        <Crown className="size-4 text-secondary dark:text-primary" />
-                      </div>
-                      <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                          agent.some((a) => a.name === "KAMALA_HARRIS")
-                            ? "opacity-40"
-                            : "opacity-0"
-                        }`}
-                        height={75}
-                        width={75}
-                        src={"/fireball.gif"}
-                        alt="fire"
-                      />
-                      <Image
-                        className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                        src={"/img/KAMALA_HARRIS.png"}
-                        width={75}
-                        height={75}
-                        alt="kamala"
-                      />
-                    </motion.div>
-                  </ProButton>
-                ) : (
-                  <motion.div
-                    variants={agentAnimation}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                    onClick={() =>
-                      handleAgentSelection({ name: "KAMALA_HARRIS", id: 6 })
-                    }
-                  >
-                    <Image
-                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                        agent.some((a) => a.name === "KAMALA_HARRIS")
-                          ? "opacity-40"
-                          : "opacity-0"
-                      }`}
-                      height={75}
-                      width={75}
-                      src={"/fireball.gif"}
-                      alt="fire"
-                    />
-                    <Image
-                      className="z-0 h-[60px] w-[60px] scale-[120%] xs:h-[75px] xs:w-[75px]"
-                      src={"/img/KAMALA_HARRIS.png"}
-                      width={75}
-                      height={75}
-                      alt="kamala"
-                    />
-                  </motion.div>
-                )}
+
+                    return tile;
+                  })}
+                </div>
               </motion.div>
             </motion.div>
           ) : videoDetails.mode === "podcast" ? (

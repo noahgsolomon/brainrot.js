@@ -111,37 +111,49 @@ export const userRouter = createTRPCRouter({
     }),
   // Mutation to check if a user exists in the database and create a new user if not
   exists: protectedProcedure.mutation(async ({ ctx }) => {
-    const clerkUser = await currentUser();
-    if (clerkUser) {
-      // Check if the user already exists in the database
-      const user = await ctx.db
-        .select()
-        .from(brainrotusers)
-        .where(
-          or(
-            eq(
-              brainrotusers.email,
-              clerkUser.emailAddresses[0]?.emailAddress ??
-                "empty@nonexistent.com",
-            ),
-            eq(brainrotusers.clerk_id, clerkUser.id),
-          ),
-        );
+    // Fast path: avoid Clerk backend call when the user already exists.
+    const existingByClerkId = await ctx.db.query.brainrotusers.findFirst({
+      where: eq(brainrotusers.clerk_id, ctx.user.userId),
+      columns: { id: true },
+    });
 
-      // If the user does not exist, create a new user record
-      if (user.length === 0) {
-        await ctx.db.insert(brainrotusers).values({
-          name: clerkUser.firstName + " " + clerkUser.lastName,
-          email: clerkUser.emailAddresses[0]?.emailAddress ?? clerkUser.id,
-          clerk_id: clerkUser.id,
-          username:
-            clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
-            generateRandomString(10),
-          credits: 0,
-          apiKey: generateRandomString(255),
-        });
-      }
+    if (existingByClerkId) {
+      return;
     }
+
+    const clerkUser = await currentUser();
+    if (!clerkUser) return;
+
+    const email =
+      clerkUser.emailAddresses[0]?.emailAddress ??
+      `${clerkUser.id}@placeholder.brainrot.local`;
+
+    // Handle legacy rows that may have the same email but no clerk_id.
+    const existingByEmail = await ctx.db.query.brainrotusers.findFirst({
+      where: eq(brainrotusers.email, email),
+      columns: { id: true, clerk_id: true },
+    });
+
+    if (existingByEmail) {
+      if (!existingByEmail.clerk_id) {
+        await ctx.db
+          .update(brainrotusers)
+          .set({ clerk_id: clerkUser.id })
+          .where(eq(brainrotusers.id, existingByEmail.id));
+      }
+      return;
+    }
+
+    await ctx.db.insert(brainrotusers).values({
+      name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" "),
+      email,
+      clerk_id: clerkUser.id,
+      username:
+        clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] ??
+        generateRandomString(10),
+      credits: 0,
+      apiKey: generateRandomString(255),
+    });
   }),
   cancelPendingVideo: protectedProcedure
     .input(z.object({ id: z.number(), credits: z.number() }))

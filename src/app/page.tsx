@@ -20,7 +20,7 @@ import ProButton from "./ProButton";
 import { Crown } from "lucide-react";
 import BuyCreditsDialog from "./buy-credits-dialog";
 
-export default async function HomePage({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<RawSearchParams>;
@@ -30,18 +30,28 @@ export default async function HomePage({
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
 
-  const userDB = isSignedIn
-    ? ((await fetchTRPC(
+  let userDB: RouterOutput["user"]["user"] | null = null;
+  let canPrefetchProtectedData = false;
+
+  if (isSignedIn) {
+    try {
+      userDB = (await fetchTRPC(
         trpc.user.user.queryOptions(),
-      )) as RouterOutput["user"]["user"])
-    : null;
+      )) as RouterOutput["user"]["user"];
+      canPrefetchProtectedData = true;
+    } catch (error) {
+      // If auth-backed queries fail (for example transient DB limits),
+      // keep the homepage rendering with public data.
+      console.error("Unable to fetch signed-in user data on homepage:", error);
+    }
+  }
 
   const prefetches = [
     prefetchTRPC(trpc.user.activeQueueCount.queryOptions()),
     prefetchTRPC(trpc.user.getLatestGenerations.queryOptions()),
   ];
 
-  if (isSignedIn) {
+  if (canPrefetchProtectedData) {
     prefetches.push(
       prefetchTRPC(trpc.user.videoStatus.queryOptions()),
       prefetchTRPC(trpc.user.userVideos.queryOptions()),
@@ -49,7 +59,7 @@ export default async function HomePage({
     );
   }
 
-  await Promise.all(prefetches);
+  await Promise.allSettled(prefetches);
 
   return (
     <HydrateClient>

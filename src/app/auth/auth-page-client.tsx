@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useTRPC } from "@/trpc/client";
 import {
@@ -30,10 +30,13 @@ const Page = ({
       },
     }),
   );
+  const requestedRef = useRef(false);
 
   useEffect(() => {
+    if (requestedRef.current) return;
+    requestedRef.current = true;
     existsMutation.mutate();
-  }, [existsMutation]);
+  }, []);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">

@@ -14,6 +14,7 @@ const execFileAsync = promisify(execFile);
 
 const TRAINING_AUDIO_DIR_CANDIDATES = [
   path.resolve(__dirname, "../../training_audio"),
+  path.resolve(__dirname, "../../public/training_audio"),
   "/app/training_audio",
 ];
 const MUSIC_DIR_CANDIDATES = [
@@ -22,14 +23,26 @@ const MUSIC_DIR_CANDIDATES = [
 ];
 
 const TRAINING_AUDIO_FILE_MAP = {
+  ADIN_ROSS: "adinross.mp3",
   ANDREW_TATE: "tate.mp3",
+  BANE: "bane.mp3",
   BARACK_OBAMA: "obama.mp3",
   BEN_SHAPIRO: "benshapiroaudio.mp3",
+  CILLIAN_MURPHY: "cillianmurphy.mp3",
   DONALD_TRUMP: "trumpaudio.mp3",
+  ELON_MUSK: "elonmusk.mp3",
+  HOMELANDER: "homelander.mp3",
+  HUGH_JACKMAN: "hughjackman.mp3",
   JOE_BIDEN: "joebidenaudio.mp3",
+  JOKER: "joker.mp3",
   JOE_ROGAN: "jreaudio.mp3",
   JORDAN_PETERSON: "jordanpeterson.mp3",
   KAMALA_HARRIS: "kamala.mp3",
+  NAVAL_RAVIKANT: "navalravikant.mp3",
+  RYAN_REYNOLDS: "ryanreynolds.mp3",
+  SAUL_GOODMAN: "saulgoodman.mp3",
+  TYLER_DURDEN: "tylerdurden.mp3",
+  WALTER_WHITE: "walterwhite.mp3",
 };
 
 const uploadedTrainingAudioUrlPromises = new Map();
