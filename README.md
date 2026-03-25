@@ -29,6 +29,20 @@ SPEECHIFY_API_KEY=YOUR SPEECHIFY API KEY HERE
 <br/>
 6. Voila! You just made brainrot
 
+## Publishing Your Videos 📤
+
+Once your video is generated in the `out` directory, you can publish it to TikTok, YouTube Shorts, and Instagram Reels using [Upload-Post](https://upload-post.com):
+
+```bash
+curl -X POST https://api.upload-post.com/upload \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "video=@out/video.mp4" \
+  -F "title=Your brainrot title" \
+  -F "platforms=tiktok,youtube,instagram"
+```
+
+Upload-Post provides a single API to publish videos across all major platforms. [Get your API key here](https://upload-post.com).
+
 #### how to get speechify credentials:
 
 - https://speechify.com/text-to-speech-api/
