@@ -37,7 +37,7 @@ export const Word: React.FC<{
 	return (
 		<span
 			style={{
-				display: 'inline-block',
+				display: 'inline',
 				opacity,
 				transform: `scale(${scale}) translateY(${translateY}px)`,
 				fontSize: '4rem',

@@ -85,11 +85,15 @@ export const PaginatedSubtitles: React.FC<{
 	});
 
 	return (
-		<div className="w-[80%] mx-auto flex justify-center">
+		<div className="mx-auto flex w-[90%] justify-center">
 			<div
 				ref={windowRef}
 				style={{
-					wordWrap: 'break-word',
+					wordWrap: 'normal',
+					wordBreak: 'normal',
+					overflowWrap: 'normal',
+					whiteSpace: 'normal',
+					maxWidth: '100%',
 					transform: `translateY(-${lineOffset * subtitlesLineHeight}px)`,
 					textAlign: 'center',
 				}}

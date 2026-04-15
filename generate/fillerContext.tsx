@@ -16,6 +16,8 @@ export const generateFillerContext = (videoMode: VideoMode) => {
 				return `
 	
 	            export const speakerOrder = [];
+	            export const dialogueEmotions = [];
+	            export const subtitleDialogueEmotions = [];
 	            export const slowModeIntervals = [];
 	            export const rapper: string = 'SPONGEBOB';
 	            export const imageBackground: string = '/rap/SPONGEBOB.png';
