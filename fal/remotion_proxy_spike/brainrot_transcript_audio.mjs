@@ -830,6 +830,109 @@ function buildFallbackDialogueEmotions(transcript) {
   }));
 }
 
+function extractSrtEntries(srtContent) {
+  return String(srtContent)
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0)
+    .map((block) => {
+      const lines = block
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      const subtitleEntryIndex = Number.parseInt(lines[0] ?? "", 10);
+      const text = sanitizePlaintextDialogueText(lines.slice(2).join(" "));
+      if (!Number.isInteger(subtitleEntryIndex) || !text) {
+        return null;
+      }
+      return {
+        subtitleEntryIndex,
+        text,
+      };
+    })
+    .filter(Boolean);
+}
+
+function splitIntoSentenceLikeSegments(text) {
+  const normalized = sanitizePlaintextDialogueText(text);
+  if (!normalized) {
+    return [];
+  }
+
+  const rawSegments = normalized
+    .split(/(?<=[.!?])\s+/)
+    .map((segment) => sanitizePlaintextDialogueText(segment))
+    .filter(Boolean);
+
+  return rawSegments.length > 0 ? rawSegments : [normalized];
+}
+
+async function getSubtitleDialogueEmotions({
+  subtitleFiles,
+  model,
+  useMockServices,
+}) {
+  const sentenceSelections = [];
+
+  for (const [srtFileIndex, subtitleFile] of subtitleFiles.entries()) {
+    const srtContent = await fs.readFile(subtitleFile.path, "utf8");
+    const entries = extractSrtEntries(srtContent);
+
+    for (const entry of entries) {
+      const subtitleWords = entry.text.split(/\s+/).filter(Boolean);
+      const sentenceSegments = splitIntoSentenceLikeSegments(entry.text);
+      let cursor = 0;
+
+      for (const sentence of sentenceSegments) {
+        const sentenceWordCount = sentence.split(/\s+/).filter(Boolean).length;
+        const startWordIndexInclusive = Math.max(0, cursor);
+        const endWordIndexInclusive = Math.min(
+          subtitleWords.length - 1,
+          Math.max(startWordIndexInclusive, cursor + sentenceWordCount - 1),
+        );
+
+        sentenceSelections.push({
+          srtFileIndex,
+          subtitleEntryIndex: entry.subtitleEntryIndex,
+          startWordIndexInclusive,
+          endWordIndexInclusive,
+          agentId: subtitleFile.person,
+          text: sentence,
+        });
+
+        cursor = endWordIndexInclusive + 1;
+      }
+    }
+  }
+
+  if (sentenceSelections.length === 0) {
+    return [];
+  }
+
+  const transcriptLikeInput = sentenceSelections.map((entry) => ({
+    agentId: entry.agentId,
+    text: entry.text,
+  }));
+
+  const dialogueEmotions = await getDialogueEmotionsWithRetry({
+    transcript: transcriptLikeInput,
+    agents: Array.from(new Set(transcriptLikeInput.map((entry) => entry.agentId))),
+    model,
+    useMockServices,
+  });
+
+  return sentenceSelections.map((entry, entryIndex) => ({
+    srtFileIndex: entry.srtFileIndex,
+    subtitleEntryIndex: entry.subtitleEntryIndex,
+    startWordIndexInclusive: entry.startWordIndexInclusive,
+    endWordIndexInclusive: entry.endWordIndexInclusive,
+    agentId: entry.agentId,
+    emotion: dialogueEmotions[entryIndex]?.emotion ?? DEFAULT_DIALOGUE_EMOTION,
+    reason: dialogueEmotions[entryIndex]?.reason ?? null,
+  }));
+}
+
 async function getDialogueEmotionsWithRetry({
   transcript,
   agents,
@@ -1046,6 +1149,7 @@ function buildContextContent({
   initialAgentName,
   speakerOrder,
   dialogueEmotions,
+  subtitleDialogueEmotions,
   slowModeIntervals,
   subtitleFiles,
   backgroundVideoFileName,
@@ -1053,6 +1157,7 @@ function buildContextContent({
   const musicValue = music === "NONE" ? `'NONE'` : `'/music/${music}.MP3'`;
   const speakerOrderValue = JSON.stringify(speakerOrder);
   const dialogueEmotionsValue = JSON.stringify(dialogueEmotions);
+  const subtitleDialogueEmotionsValue = JSON.stringify(subtitleDialogueEmotions);
   const slowModeIntervalsValue = JSON.stringify(slowModeIntervals);
 
   const subtitleEntries = subtitleFiles
@@ -1072,6 +1177,7 @@ export const videoFileName = '${backgroundVideoFileName}';
 export const videoMode = 'brainrot';
 export const speakerOrder = ${speakerOrderValue};
 export const dialogueEmotions = ${dialogueEmotionsValue};
+export const subtitleDialogueEmotions = ${subtitleDialogueEmotionsValue};
 export const slowModeIntervals = ${slowModeIntervalsValue};
 
 export const subtitlesFileName = [
@@ -1405,6 +1511,21 @@ export async function runBrainrotTranscriptAudioJob(input) {
       endSeconds: Number(entry.endSeconds),
     }));
 
+  let subtitleDialogueEmotions = [];
+  try {
+    subtitleDialogueEmotions = await getSubtitleDialogueEmotions({
+      subtitleFiles: subtitlePipelineResult.srtFiles,
+      model: emotionAnalysisModel,
+      useMockServices,
+    });
+  } catch (error) {
+    console.error(
+      `[subtitle_dialogue_emotions] Falling back to turn-level emotion selection after analysis failure: ${
+        error instanceof Error ? error.message : "unknown error"
+      }`,
+    );
+  }
+
   await fs.writeFile(
     manifestPath,
     JSON.stringify(
@@ -1421,6 +1542,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
         pitchModeEnabled,
         pitchModeApplied,
         dialogueEmotions,
+        subtitleDialogueEmotions,
         pitchSlowMomentSelections,
         pitchSlowMoments: resolvedPitchSlowMoments,
         sourceAudioFiles: generatedAudioFiles,
@@ -1445,6 +1567,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
       initialAgentName: finalAudioFiles[0]?.person ?? agents[0],
       speakerOrder: agents,
       dialogueEmotions,
+      subtitleDialogueEmotions,
       slowModeIntervals,
       subtitleFiles: subtitlePipelineResult.srtFiles,
       backgroundVideoFileName,
@@ -1471,6 +1594,7 @@ export async function runBrainrotTranscriptAudioJob(input) {
     srtFiles: subtitlePipelineResult.srtFiles,
     timelineEntries,
     dialogueEmotions,
+    subtitleDialogueEmotions,
     slowModeIntervals,
     pitchModeEnabled,
     pitchModeApplied,

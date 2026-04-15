@@ -16,6 +16,7 @@ import {
 	music,
 	slowModeIntervals,
 	speakerOrder,
+	subtitleDialogueEmotions,
 } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
@@ -55,6 +56,7 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	audioOffsetInSeconds,
 	videoFileName,
 }) => {
+	const SAME_SPEAKER_GAP_HOLD_SECONDS = 0.35;
 	const [currentAgentName, setCurrentAgentName] = useState<string>('');
 	const { durationInFrames, fps } = useVideoConfig();
 	const frame = useCurrentFrame();
@@ -126,9 +128,43 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 				(subtitle) =>
 					currentTime >= subtitle.startTime && currentTime < subtitle.endTime
 			);
-			setCurrentSubtitle(current || null);
+
+			if (current) {
+				setCurrentSubtitle(current);
+				const agentInfo = subtitlesFileName[current.srtFileIndex];
+				if (agentInfo?.name) {
+					setCurrentAgentName(agentInfo.name);
+				}
+				return;
+			}
+
+			const previous = [...subtitlesData]
+				.reverse()
+				.find((subtitle) => subtitle.endTime <= currentTime);
+			const next = subtitlesData.find(
+				(subtitle) => subtitle.startTime > currentTime
+			);
+
+			const shouldHoldPreviousSpeaker =
+				Boolean(previous) &&
+				Boolean(next) &&
+				previous?.srtFileIndex === next?.srtFileIndex &&
+				currentTime >= (previous?.endTime ?? 0) &&
+				currentTime < (next?.startTime ?? 0) &&
+				(next!.startTime - previous!.endTime) <= SAME_SPEAKER_GAP_HOLD_SECONDS;
+
+			if (shouldHoldPreviousSpeaker && previous) {
+				setCurrentSubtitle(previous);
+				const agentInfo = subtitlesFileName[previous.srtFileIndex];
+				if (agentInfo?.name) {
+					setCurrentAgentName(agentInfo.name);
+				}
+				return;
+			}
+
+			setCurrentSubtitle(null);
 		}
-	}, [frame, fps, subtitlesData]);
+	}, [frame, fps, subtitlesData, subtitlesFileName]);
 
 	useEffect(() => {
 		return () => {
@@ -139,6 +175,9 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	}, [handle]);
 
 	const audioOffsetInFrames = Math.round(audioOffsetInSeconds * fps);
+	const safeSubtitleDialogueEmotions = Array.isArray(subtitleDialogueEmotions)
+		? subtitleDialogueEmotions
+		: [];
 	const resolvedSpeakerOrder =
 		speakerOrder.length > 0
 			? speakerOrder
@@ -152,11 +191,42 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	const useRightSide =
 		activeSpeakerIndex === -1 ? true : activeSpeakerIndex % 2 === 0;
 	const currentTimeSeconds = frame / fps;
+	const activeSubtitleWordIndex = currentSubtitle
+		? currentSubtitle.wordTimings.findIndex(
+				(wordTiming) =>
+					currentTimeSeconds >= wordTiming.start &&
+					currentTimeSeconds < wordTiming.end
+		  )
+		: -1;
+	const resolvedWordIndex =
+		activeSubtitleWordIndex >= 0
+			? activeSubtitleWordIndex
+			: Math.max(0, (currentSubtitle?.wordTimings.length ?? 1) - 1);
+	const subtitleEntryIndex = currentSubtitle
+		? Number.parseInt(currentSubtitle.index, 10)
+		: Number.NaN;
+	const subtitleEmotionSelection = currentSubtitle
+		? safeSubtitleDialogueEmotions.find(
+				(entry) =>
+					entry.srtFileIndex === currentSubtitle.srtFileIndex &&
+					entry.subtitleEntryIndex === subtitleEntryIndex &&
+					typeof entry.startWordIndexInclusive === 'number' &&
+					typeof entry.endWordIndexInclusive === 'number' &&
+					resolvedWordIndex >= entry.startWordIndexInclusive &&
+					resolvedWordIndex <= entry.endWordIndexInclusive
+		  ) ??
+		  safeSubtitleDialogueEmotions.find(
+				(entry) =>
+					entry.srtFileIndex === currentSubtitle.srtFileIndex &&
+					entry.subtitleEntryIndex === subtitleEntryIndex
+		  )
+		: null;
 	const currentDialogueEmotion =
-		currentSubtitle &&
+		subtitleEmotionSelection ??
+		(currentSubtitle &&
 		dialogueEmotions[currentSubtitle.srtFileIndex]?.agentId === activeSpeakerName
 			? dialogueEmotions[currentSubtitle.srtFileIndex]
-			: null;
+			: null);
 	const activeEmotion = currentDialogueEmotion?.emotion ?? 'neutral';
 	const poseSide = useRightSide ? 'right' : 'left';
 	const isSlowModeActive = slowModeIntervals.some((interval) => {
