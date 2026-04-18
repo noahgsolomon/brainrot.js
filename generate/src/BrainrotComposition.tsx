@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	AbsoluteFill,
 	Audio,
-	continueRender,
 	Img,
 	OffthreadVideo,
 	Sequence,
@@ -20,6 +19,8 @@ import {
 } from './tmp/context';
 import { PaginatedSubtitles } from './Subtitles';
 import {
+	findSubtitleForTime,
+	resolveWordTimingForSubtitle,
 	SubtitleEntry,
 	SubtitleFileSchema,
 	parseSRT,
@@ -46,6 +47,16 @@ export const BrainrotSchema = z.object({
 
 export type BrainrotSchemaType = z.infer<typeof BrainrotSchema>;
 
+type SubtitleDialogueEmotionSelection = {
+	srtFileIndex: number;
+	subtitleEntryIndex: number;
+	startWordIndexInclusive?: number;
+	endWordIndexInclusive?: number;
+	agentId?: string;
+	emotion?: string;
+	reason?: string | null;
+};
+
 export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	subtitlesFileName,
 	audioFileName,
@@ -56,20 +67,12 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	audioOffsetInSeconds,
 	videoFileName,
 }) => {
-	const SAME_SPEAKER_GAP_HOLD_SECONDS = 0.35;
-	const [currentAgentName, setCurrentAgentName] = useState<string>('');
 	const { durationInFrames, fps } = useVideoConfig();
 	const frame = useCurrentFrame();
 	const audioData = useAudioData(audioFileName);
 	const [subtitlesData, setSubtitlesData] = useState<SubtitleEntry[]>([]);
-	const [currentSubtitle, setCurrentSubtitle] = useState<SubtitleEntry | null>(
-		null
-	);
-	const [handle] = useState<number | null>(null);
-	const ref = useRef<HTMLDivElement>(null);
 
 	const getCurrentAmplitude = () => {
-		console.log('audio datw', audioData);
 		if (!audioData) return 0;
 		const frequencyData = visualizeAudio({
 			fps,
@@ -77,30 +80,11 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 			audioData,
 			numberOfSamples: 32,
 		});
-		console.log('frequency data', frequencyData);
 
-		// Get the average amplitude
 		const amplitude =
 			frequencyData.reduce((sum, val) => sum + val, 0) / frequencyData.length;
-		console.log('amplitude', amplitude * 50);
-		return amplitude * 50; // Adjust this multiplier to control the bounce intensity
+		return amplitude * 50;
 	};
-
-	useEffect(() => {
-		if (subtitlesData.length > 0) {
-			const currentTime = frame / fps;
-			const currentSubtitle = subtitlesData.find(
-				(subtitle) =>
-					currentTime >= subtitle.startTime && currentTime < subtitle.endTime
-			);
-
-			if (currentSubtitle) {
-				setCurrentSubtitle(currentSubtitle);
-				const agentInfo = subtitlesFileName[currentSubtitle.srtFileIndex];
-				setCurrentAgentName(agentInfo.name);
-			}
-		}
-	}, [frame, fps, subtitlesData, subtitlesFileName]);
 
 	useEffect(() => {
 		const fetchSubtitlesData = async () => {
@@ -121,62 +105,14 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		fetchSubtitlesData();
 	}, [subtitlesFileName]);
 
-	useEffect(() => {
-		if (subtitlesData.length > 0) {
-			const currentTime = frame / fps;
-			const current = subtitlesData.find(
-				(subtitle) =>
-					currentTime >= subtitle.startTime && currentTime < subtitle.endTime
-			);
-
-			if (current) {
-				setCurrentSubtitle(current);
-				const agentInfo = subtitlesFileName[current.srtFileIndex];
-				if (agentInfo?.name) {
-					setCurrentAgentName(agentInfo.name);
-				}
-				return;
-			}
-
-			const previous = [...subtitlesData]
-				.reverse()
-				.find((subtitle) => subtitle.endTime <= currentTime);
-			const next = subtitlesData.find(
-				(subtitle) => subtitle.startTime > currentTime
-			);
-
-			const shouldHoldPreviousSpeaker =
-				Boolean(previous) &&
-				Boolean(next) &&
-				previous?.srtFileIndex === next?.srtFileIndex &&
-				currentTime >= (previous?.endTime ?? 0) &&
-				currentTime < (next?.startTime ?? 0) &&
-				(next!.startTime - previous!.endTime) <= SAME_SPEAKER_GAP_HOLD_SECONDS;
-
-			if (shouldHoldPreviousSpeaker && previous) {
-				setCurrentSubtitle(previous);
-				const agentInfo = subtitlesFileName[previous.srtFileIndex];
-				if (agentInfo?.name) {
-					setCurrentAgentName(agentInfo.name);
-				}
-				return;
-			}
-
-			setCurrentSubtitle(null);
-		}
-	}, [frame, fps, subtitlesData, subtitlesFileName]);
-
-	useEffect(() => {
-		return () => {
-			if (handle !== null) {
-				continueRender(handle);
-			}
-		};
-	}, [handle]);
-
 	const audioOffsetInFrames = Math.round(audioOffsetInSeconds * fps);
-	const safeSubtitleDialogueEmotions = Array.isArray(subtitleDialogueEmotions)
-		? subtitleDialogueEmotions
+	const currentTimeSeconds = frame / fps;
+	const currentSubtitle = findSubtitleForTime(subtitlesData, currentTimeSeconds, {
+		holdSameSpeakerGaps: true,
+	});
+	const safeSubtitleDialogueEmotions: SubtitleDialogueEmotionSelection[] =
+		Array.isArray(subtitleDialogueEmotions)
+		? (subtitleDialogueEmotions as SubtitleDialogueEmotionSelection[])
 		: [];
 	const resolvedSpeakerOrder =
 		speakerOrder.length > 0
@@ -185,25 +121,21 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 	const subtitleAgentName = currentSubtitle
 		? subtitlesFileName[currentSubtitle.srtFileIndex]?.name
 		: null;
-	const activeSpeakerName =
-		subtitleAgentName || currentAgentName || initialAgentName;
+	const activeSpeakerName = subtitleAgentName || initialAgentName;
 	const activeSpeakerIndex = resolvedSpeakerOrder.indexOf(activeSpeakerName);
 	const useRightSide =
 		activeSpeakerIndex === -1 ? true : activeSpeakerIndex % 2 === 0;
-	const currentTimeSeconds = frame / fps;
-	const activeSubtitleWordIndex = currentSubtitle
-		? currentSubtitle.wordTimings.findIndex(
-				(wordTiming) =>
-					currentTimeSeconds >= wordTiming.start &&
-					currentTimeSeconds < wordTiming.end
-		  )
-		: -1;
+	const resolvedWordTimingSelection = currentSubtitle
+		? resolveWordTimingForSubtitle(currentSubtitle, currentTimeSeconds)
+		: null;
+	const resolvedWordTiming = resolvedWordTimingSelection?.wordTiming ?? null;
 	const resolvedWordIndex =
-		activeSubtitleWordIndex >= 0
-			? activeSubtitleWordIndex
-			: Math.max(0, (currentSubtitle?.wordTimings.length ?? 1) - 1);
+		resolvedWordTiming?.subtitleWordIndex ??
+		resolvedWordTimingSelection?.index ??
+		0;
 	const subtitleEntryIndex = currentSubtitle
-		? Number.parseInt(currentSubtitle.index, 10)
+		? resolvedWordTiming?.subtitleEntryIndex ??
+			Number.parseInt(currentSubtitle.index, 10)
 		: Number.NaN;
 	const subtitleEmotionSelection = currentSubtitle
 		? safeSubtitleDialogueEmotions.find(
@@ -240,79 +172,76 @@ export const BrainrotComposition: React.FC<BrainrotSchemaType> = ({
 		);
 	});
 
-		return (
-			<div ref={ref}>
-				<AbsoluteFill>
-					<Sequence from={-audioOffsetInFrames}>
-						<Audio src={audioFileName} />
-						{music !== 'NONE' && (
-							<Audio loop volume={0.1} src={staticFile(music)} />
+	return (
+		<div>
+			<AbsoluteFill>
+				<Sequence from={-audioOffsetInFrames}>
+					<Audio src={audioFileName} />
+					{music !== 'NONE' && (
+						<Audio loop volume={0.1} src={staticFile(music)} />
+					)}
+					<div
+						className="relative -z-20 flex h-full w-full flex-col font-remotionFont"
+						style={{
+							filter: isSlowModeActive ? 'grayscale(1)' : 'grayscale(0)',
+							transition: 'filter 0.35s ease-in-out',
+						}}
+					>
+						{videoFileName && (
+							<OffthreadVideo
+								muted
+								className="h-full w-full object-cover"
+								src={staticFile(videoFileName)}
+							/>
 						)}
 						<div
-							className="relative -z-20 flex h-full w-full flex-col font-remotionFont"
+							className="absolute bottom-8 right-8 z-30 flex flex-col items-center gap-2 text-5xl font-bold text-white opacity-[65%]"
 							style={{
-								filter: isSlowModeActive
-									? 'grayscale(1)'
-									: 'grayscale(0)',
-								transition: 'filter 0.35s ease-in-out',
+								textShadow: '3px 3px 0px #000000',
+								WebkitTextStroke: '1.5px black',
 							}}
 						>
-							{videoFileName && (
-								<OffthreadVideo
-									loop
-									muted
-									className="h-full w-full object-cover"
-									src={staticFile(videoFileName)}
-								/>
-							)}
-							<div
-								className="absolute flex flex-col items-center gap-2 opacity-[65%] z-30 bottom-8 right-8 text-white font-bold text-5xl"
+							brainrotjs
+							<br></br>.com 🧠
+						</div>
+						<div
+							className={`absolute left-0 right-0 z-30 flex flex-row p-5 transition-all duration-500 ease-in-out ${
+								currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
+							} ${useRightSide ? 'justify-end' : 'justify-start'}`}
+						>
+							<Img
+								width={400}
+								height={400}
 								style={{
-									textShadow: '3px 3px 0px #000000',
-									WebkitTextStroke: '1.5px black',
+									transform: `translateY(${-getCurrentAmplitude() * 17}px)`,
 								}}
-							>
-								brainrotjs
-								<br></br>.com 🧠
-							</div>
-							<div
-								className={`absolute left-0 right-0 flex flex-row p-5 z-30 transition-all duration-500 ease-in-out ${
-									currentSubtitle ? '-bottom-[75px]' : '-bottom-[1000px]'
-								} ${useRightSide ? 'justify-end' : 'justify-start'}`}
-							>
-								<Img
-									width={400}
-									height={400}
-									style={{
-										transform: `translateY(${-getCurrentAmplitude() * 17}px)`,
-									}}
-									className="z-30 transition-all rounded-full"
-									src={staticFile(
-										`/pose/${poseSide}/${activeEmotion}/${activeSpeakerName}.png`
-									)}
-								/>
-							</div>
-							<div
-								style={{
-									lineHeight: `${subtitlesLineHeight}px`,
-									textShadow: '3px 3px 0px #000000',
-									WebkitTextStroke: '1.5px black',
-								}}
-								className="font-remotionFont z-10 absolute text-center text-6xl drop-shadow-2xl text-white mx-16 top-1/2 -translate-y-1/2 left-0 right-0"
-							>
-								<PaginatedSubtitles
-									fps={fps}
-									startFrame={audioOffsetInFrames}
-									endFrame={audioOffsetInFrames + durationInFrames}
-									linesPerPage={subtitlesLinePerPage}
-									subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
-									subtitlesLineHeight={subtitlesLineHeight}
-									subtitlesData={subtitlesData}
-								/>
-							</div>
-							</div>
-						</Sequence>
-					</AbsoluteFill>
-				</div>
-			);
-		};
+								className="z-30 rounded-full transition-all"
+								src={staticFile(
+									`/pose/${poseSide}/${activeEmotion}/${activeSpeakerName}.png`
+								)}
+							/>
+						</div>
+						<div
+							style={{
+								lineHeight: `${subtitlesLineHeight}px`,
+								textShadow: '3px 3px 0px #000000',
+								WebkitTextStroke: '1.5px black',
+							}}
+							className="absolute left-0 right-0 top-1/2 z-10 -translate-y-1/2 text-center text-6xl text-white drop-shadow-2xl font-remotionFont"
+						>
+							<PaginatedSubtitles
+								fps={fps}
+								startFrame={audioOffsetInFrames}
+								endFrame={audioOffsetInFrames + durationInFrames}
+								linesPerPage={subtitlesLinePerPage}
+								subtitlesZoomMeasurerSize={subtitlesZoomMeasurerSize}
+								subtitlesLineHeight={subtitlesLineHeight}
+								subtitlesData={subtitlesData}
+							/>
+						</div>
+					</div>
+				</Sequence>
+			</AbsoluteFill>
+		</div>
+	);
+};

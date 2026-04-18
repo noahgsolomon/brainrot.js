@@ -126,6 +126,7 @@ type PendingVideoItem = {
   progress: number;
   credits: number;
   phaseKey: string | null;
+  falError: string | null;
   estimatedMsRemaining: number | null;
   estimatedMsTotal: number | null;
   etaConfidence: "none" | "low" | "medium" | "high";
@@ -140,6 +141,12 @@ function isTerminalStatus(status: string | undefined) {
 
   const normalizedStatus = status.toUpperCase();
   return normalizedStatus === "COMPLETED" || normalizedStatus === "ERROR";
+}
+
+function truncateErrorMessage(message: string, maxLength = 320) {
+  return message.length > maxLength
+    ? `${message.slice(0, maxLength - 3)}...`
+    : message;
 }
 
 function hasActivePendingVideos(videos: PendingVideoItem[] | undefined) {
@@ -240,9 +247,19 @@ export default function PageClient({
         setIsYourVideosOpen(true);
       } else if (video.status === "ERROR") {
         handledVideoIds.current.add(video.id);
+        if (video.falError) {
+          console.error("Video generation failed:", video.falError);
+        }
         toast.error(
-          "Your video was not able to be generated. Please try again.",
-          { icon: "💣" },
+          video.falError
+            ? "Your video was not able to be generated. See error details."
+            : "Your video was not able to be generated. Please try again.",
+          {
+            description: video.falError
+              ? truncateErrorMessage(video.falError)
+              : undefined,
+            icon: "💣",
+          },
         );
         deletePendingVideoMutation.mutate({ id: video.id });
       }
@@ -470,6 +487,12 @@ function PendingVideoCard({
         <div>
           <span className="font-bold">Status:</span> {video.status}
         </div>
+        {video.falError ? (
+          <div className="w-full rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs text-destructive">
+            <span className="font-bold">Error:</span>{" "}
+            {truncateErrorMessage(video.falError)}
+          </div>
+        ) : null}
         <div>
           <span className="font-bold">Est. time remaining: </span>
           {formatEtaSeconds(liveEta) ?? "Estimating..."}

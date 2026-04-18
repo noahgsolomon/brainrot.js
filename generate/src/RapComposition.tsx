@@ -3,10 +3,7 @@ import {
 	AbsoluteFill,
 	Audio,
 	continueRender,
-	Img,
 	Sequence,
-	staticFile,
-	useCurrentFrame,
 	useVideoConfig,
 } from 'remotion';
 import { PaginatedSubtitles } from './Subtitles';
@@ -49,7 +46,6 @@ export const RapComposition: React.FC<RapSchemaType> = ({
 	videoFileName,
 }) => {
 	const { durationInFrames, fps } = useVideoConfig();
-	const frame = useCurrentFrame();
 	const [subtitlesData, setSubtitlesData] = useState<SubtitleEntry[]>([]);
 	const [handle] = useState<number | null>(null);
 	const ref = useRef<HTMLDivElement>(null);
@@ -109,7 +105,7 @@ export const RapComposition: React.FC<RapSchemaType> = ({
 								textShadow: '4px 4px 0px #000000',
 								WebkitTextStroke: '2px black',
 							}}
-							className="font-remotionFont z-10 absolute text-center text-8xl drop-shadow-2xl text-white mx-24 top-1/2 -translate-y-1/2 left-0 right-0"
+							className="font-remotionFont z-10 absolute text-center text-8xl drop-shadow-2xl text-white top-1/2 -translate-y-1/2 left-0 right-0"
 						>
 							<PaginatedSubtitles
 								fps={fps}

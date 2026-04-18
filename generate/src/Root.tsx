@@ -2,6 +2,7 @@ import { Composition, staticFile } from 'remotion';
 import { BrainrotComposition, BrainrotSchema } from './BrainrotComposition';
 import { PodcastComposition, PodcastSchema } from './PodcastComposition';
 import { MonologueComposition, MonologueSchema } from './MonologueComposition';
+import { RapComposition, RapSchema } from './RapComposition';
 import './style.css';
 import {
 	initialAgentName,
@@ -136,6 +137,8 @@ export const RemotionRoot: React.FC = () => {
 				return PodcastSchema;
 			case 'monologue':
 				return MonologueSchema;
+			case 'rap':
+				return RapSchema;
 			case 'brainrot':
 			default:
 				return BrainrotSchema;

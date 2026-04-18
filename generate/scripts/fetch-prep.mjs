@@ -53,7 +53,7 @@ loadEnvFile(path.join(REPO_ROOT, ".env"));
 
 const { fal } = await import("@fal-ai/client");
 
-const DEFAULT_FAL_APP_ID = "noah-t9ec484ea829/remotion-proxy-spike";
+const DEFAULT_FAL_APP_ID = "remotion-proxy-spike";
 const POLL_INTERVAL_MS = 3_000;
 
 // ---------------------------------------------------------------------------
@@ -110,8 +110,18 @@ if (!FAL_KEY) {
   process.exit(1);
 }
 
-const FAL_APP_ID =
+const rawFalAppId =
   process.env.FAL_REMOTION_SPIKE_ENDPOINT_ID || DEFAULT_FAL_APP_ID;
+const falAppOwner = process.env.FAL_APP_OWNER?.trim();
+const FAL_APP_ID = rawFalAppId.includes("/")
+  ? rawFalAppId
+  : falAppOwner
+    ? `${falAppOwner}/${rawFalAppId}`
+    : (() => {
+        throw new Error(
+          `FAL endpoint id "${rawFalAppId}" is missing an owner. Set FAL_REMOTION_SPIKE_ENDPOINT_ID=<appOwner>/<appId> or set FAL_APP_OWNER.`,
+        );
+      })();
 
 fal.config({ credentials: FAL_KEY });
 

@@ -1,8 +1,7 @@
 import { useAudioData, visualizeAudio } from '@remotion/media-utils';
 import React from 'react';
-import { useCurrentFrame, staticFile } from 'remotion';
+import { useCurrentFrame } from 'remotion';
 import { z } from 'zod';
-import { zColor } from '@remotion/zod-types';
 
 /**
  * Represents timing information for a single word in the subtitles
@@ -11,6 +10,8 @@ export type WordTiming = {
 	word: string;
 	start: number;
 	end: number;
+	subtitleEntryIndex: number;
+	subtitleWordIndex: number;
 };
 
 /**
@@ -24,6 +25,95 @@ export type SubtitleEntry = {
 	srt: string;
 	srtFileIndex: number;
 	wordTimings: WordTiming[];
+};
+
+export const findSubtitleForTime = (
+	subtitlesData: SubtitleEntry[],
+	currentTime: number,
+	options?: {
+		holdSameSpeakerGaps?: boolean;
+	}
+): SubtitleEntry | null => {
+	const currentSubtitle =
+		subtitlesData.find(
+			(subtitle) =>
+				currentTime >= subtitle.startTime && currentTime < subtitle.endTime
+		) ?? null;
+
+	if (currentSubtitle || !options?.holdSameSpeakerGaps) {
+		return currentSubtitle;
+	}
+
+	let previousSubtitle: SubtitleEntry | null = null;
+	for (let index = subtitlesData.length - 1; index >= 0; index -= 1) {
+		const candidate = subtitlesData[index];
+		if (candidate.endTime <= currentTime) {
+			previousSubtitle = candidate;
+			break;
+		}
+	}
+
+	const nextSubtitle =
+		subtitlesData.find((subtitle) => subtitle.startTime > currentTime) ?? null;
+
+	if (
+		previousSubtitle &&
+		nextSubtitle &&
+		previousSubtitle.srtFileIndex === nextSubtitle.srtFileIndex &&
+		currentTime >= previousSubtitle.endTime &&
+		currentTime < nextSubtitle.startTime
+	) {
+		return previousSubtitle;
+	}
+
+	return null;
+};
+
+export const resolveWordTimingForSubtitle = (
+	subtitle: SubtitleEntry,
+	currentTime: number
+): {
+	index: number;
+	wordTiming: WordTiming;
+} | null => {
+	const activeWordIndex = subtitle.wordTimings.findIndex(
+		(wordTiming) =>
+			currentTime >= wordTiming.start && currentTime < wordTiming.end
+	);
+
+	if (activeWordIndex >= 0) {
+		return {
+			index: activeWordIndex,
+			wordTiming: subtitle.wordTimings[activeWordIndex],
+		};
+	}
+
+	let lastStartedWordIndex = -1;
+
+	for (let index = 0; index < subtitle.wordTimings.length; index += 1) {
+		if (subtitle.wordTimings[index].start <= currentTime) {
+			lastStartedWordIndex = index;
+			continue;
+		}
+
+		break;
+	}
+
+	if (lastStartedWordIndex >= 0) {
+		return {
+			index: lastStartedWordIndex,
+			wordTiming: subtitle.wordTimings[lastStartedWordIndex],
+		};
+	}
+
+	if (subtitle.wordTimings.length === 0) {
+		return null;
+	}
+
+	return {
+		index: 0,
+		wordTiming: subtitle.wordTimings[0],
+	};
 };
 
 /**
@@ -73,7 +163,7 @@ export const parseSRT = (
 	srtContent: string,
 	srtFileIndex: number
 ): SubtitleEntry[] => {
-	const blocks = srtContent.split('\n\n');
+	const blocks = srtContent.replace(/\r\n/g, '\n').split(/\n{2,}/);
 	const MIN_DURATION = 0.5;
 
 	const preliminaryEntries = blocks
@@ -90,15 +180,21 @@ export const parseSRT = (
 				.split(' --> ')
 				.map(srtTimeToSeconds);
 
-			const textLines = lines.slice(2).join(' ');
+			const textLines = lines.slice(2).join(' ').trim();
+			const subtitleEntryIndex = Number.parseInt(indexLine, 10);
 
 			// Calculate word timings
-			const words = textLines.split(' ');
-			const timePerWord = (endTime - startTime) / words.length;
+			const words = textLines.split(/\s+/).filter(Boolean);
+			const timePerWord =
+				words.length > 0 ? (endTime - startTime) / words.length : 0;
 			const wordTimings = words.map((word, idx) => ({
 				word,
 				start: startTime + idx * timePerWord,
 				end: startTime + (idx + 1) * timePerWord,
+				subtitleEntryIndex: Number.isInteger(subtitleEntryIndex)
+					? subtitleEntryIndex
+					: 0,
+				subtitleWordIndex: idx,
 			}));
 
 			return {

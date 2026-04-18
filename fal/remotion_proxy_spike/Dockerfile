@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 USER root
 
@@ -19,6 +19,9 @@ COPY generate/package.json /app/generate/package.json
 RUN cd /app/generate && npm install --legacy-peer-deps
 COPY generate/src /app/generate/src
 COPY generate/public /app/generate/public
+COPY generate/public/background /app/generate/public/background
+RUN test -d /app/generate/public/background \
+    && find /app/generate/public/background -maxdepth 1 -type f -name 'MINECRAFT-*.mp4' | grep -q .
 COPY generate/tsconfig.json /app/generate/tsconfig.json
 COPY generate/remotion.config.ts /app/generate/remotion.config.ts
 COPY generate/tailwind.config.js /app/generate/tailwind.config.js

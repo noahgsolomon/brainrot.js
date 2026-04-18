@@ -392,6 +392,7 @@ export const userRouter = createTRPCRouter({
         outputType: true,
         phaseKey: true,
         phaseStartedAt: true,
+        falError: true,
       },
     });
 
@@ -486,6 +487,7 @@ export const userRouter = createTRPCRouter({
           progress: video.progress,
           credits: video.credits,
           phaseKey: video.phaseKey,
+          falError: video.falError,
           estimatedMsRemaining: eta.estimatedMsRemaining,
           estimatedMsTotal: eta.estimatedMsTotal,
           etaConfidence: eta.confidence,

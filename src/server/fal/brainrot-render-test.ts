@@ -5,7 +5,7 @@ import { fal } from "@fal-ai/client";
 import { buildFalWebhookHeaders } from "@/lib/fal-jobs";
 
 const DEFAULT_FAL_REMOTION_SPIKE_ENDPOINT =
-  "noah-t9ec484ea829/remotion-proxy-spike";
+  "remotion-proxy-spike";
 
 interface SubmitFalBrainrotRenderJobOptions {
   videoId: string;
@@ -28,9 +28,20 @@ function getFalCredentials() {
 }
 
 function getFalRemotionSpikeEndpointId() {
-  return (
+  const endpointId =
     process.env.FAL_REMOTION_SPIKE_ENDPOINT_ID ??
-    DEFAULT_FAL_REMOTION_SPIKE_ENDPOINT
+    DEFAULT_FAL_REMOTION_SPIKE_ENDPOINT;
+  const owner = process.env.FAL_APP_OWNER?.trim();
+
+  if (endpointId.includes("/")) {
+    return endpointId;
+  }
+  if (owner) {
+    return `${owner}/${endpointId}`;
+  }
+
+  throw new Error(
+    `FAL endpoint id "${endpointId}" is missing an owner. Set FAL_REMOTION_SPIKE_ENDPOINT_ID=<appOwner>/<appId> or set FAL_APP_OWNER.`,
   );
 }
 

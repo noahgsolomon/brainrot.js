@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCurrentFrame } from 'remotion';
 import { Word } from './Word';
-import { SubtitleEntry } from './Composition';
+import { SubtitleEntry } from './composition_helpers';
 
 export const PaginatedSubtitles: React.FC<{
 	subtitlesData: SubtitleEntry[];
@@ -23,11 +23,11 @@ export const PaginatedSubtitles: React.FC<{
 	const frame = useCurrentFrame();
 	const windowRef = useRef<HTMLDivElement>(null);
 	const zoomMeasurer = useRef<HTMLDivElement>(null);
+	const SUBTITLE_SIDE_PADDING_PX = 56;
 	// const [handle] = useState(() => delayRender());
 	// const [fontHandle] = useState(() => delayRender());
 	// const [fontLoaded, setFontLoaded] = useState(false);
-	console.log('subtitles', subtitlesData);
-	let windowedFrameSubs = useMemo(() => {
+	const windowedFrameSubs = useMemo(() => {
 		return subtitlesData
 			.map((item) => ({
 				id: Number(item.index),
@@ -85,14 +85,23 @@ export const PaginatedSubtitles: React.FC<{
 	});
 
 	return (
-		<div className="mx-auto flex w-[90%] justify-center">
+		<div
+			className="mx-auto flex w-full justify-center"
+			style={{
+				boxSizing: 'border-box',
+				paddingLeft: `${SUBTITLE_SIDE_PADDING_PX}px`,
+				paddingRight: `${SUBTITLE_SIDE_PADDING_PX}px`,
+			}}
+		>
 			<div
 				ref={windowRef}
 				style={{
-					wordWrap: 'normal',
 					wordBreak: 'normal',
 					overflowWrap: 'normal',
 					whiteSpace: 'normal',
+					hyphens: 'none',
+					boxSizing: 'border-box',
+					width: '100%',
 					maxWidth: '100%',
 					transform: `translateY(-${lineOffset * subtitlesLineHeight}px)`,
 					textAlign: 'center',
