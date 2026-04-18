@@ -20,10 +20,6 @@ const FALLBACK_OPENROUTER_MODELS = [
   "minimax/minimax-m2.5",
   "z-ai/glm-5",
 ];
-const DEFAULT_BACKGROUND_VIDEO_FILE_NAMES = Array.from(
-  { length: 11 },
-  (_, index) => `MINECRAFT-${index + 1}.mp4`,
-);
 const DEFAULT_MUSIC = "WII_SHOP_CHANNEL_TRAP";
 const OPENROUTER_REQUEST_TIMEOUT_MS = Number.parseInt(
   process.env.BRAINROT_OPENROUTER_TIMEOUT_MS ?? "45000",
@@ -52,6 +48,12 @@ const SUPPORTED_DIALOGUE_EMOTIONS = [
   "evil_grin",
 ];
 const DEFAULT_DIALOGUE_EMOTION = "neutral";
+const TARGET_DURATION_MIN_SECONDS = 60;
+const TARGET_DURATION_MAX_SECONDS = 120;
+const TARGET_DURATION_IDEAL_MIN_SECONDS = 75;
+const TARGET_DURATION_IDEAL_MAX_SECONDS = 95;
+const ESTIMATED_WORDS_PER_SECOND = 2.65;
+const ESTIMATED_TURN_OVERHEAD_SECONDS = 0.25;
 
 function sanitizeJobId(jobId) {
   return String(jobId || "job").replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -131,9 +133,11 @@ async function listAvailableBackgroundVideoFileNames() {
     path.join(process.cwd(), "generate", "public", "background"),
     "/app/generate/public/background",
   ];
+  const searchResults = [];
 
   for (const candidateDir of candidateDirs) {
     if (!(await pathExists(candidateDir))) {
+      searchResults.push(`${candidateDir} (missing)`);
       continue;
     }
 
@@ -149,9 +153,15 @@ async function listAvailableBackgroundVideoFileNames() {
     if (fileNames.length > 0) {
       return fileNames;
     }
+
+    searchResults.push(`${candidateDir} (no MINECRAFT-*.mp4 files)`);
   }
 
-  return DEFAULT_BACKGROUND_VIDEO_FILE_NAMES;
+  throw new Error(
+    `No bundled background videos found. Expected MINECRAFT-*.mp4 in one of: ${searchResults.join(
+      ", ",
+    )}. If this is running in FAL, check .dockerignore and Dockerfile COPY generate/public.`,
+  );
 }
 
 async function resolveBackgroundVideoFileName(requestedVideoFileName) {
@@ -176,8 +186,7 @@ async function resolveBackgroundVideoFileName(requestedVideoFileName) {
   }
 
   const selectedIndex = Math.floor(Math.random() * availableFileNames.length);
-  const selectedFileName =
-    availableFileNames[selectedIndex] ?? DEFAULT_BACKGROUND_VIDEO_FILE_NAMES[0];
+  const selectedFileName = availableFileNames[selectedIndex];
   return `/background/${selectedFileName}`;
 }
 
@@ -671,13 +680,95 @@ function formatAgentList(agentIds) {
   return `${humanized.slice(0, -1).join(", ")}, and ${humanized.at(-1)}`;
 }
 
-function getMinimumExchangeCount(agentIds) {
-  return Math.max(5, agentIds.length * 2);
+function getTranscriptShapeTargets(agentCount) {
+  const safeAgentCount = Math.max(agentCount, 1);
+
+  return {
+    maxTurns:
+      safeAgentCount >= 7 ? Math.min(12, safeAgentCount + 2) : 10,
+    maxWordsPerTurn:
+      safeAgentCount >= 9
+        ? 16
+        : safeAgentCount >= 6
+          ? 18
+          : safeAgentCount >= 4
+            ? 22
+            : 26,
+  };
+}
+
+function getCastPacingInstruction(agentIds) {
+  if (agentIds.length >= 8) {
+    return `Because there are ${agentIds.length} speakers, most of them should get exactly one short turn. Only give a tiny second turn to one or two speakers if the runtime budget still allows it.`;
+  }
+
+  if (agentIds.length >= 5) {
+    return "Keep the cast moving quickly. Give everyone a short turn before letting anyone take a longer follow-up.";
+  }
+
+  return "Use a brisk back-and-forth with several short turns instead of a few long monologues.";
+}
+
+function estimateTranscriptDurationSeconds(transcript) {
+  const totalWords = transcript.reduce(
+    (sum, entry) => sum + splitTranscriptWords(entry.text).length,
+    0,
+  );
+  const estimatedDialogueSeconds = totalWords / ESTIMATED_WORDS_PER_SECOND;
+  const estimatedGapSeconds =
+    Math.max(0, transcript.length - 1) * ESTIMATED_TURN_OVERHEAD_SECONDS;
+
+  return estimatedDialogueSeconds + estimatedGapSeconds;
+}
+
+function validateTranscriptTiming(transcript, agentIds) {
+  const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(
+    agentIds.length,
+  );
+
+  if (transcript.length > maxTurns) {
+    throw new Error(
+      `Transcript used ${transcript.length} turns, which exceeds the cap of ${maxTurns} turns`,
+    );
+  }
+
+  for (const entry of transcript) {
+    const wordCount = splitTranscriptWords(entry.text).length;
+    if (wordCount > maxWordsPerTurn) {
+      throw new Error(
+        `Transcript line for ${entry.agentId} exceeded ${maxWordsPerTurn} words`,
+      );
+    }
+  }
+
+  const estimatedDurationSeconds = estimateTranscriptDurationSeconds(transcript);
+  if (
+    estimatedDurationSeconds < TARGET_DURATION_MIN_SECONDS ||
+    estimatedDurationSeconds > TARGET_DURATION_MAX_SECONDS
+  ) {
+    throw new Error(
+      `Transcript estimated runtime ${estimatedDurationSeconds.toFixed(
+        1,
+      )}s fell outside the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS}s target`,
+    );
+  }
+
+  return {
+    estimatedDurationSeconds,
+    totalWords: transcript.reduce(
+      (sum, entry) => sum + splitTranscriptWords(entry.text).length,
+      0,
+    ),
+  };
 }
 
 function buildMockTranscript({ topic, agents }) {
-  const safeAgents = agents.slice(0, Math.min(agents.length, 8));
-  const exchangeCount = getMinimumExchangeCount(safeAgents);
+  const safeAgents = agents.slice(0, Math.min(agents.length, 10));
+  const { maxTurns } = getTranscriptShapeTargets(safeAgents.length);
+  const exchangeCount = Math.max(
+    safeAgents.length,
+    safeAgents.length >= 7 ? safeAgents.length + 1 : Math.min(maxTurns, 8),
+  );
 
   return Array.from({ length: exchangeCount }, (_, index) => {
     const agentId = safeAgents[index % safeAgents.length];
@@ -687,10 +778,10 @@ function buildMockTranscript({ topic, agents }) {
       agentId,
       text:
         index === 0
-          ? `I cannot believe we're actually doing a fal proof of concept about ${topic}.`
+          ? `I cannot believe we are doing a fal proof of concept about ${topic}, and I am keeping this opener short on purpose.`
           : index === exchangeCount - 1
-            ? `Good, because now ${humanName} gets another turn and the render finally feels like an actual crowd argument.`
-            : `${humanName} is still piling onto this ${topic} debate because a bigger cast needs more than seven tiny exchanges to get properly chaotic.`,
+            ? `Good, because ${humanName} gets one last quick jab about ${topic} without dragging the video past the runtime target.`
+            : `${humanName} drops a compact, chaotic take on ${topic} so the conversation stays punchy instead of rambling forever.`,
     };
   });
 }
@@ -708,10 +799,11 @@ async function getTranscriptWithRetry({
     });
   }
 
-  const minimumExchanges = getMinimumExchangeCount(agents);
+  const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(agents.length);
   const agentList = formatAgentList(agents);
-  const systemPrompt = `Create a dialogue for a conversation on the topic of ${topic}. The conversation should include these agents: ${agentList}. Every selected agent should speak at least once. Use a minimum of ${minimumExchanges} exchanges, and when there are many selected agents, let the conversation run longer so multiple speakers get multiple turns instead of rushing to the finish. There is no hard maximum exchange count. They should all act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane, shocking, and funny way possible. The agentId attribute must always be one of: ${agents.join(", ")}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agents[0]}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
-  const prompt = `Generate a video transcript about ${topic}. Every selected agent should get a distinct turn, and if the cast is large the conversation should stretch out into a much bigger chaotic back-and-forth instead of stopping after a tiny number of exchanges.`;
+  const castPacingInstruction = getCastPacingInstruction(agents);
+  const systemPrompt = `Create a dialogue for a conversation on the topic of ${topic}. The conversation should include these agents: ${agentList}. Every selected agent must speak at least once. The finished video must land between ${TARGET_DURATION_MIN_SECONDS} and ${TARGET_DURATION_MAX_SECONDS} seconds total, ideally ${TARGET_DURATION_IDEAL_MIN_SECONDS} to ${TARGET_DURATION_IDEAL_MAX_SECONDS} seconds. Aim for roughly 160 to 280 total spoken words across the full transcript. Keep every turn to 1 or 2 short sentences and no more than ${maxWordsPerTurn} words in a single turn. Use ${maxTurns} transcript entries or fewer. ${castPacingInstruction} They should all act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane, shocking, and funny way possible. The agentId attribute must always be one of: ${agents.join(", ")}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agents[0]}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
+  const prompt = `Generate a video transcript about ${topic}. Keep the whole thing in the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS} second range. Do not let the cast ramble. If there are lots of speakers, keep each line short so everyone fits without making the video longer than the target window.`;
 
   return runStructuredOpenRouterTaskWithRetry({
     taskName: "transcript",
@@ -730,6 +822,13 @@ async function getTranscriptWithRetry({
           )}`,
         );
       }
+
+      const validation = validateTranscriptTiming(transcript, agents);
+      console.log(
+        `[transcript] Accepted ${transcript.length} turns, ${validation.totalWords} words, estimated ${validation.estimatedDurationSeconds.toFixed(
+          1,
+        )}s`,
+      );
 
       return transcript;
     },

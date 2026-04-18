@@ -1,19 +1,19 @@
 import { Easing, interpolate } from 'remotion';
 import React from 'react';
-import { SubtitleItem } from 'parse-srt';
-import { WordTiming } from './Composition';
+import { WordTiming } from './composition_helpers';
 
 export const Word: React.FC<{
-	item: SubtitleItem & { wordTimings?: WordTiming[] };
+	item: {
+		id: number;
+		start: number;
+		end: number;
+		text: string;
+		wordTimings?: WordTiming[];
+	};
 	frame: number;
 	fps: number;
 }> = ({ item, frame, fps }) => {
 	const currentTimeInSeconds = frame / fps;
-	console.log('Word check:', {
-		word: item.text,
-		currentTime: currentTimeInSeconds,
-		wordTimings: item.wordTimings,
-	});
 
 	const opacity = interpolate(frame, [item.start, item.start + 15], [0, 1], {
 		extrapolateLeft: 'clamp',
@@ -32,15 +32,13 @@ export const Word: React.FC<{
 		extrapolateRight: 'clamp',
 	});
 
-	console.log('item.wordTimings', item.wordTimings);
-
 	return (
 		<span
 			style={{
 				display: 'inline',
 				opacity,
 				transform: `scale(${scale}) translateY(${translateY}px)`,
-				fontSize: '4rem',
+				fontSize: 'inherit',
 				transformOrigin: 'center bottom',
 				transition: 'color 0.1s ease-in-out',
 			}}

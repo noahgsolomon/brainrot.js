@@ -4,14 +4,138 @@ import Groq from 'groq-sdk';
 import { query } from '../../dbClient';
 import { writeFile } from 'fs/promises';
 import { generateAudio } from '../../audioGenerator';
-import { generateFillerContext } from '../../fillerContext';
 
 const groq = new Groq({
 	apiKey: process.env.GROQ_API_KEY,
 });
 
-function getMinimumExchangeCount(agents: string[]) {
-	return Math.max(5, agents.length * 2);
+const TARGET_DURATION_MIN_SECONDS = 60;
+const TARGET_DURATION_MAX_SECONDS = 120;
+const TARGET_DURATION_IDEAL_MIN_SECONDS = 75;
+const TARGET_DURATION_IDEAL_MAX_SECONDS = 95;
+const ESTIMATED_WORDS_PER_SECOND = 2.65;
+const ESTIMATED_TURN_OVERHEAD_SECONDS = 0.25;
+
+function countWords(text: string) {
+	return String(text)
+		.trim()
+		.split(/\s+/)
+		.filter(Boolean).length;
+}
+
+function estimateTranscriptDurationSeconds(transcript: Transcript[]) {
+	const totalWords = transcript.reduce(
+		(sum, entry) => sum + countWords(entry.text),
+		0
+	);
+	const estimatedDialogueSeconds = totalWords / ESTIMATED_WORDS_PER_SECOND;
+	const estimatedGapSeconds =
+		Math.max(0, transcript.length - 1) * ESTIMATED_TURN_OVERHEAD_SECONDS;
+
+	return estimatedDialogueSeconds + estimatedGapSeconds;
+}
+
+function getTranscriptShapeTargets(agentCount: number) {
+	const safeAgentCount = Math.max(agentCount, 1);
+
+	return {
+		maxTurns:
+			safeAgentCount >= 7
+				? Math.min(12, safeAgentCount + 2)
+				: safeAgentCount >= 4
+				? 10
+				: 10,
+		maxWordsPerTurn:
+			safeAgentCount >= 9
+				? 16
+				: safeAgentCount >= 6
+				? 18
+				: safeAgentCount >= 4
+				? 22
+				: 26,
+	};
+}
+
+function getCastPacingInstruction(agents: string[]) {
+	if (agents.length >= 8) {
+		return `Because there are ${agents.length} speakers, most of them should get exactly one short turn. Only give a tiny second turn to one or two speakers if the runtime budget still allows it.`;
+	}
+
+	if (agents.length >= 5) {
+		return 'Keep the cast moving quickly. Give everyone a short turn before letting anyone take a longer follow-up.';
+	}
+
+	return 'Use a brisk back-and-forth with several short turns instead of a few long monologues.';
+}
+
+function normalizeTranscript(rawTranscript: Transcript[]) {
+	return rawTranscript.map((entry) => ({
+		agentId: String(entry.agentId ?? '').trim(),
+		text: String(entry.text ?? '')
+			.replace(/\s+/g, ' ')
+			.trim(),
+	}));
+}
+
+function validateTranscript(transcript: Transcript[], agents: string[]) {
+	const validAgentIds = new Set(agents);
+	const presentAgentIds = new Set<string>();
+	const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(agents.length);
+
+	if (transcript.length === 0) {
+		throw new Error('Transcript was empty');
+	}
+
+	if (transcript.length > maxTurns) {
+		throw new Error(
+			`Transcript used ${transcript.length} turns, which exceeds the cap of ${maxTurns} turns`
+		);
+	}
+
+	for (const entry of transcript) {
+		if (!validAgentIds.has(entry.agentId)) {
+			throw new Error(`Unexpected agentId in transcript: ${entry.agentId}`);
+		}
+
+		if (!entry.text) {
+			throw new Error(`Transcript line for ${entry.agentId} was empty`);
+		}
+
+		if (countWords(entry.text) > maxWordsPerTurn) {
+			throw new Error(
+				`Transcript line for ${entry.agentId} exceeded ${maxWordsPerTurn} words`
+			);
+		}
+
+		presentAgentIds.add(entry.agentId);
+	}
+
+	const missingAgents = agents.filter((agent) => !presentAgentIds.has(agent));
+	if (missingAgents.length > 0) {
+		throw new Error(
+			`Transcript did not include every selected agent: ${missingAgents.join(', ')}`
+		);
+	}
+
+	const estimatedDuration = estimateTranscriptDurationSeconds(transcript);
+	if (
+		estimatedDuration < TARGET_DURATION_MIN_SECONDS ||
+		estimatedDuration > TARGET_DURATION_MAX_SECONDS
+	) {
+		throw new Error(
+			`Transcript estimated runtime ${estimatedDuration.toFixed(
+				1
+			)}s fell outside the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS}s target`
+		);
+	}
+
+	return {
+		estimatedDuration,
+		totalWords: transcript.reduce(
+			(sum, entry) => sum + countWords(entry.text),
+			0
+		),
+	};
 }
 
 async function generateBrainrotTranscript(
@@ -23,6 +147,9 @@ async function generateBrainrotTranscript(
 		agents,
 	});
 
+	const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(agents.length);
+	const castPacingInstruction = getCastPacingInstruction(agents);
+
 	try {
 		console.log('🤖 Creating Groq chat completion...');
 		const completion = await groq.chat.completions.create({
@@ -31,9 +158,7 @@ async function generateBrainrotTranscript(
 					role: 'system',
 					content: `Create a dialogue for a short-form conversation on the topic of ${topic}. The conversation should include these agents: ${agents
 						.map((agent) => agent.split('_').join(' '))
-						.join(', ')}. Every selected agent should speak at least once. Use a minimum of ${getMinimumExchangeCount(
-						agents
-					)} exchanges, and when there are many selected agents, let the conversation run longer so multiple speakers get multiple turns instead of rushing to the finish. There is no hard maximum exchange count. They should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. The agentId attribute must be one of ${agents.join(
+						.join(', ')}. Every selected agent must speak at least once. The finished video must land between ${TARGET_DURATION_MIN_SECONDS} and ${TARGET_DURATION_MAX_SECONDS} seconds total, ideally ${TARGET_DURATION_IDEAL_MIN_SECONDS} to ${TARGET_DURATION_IDEAL_MAX_SECONDS} seconds. Aim for roughly 160 to 280 total spoken words across the full transcript. Keep every turn to 1 or 2 short sentences and no more than ${maxWordsPerTurn} words in a single turn. Use ${maxTurns} transcript entries or fewer. ${castPacingInstruction} They should act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane and shocking way possible. The agentId attribute must be one of ${agents.join(
 						', '
 					)}. The JSON format WHICH MUST BE ADHERED TO ALWAYS is as follows: { "transcript": [ { "agentId": "${
 						agents[0]
@@ -41,7 +166,7 @@ async function generateBrainrotTranscript(
 				},
 				{
 					role: 'user',
-					content: `generate a video about ${topic}. Every selected agent should talk about it in a way they would, but extremify their qualities and make the conversation risque so that it would be interesting to watch and edgy. If there are lots of speakers, make the conversation substantially longer instead of wrapping up quickly.`,
+					content: `Generate a video about ${topic}. Keep the whole thing in the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS} second range. Do not let the cast ramble. If there are lots of speakers, keep each line short so everyone can fit without making the video longer than the target window.`,
 				},
 			],
 			response_format: { type: 'json_object' },
@@ -90,35 +215,26 @@ export default async function brainrotTranscript(
 
 			console.log('🔍 Parsing content...');
 			const parsedContent = content === '' ? null : JSON.parse(content);
-			// Extract the transcript array from the response
-			transcript = parsedContent?.transcript || null;
+			const rawTranscript = parsedContent?.transcript || null;
 
-			if (transcript !== null && Array.isArray(transcript)) {
-				const validAgentIds = new Set(agents);
-				const presentAgentIds = new Set<string>();
-				for (const entry of transcript) {
-					if (!validAgentIds.has(entry.agentId)) {
-						throw new Error(`Unexpected agentId in transcript: ${entry.agentId}`);
-					}
-					presentAgentIds.add(entry.agentId);
-				}
-
-				const missingAgents = agents.filter((agent) => !presentAgentIds.has(agent));
-				if (missingAgents.length > 0) {
-					throw new Error(
-						`Transcript did not include every selected agent: ${missingAgents.join(', ')}`
-					);
-				}
+			if (rawTranscript !== null && Array.isArray(rawTranscript)) {
+				transcript = normalizeTranscript(rawTranscript);
+				const validation = validateTranscript(transcript, agents);
 
 				console.log('✅ Valid transcript generated');
+				console.log(
+					`⏱️ Estimated runtime: ${validation.estimatedDuration.toFixed(
+						1
+					)}s across ${validation.totalWords} words`
+				);
 				console.log('📜 Transcript lines:');
 				transcript.forEach((entry, index) => {
 					console.log(`${index + 1}. ${entry.agentId}: "${entry.text}"`);
 				});
 				return transcript;
-			} else {
-				console.log('⚠️ Invalid or empty transcript received');
 			}
+
+			console.log('⚠️ Invalid or empty transcript received');
 		} catch (error) {
 			console.error(`❌ Attempt ${attempts + 1} failed:`, error);
 			console.log('⏳ Waiting before next attempt...');
@@ -168,7 +284,7 @@ export async function generateBrainrotTranscriptAudio({
 		console.log('📜 Getting transcript from transcriptFunction');
 		const selectedAgents =
 			agents && agents.length >= 2 ? agents : [agentA, agentB];
-		let transcript = (await brainrotTranscript(
+		const transcript = (await brainrotTranscript(
 			topic,
 			selectedAgents
 		)) as Transcript[];
@@ -206,15 +322,14 @@ export async function generateBrainrotTranscriptAudio({
 
 			await generateAudio(voice_id ?? '', person, line, i);
 			audios.push({
-				person: person,
+				person,
 				audio: `public/voice/${person}-${i}.mp3`,
 				index: i,
 			});
 		}
 
 		const initialAgentName = audios[0].person;
-
-		let contextContent = `
+		const contextContent = `
 import { staticFile } from 'remotion';
 
 export const music: string = ${
@@ -232,6 +347,7 @@ export const dialogueEmotions = ${JSON.stringify(
 				reason: 'legacy-local-default',
 			}))
 		)};
+export const subtitleDialogueEmotions = [];
 export const slowModeIntervals = [];
 
 export const subtitlesFileName = [
@@ -244,9 +360,10 @@ export const subtitlesFileName = [
 		)
 		.join(',\n  ')}
 ];
-`;
 
-		contextContent += generateFillerContext('brainrot');
+export const rapper: string = 'SPONGEBOB';
+export const imageBackground: string = '/rap/SPONGEBOB.png';
+`;
 
 		await writeFile('src/tmp/context.tsx', contextContent, 'utf-8');
 

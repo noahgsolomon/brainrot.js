@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # Install all system dependencies in one layer to minimize disk usage
 # Fix for GPG signature issues and ensure clean state

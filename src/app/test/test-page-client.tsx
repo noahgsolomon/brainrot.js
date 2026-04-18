@@ -37,6 +37,12 @@ function isTerminalStatus(status: string | undefined) {
   return normalizedStatus === "COMPLETED" || normalizedStatus === "ERROR";
 }
 
+function truncateErrorMessage(message: string, maxLength = 600) {
+  return message.length > maxLength
+    ? `${message.slice(0, maxLength - 3)}...`
+    : message;
+}
+
 export default function TestPageClient() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -60,6 +66,7 @@ export default function TestPageClient() {
   const [lastTerminalStatus, setLastTerminalStatus] = useState<string | null>(
     null,
   );
+  const [lastFalError, setLastFalError] = useState<string | null>(null);
   const [handledTerminalPendingId, setHandledTerminalPendingId] = useState<
     number | null
   >(null);
@@ -102,6 +109,7 @@ export default function TestPageClient() {
         setLastStartedVideoId(data.videoId);
         setLastRequestId(data.requestId);
         setLastTerminalStatus(null);
+        setLastFalError(null);
         setHandledTerminalPendingId(null);
         toast.success("Submitted fal smoke test job.");
         void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
@@ -118,6 +126,7 @@ export default function TestPageClient() {
         setLastStartedVideoId(data.videoId);
         setLastRequestId(data.requestId);
         setLastTerminalStatus(null);
+        setLastFalError(null);
         setHandledTerminalPendingId(null);
         toast.success("Submitted fal brainrot render test.");
         void queryClient.invalidateQueries(trpc.user.videoStatus.queryFilter());
@@ -189,12 +198,20 @@ export default function TestPageClient() {
 
     setHandledTerminalPendingId(currentPendingVideo.id);
     setLastTerminalStatus(currentPendingVideo.status.toUpperCase());
+    setLastFalError(currentPendingVideo.falError ?? null);
 
     if (currentPendingVideo.status.toUpperCase() === "COMPLETED") {
       toast.success("fal test job completed.");
       void queryClient.invalidateQueries(trpc.user.userVideos.queryFilter());
     } else {
-      toast.error("fal test job failed.");
+      if (currentPendingVideo.falError) {
+        console.error("fal test job failed:", currentPendingVideo.falError);
+      }
+      toast.error("fal test job failed.", {
+        description: currentPendingVideo.falError
+          ? truncateErrorMessage(currentPendingVideo.falError, 320)
+          : undefined,
+      });
     }
 
     deletePendingVideoMutation.mutate({ id: currentPendingVideo.id });
@@ -339,6 +356,18 @@ export default function TestPageClient() {
                   </p>
                 </div>
               </div>
+              {currentPendingVideo?.falError || lastFalError ? (
+                <div>
+                  <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                    Last fal error
+                  </p>
+                  <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border bg-destructive/10 p-3 font-mono text-xs leading-5 text-destructive">
+                    {truncateErrorMessage(
+                      currentPendingVideo?.falError ?? lastFalError ?? "",
+                    )}
+                  </pre>
+                </div>
+              ) : null}
             </div>
           </CardContent>
         </Card>
