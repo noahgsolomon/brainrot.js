@@ -98,9 +98,7 @@ export default function GenerationType() {
           </div>
         </div> */}
         <DialogHeader>
-          <DialogTitle className="relative ">
-            <h3>Choose a video style</h3>
-          </DialogTitle>
+          <DialogTitle className="relative ">Choose a video style</DialogTitle>
           <DialogDescription>
             Choose a video style to get started
           </DialogDescription>
