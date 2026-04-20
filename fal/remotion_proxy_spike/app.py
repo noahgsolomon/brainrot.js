@@ -92,11 +92,11 @@ class RemotionProxySpike(fal.App):
         context_dir=REPO_ROOT,
     )
     machine_type = "M"
-    keep_alive = 300
+    keep_alive = 0
     startup_timeout = 300
     request_timeout = 1800
     max_concurrency = 5
-    min_concurrency = 2
+    min_concurrency = 0
     max_multiplexing = 1
 
     def setup(self) -> None:

@@ -104,7 +104,29 @@ const BRAINROT_CHARACTER_OPTIONS: CharacterOption[] = [
   { id: 18, name: "SAUL_GOODMAN", requiresPro: true },
   { id: 19, name: "TYLER_DURDEN", requiresPro: true },
   { id: 20, name: "WALTER_WHITE", requiresPro: true },
+  { id: 21, name: "ANDREW_HUBERMAN", requiresPro: true },
+  { id: 22, name: "BILL_CLINTON", requiresPro: true },
+  { id: 23, name: "BILLIE_EILISH", requiresPro: true },
+  { id: 24, name: "BOJACK_HORSEMAN", requiresPro: true },
+  { id: 25, name: "BRAD_PITT", requiresPro: true },
+  { id: 26, name: "CHARLIE_KIRK", requiresPro: true },
+  { id: 27, name: "CLAVICULAR", requiresPro: true },
+  { id: 28, name: "DRAKE", requiresPro: true },
+  { id: 29, name: "HEATH_HUSSAR", requiresPro: true },
+  { id: 30, name: "HILLARY_CLINTON", requiresPro: true },
+  { id: 31, name: "JOHNNY_DEPP", requiresPro: true },
+  { id: 32, name: "JOHN_WICK", requiresPro: true },
+  { id: 33, name: "KANYE_WEST", requiresPro: true },
+  { id: 34, name: "LEX_FRIDMAN", requiresPro: true },
+  { id: 35, name: "MARGOT_ROBBIE", requiresPro: true },
+  { id: 36, name: "MICHELLE_OBAMA", requiresPro: true },
+  { id: 37, name: "MRBEAST", requiresPro: true },
+  { id: 38, name: "PATRICK_BATEMAN", requiresPro: true },
 ];
+
+function getCharacterImageSrc(characterName: string) {
+  return `/img/${characterName}.png`;
+}
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -329,7 +351,7 @@ export default function CreateVideo({
               <div className="relative flex w-full items-center">
                 <div className="absolute left-0">
                   <Image
-                    src={`/img/${selectedAgent}.png`}
+                    src={getCharacterImageSrc(selectedAgent ?? "JORDAN_PETERSON")}
                     width={48}
                     height={48}
                     alt="agent"
@@ -557,7 +579,7 @@ export default function CreateVideo({
           <motion.div initial="hidden" animate="visible" variants={fadeIn}>
             <DialogHeader>
               <DialogTitle className="relative">
-                <h3>Configure your {videoDetails.mode} video</h3>
+                Configure your {videoDetails.mode} video
               </DialogTitle>
               <DialogDescription>Choose your settings</DialogDescription>
             </DialogHeader>
@@ -699,8 +721,8 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                          src={`/img/${character.name}.png`}
+                          className="z-10 h-[60px] w-[60px] scale-[110%] object-contain xs:h-[75px] xs:w-[75px]"
+                          src={getCharacterImageSrc(character.name)}
                           width={75}
                           height={75}
                           alt={humanizeSpeakerName(character.name)}

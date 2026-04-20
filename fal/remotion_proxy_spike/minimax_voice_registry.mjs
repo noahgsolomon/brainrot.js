@@ -24,26 +24,57 @@ const MUSIC_DIR_CANDIDATES = [
 
 const TRAINING_AUDIO_FILE_MAP = {
   ADIN_ROSS: "adinross.mp3",
+  ANAKIN_SKYWALKER: "anakinskywalker.mp3",
+  ANDREW_HUBERMAN: "andrewhuberman.mp3",
   ANDREW_TATE: "tate.mp3",
   BANE: "bane.mp3",
   BARACK_OBAMA: "obama.mp3",
   BEN_SHAPIRO: "benshapiroaudio.mp3",
+  BILLIE_EILISH: "billieeilish.mp3",
+  BILL_CLINTON: "billclinton.mp3",
+  BOJACK_HORSEMAN: "bojackhorseman.mp3",
+  BRAD_PITT: "bradpitt.mp3",
+  CHARLIE_KIRK: "charliekirk.mp3",
   CILLIAN_MURPHY: "cillianmurphy.mp3",
+  CLAVICULAR: "clavicular.mp3",
   DONALD_TRUMP: "trumpaudio.mp3",
+  DRAKE: "drake.mp3",
   ELON_MUSK: "elonmusk.mp3",
+  GOKU: "goku.mp3",
+  HEATH_HUSSAR: "heathhussar.mp3",
+  HILLARY_CLINTON: "hillaryclinton.mp3",
   HOMELANDER: "homelander.mp3",
   HUGH_JACKMAN: "hughjackman.mp3",
+  JEFFERY_EPSTEIN: "jefferyepstein.mp3",
   JOE_BIDEN: "joebidenaudio.mp3",
+  JOHNNY_DEPP: "johnnydepp.mp3",
+  JOHN_WICK: "johnwick.mp3",
   JOKER: "joker.mp3",
   JOE_ROGAN: "jreaudio.mp3",
   JORDAN_PETERSON: "jordanpeterson.mp3",
   KAMALA_HARRIS: "kamala.mp3",
+  KANYE_WEST: "kanyewest.mp3",
+  LEX_FRIDMAN: "lexfridman.mp3",
+  MARGOT_ROBBIE: "margotrobbie.mp3",
+  MATTHEW_MCCONAUGHEY: "matthewmconaughey.mp3",
+  MICHELLE_OBAMA: "michelleobama.mp3",
+  MRBEAST: "mrbeast.mp3",
   NAVAL_RAVIKANT: "navalravikant.mp3",
+  PATRICK_BATEMAN: "patrickbateman.mp3",
+  PEDRO_PASCAL: "pedropascal.mp3",
   RYAN_REYNOLDS: "ryanreynolds.mp3",
   SAUL_GOODMAN: "saulgoodman.mp3",
   TYLER_DURDEN: "tylerdurden.mp3",
   WALTER_WHITE: "walterwhite.mp3",
 };
+
+const HARDCODED_MINIMAX_CUSTOM_VOICE_IDS = {
+  // Add known MiniMax custom_voice_id values here to avoid recloning.
+  // Example: JOE_ROGAN: "your-minimax-custom-voice-id",
+};
+const MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH =
+  process.env.MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH ??
+  path.join(__dirname, "minimax_custom_voice_ids.json");
 
 const uploadedTrainingAudioUrlPromises = new Map();
 const customVoiceIdPromises = new Map();
@@ -82,6 +113,14 @@ const MINIMAX_TTS_MAX_ATTEMPTS = Number.parseInt(
   process.env.MINIMAX_TTS_MAX_ATTEMPTS ?? "3",
   10,
 );
+const MINIMAX_ALLOW_VOICE_CLONE_DEFAULT = true;
+
+let configuredCustomVoiceIdMapRaw = null;
+let configuredCustomVoiceIdMap = {};
+let fileCustomVoiceIdMap = null;
+let fileCustomVoiceIdMapMtimeMs = null;
+let fileCustomVoiceIdMapLoadPromise = null;
+let customVoiceIdRegistryWriteChain = Promise.resolve();
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -191,6 +230,200 @@ function memoizePromise(map, key, load) {
 
   map.set(key, promise);
   return promise;
+}
+
+function normalizeAgentId(agentId) {
+  return String(agentId ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function parseMiniMaxVoiceIdMap(rawValue) {
+  if (!rawValue.trim()) {
+    return {};
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawValue);
+  } catch (error) {
+    throw new Error(
+      `MINIMAX_CUSTOM_VOICE_ID_MAP_JSON must be valid JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("MINIMAX_CUSTOM_VOICE_ID_MAP_JSON must be a JSON object");
+  }
+
+  const voiceIdMap = {};
+  for (const [rawAgentId, rawCustomVoiceId] of Object.entries(parsed)) {
+    const agentId = normalizeAgentId(rawAgentId);
+
+    if (!Object.hasOwn(TRAINING_AUDIO_FILE_MAP, agentId)) {
+      throw new Error(
+        `MINIMAX_CUSTOM_VOICE_ID_MAP_JSON contains unsupported agent ${rawAgentId}`,
+      );
+    }
+
+    if (typeof rawCustomVoiceId !== "string" || !rawCustomVoiceId.trim()) {
+      throw new Error(
+        `MINIMAX_CUSTOM_VOICE_ID_MAP_JSON has an empty custom_voice_id for ${agentId}`,
+      );
+    }
+
+    voiceIdMap[agentId] = rawCustomVoiceId.trim();
+  }
+
+  return voiceIdMap;
+}
+
+function getConfiguredCustomVoiceIdMap() {
+  const rawValue = process.env.MINIMAX_CUSTOM_VOICE_ID_MAP_JSON ?? "";
+
+  if (rawValue !== configuredCustomVoiceIdMapRaw) {
+    configuredCustomVoiceIdMap = parseMiniMaxVoiceIdMap(rawValue);
+    configuredCustomVoiceIdMapRaw = rawValue;
+  }
+
+  return configuredCustomVoiceIdMap;
+}
+
+async function loadFileCustomVoiceIdMap() {
+  try {
+    const stat = await fs.stat(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
+
+    if (
+      fileCustomVoiceIdMap &&
+      fileCustomVoiceIdMapMtimeMs === stat.mtimeMs
+    ) {
+      return fileCustomVoiceIdMap;
+    }
+
+    const rawValue = await fs.readFile(
+      MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH,
+      "utf8",
+    );
+    fileCustomVoiceIdMap = parseMiniMaxVoiceIdMap(rawValue);
+    fileCustomVoiceIdMapMtimeMs = stat.mtimeMs;
+    return fileCustomVoiceIdMap;
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      fileCustomVoiceIdMap = {};
+      fileCustomVoiceIdMapMtimeMs = null;
+      return fileCustomVoiceIdMap;
+    }
+
+    throw error;
+  }
+}
+
+function getFileCustomVoiceIdMap() {
+  fileCustomVoiceIdMapLoadPromise ??= loadFileCustomVoiceIdMap().finally(() => {
+    fileCustomVoiceIdMapLoadPromise = null;
+  });
+  return fileCustomVoiceIdMapLoadPromise;
+}
+
+async function persistCustomVoiceIdUnlocked(agentId, customVoiceId) {
+  const normalizedAgentId = normalizeAgentId(agentId);
+
+  if (!Object.hasOwn(TRAINING_AUDIO_FILE_MAP, normalizedAgentId)) {
+    throw new Error(
+      `Cannot persist MiniMax voice ID for unsupported agent ${agentId}`,
+    );
+  }
+
+  if (typeof customVoiceId !== "string" || !customVoiceId.trim()) {
+    throw new Error(
+      `Cannot persist empty MiniMax custom_voice_id for ${agentId}`,
+    );
+  }
+
+  const existingMap = await getFileCustomVoiceIdMap();
+  const nextMap = {
+    ...existingMap,
+    [normalizedAgentId]: customVoiceId.trim(),
+  };
+  const sortedMap = Object.fromEntries(
+    Object.entries(nextMap).sort(([left], [right]) =>
+      left.localeCompare(right),
+    ),
+  );
+  const registryDir = path.dirname(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
+  const tempPath = path.join(
+    registryDir,
+    `.${path.basename(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH)}.${process.pid}.tmp`,
+  );
+
+  await fs.mkdir(registryDir, { recursive: true });
+  await fs.writeFile(tempPath, `${JSON.stringify(sortedMap, null, 2)}\n`, "utf8");
+  await fs.rename(tempPath, MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
+
+  fileCustomVoiceIdMap = sortedMap;
+  const stat = await fs.stat(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
+  fileCustomVoiceIdMapMtimeMs = stat.mtimeMs;
+
+  console.log(
+    JSON.stringify({
+      type: "minimax_voice_id_persisted",
+      agentId: normalizedAgentId,
+      registryPath: MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH,
+    }),
+  );
+}
+
+function persistCustomVoiceId(agentId, customVoiceId) {
+  const writePromise = customVoiceIdRegistryWriteChain.then(() =>
+    persistCustomVoiceIdUnlocked(agentId, customVoiceId),
+  );
+
+  customVoiceIdRegistryWriteChain = writePromise.catch(() => {});
+  return writePromise;
+}
+
+async function getKnownCustomVoiceId(agentId) {
+  const normalizedAgentId = normalizeAgentId(agentId);
+  const envVoiceIdMap = getConfiguredCustomVoiceIdMap();
+
+  if (envVoiceIdMap[normalizedAgentId]) {
+    return {
+      customVoiceId: envVoiceIdMap[normalizedAgentId],
+      source: "MINIMAX_CUSTOM_VOICE_ID_MAP_JSON",
+    };
+  }
+
+  const fileVoiceIdMap = await getFileCustomVoiceIdMap();
+
+  if (fileVoiceIdMap[normalizedAgentId]) {
+    return {
+      customVoiceId: fileVoiceIdMap[normalizedAgentId],
+      source: "minimax_custom_voice_ids.json",
+    };
+  }
+
+  if (HARDCODED_MINIMAX_CUSTOM_VOICE_IDS[normalizedAgentId]) {
+    return {
+      customVoiceId: HARDCODED_MINIMAX_CUSTOM_VOICE_IDS[normalizedAgentId],
+      source: "HARDCODED_MINIMAX_CUSTOM_VOICE_IDS",
+    };
+  }
+
+  return null;
+}
+
+function isMiniMaxVoiceCloneAllowed() {
+  const configuredValue = process.env.MINIMAX_ALLOW_VOICE_CLONE;
+
+  if (configuredValue === undefined || configuredValue === "") {
+    return MINIMAX_ALLOW_VOICE_CLONE_DEFAULT;
+  }
+
+  return ["1", "true", "yes", "on"].includes(configuredValue.toLowerCase());
 }
 
 async function getTrainingAudioFilePath(agentId) {
@@ -318,6 +551,25 @@ export async function getCustomVoiceId(agentId) {
   assertAgentSupported(agentId);
 
   return memoizePromise(customVoiceIdPromises, agentId, async () => {
+    const knownVoice = await getKnownCustomVoiceId(agentId);
+
+    if (knownVoice) {
+      console.log(
+        JSON.stringify({
+          type: "minimax_voice_id_reuse",
+          agentId,
+          source: knownVoice.source,
+        }),
+      );
+      return knownVoice.customVoiceId;
+    }
+
+    if (!isMiniMaxVoiceCloneAllowed()) {
+      throw new Error(
+        `Missing MiniMax custom_voice_id for ${agentId}. Add it to ${MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH}, HARDCODED_MINIMAX_CUSTOM_VOICE_IDS, or MINIMAX_CUSTOM_VOICE_ID_MAP_JSON. Set MINIMAX_ALLOW_VOICE_CLONE=true to create a new paid clone.`,
+      );
+    }
+
     ensureFalClientConfigured();
     const audioUrl = await getUploadedTrainingAudioUrl(agentId);
     let lastError = null;
@@ -358,8 +610,27 @@ export async function getCustomVoiceId(agentId) {
             agentId,
             customVoiceId,
             attempt,
+            persistHint:
+              `Will persist \"${agentId}\": \"${customVoiceId}\" to ${MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH}.`,
           }),
         );
+
+        try {
+          await persistCustomVoiceId(agentId, customVoiceId);
+        } catch (persistError) {
+          console.warn(
+            JSON.stringify({
+              type: "minimax_voice_id_persist_failed",
+              agentId,
+              registryPath: MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH,
+              customVoiceId,
+              message:
+                persistError instanceof Error
+                  ? persistError.message
+                  : String(persistError),
+            }),
+          );
+        }
 
         return customVoiceId;
       } catch (error) {

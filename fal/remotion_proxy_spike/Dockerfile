@@ -32,6 +32,7 @@ COPY fal/remotion_proxy_spike/job_callbacks.mjs /app/job_callbacks.mjs
 COPY fal/remotion_proxy_spike/brainrot_transcript_audio.mjs /app/brainrot_transcript_audio.mjs
 COPY fal/remotion_proxy_spike/pitch_mode_audio.mjs /app/pitch_mode_audio.mjs
 COPY fal/remotion_proxy_spike/minimax_voice_registry.mjs /app/minimax_voice_registry.mjs
+COPY fal/remotion_proxy_spike/minimax_custom_voice_ids.json /app/minimax_custom_voice_ids.json
 COPY fal/remotion_proxy_spike/python_srt_pipeline.mjs /app/python_srt_pipeline.mjs
 COPY fal/remotion_proxy_spike/transcribe_and_generate_srt.py /app/transcribe_and_generate_srt.py
 COPY fal/remotion_proxy_spike/remotion_brainrot_lambda_render.mjs /app/remotion_brainrot_lambda_render.mjs

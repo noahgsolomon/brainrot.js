@@ -50,8 +50,9 @@ const SUPPORTED_DIALOGUE_EMOTIONS = [
 const DEFAULT_DIALOGUE_EMOTION = "neutral";
 const TARGET_DURATION_MIN_SECONDS = 60;
 const TARGET_DURATION_MAX_SECONDS = 120;
-const TARGET_DURATION_IDEAL_MIN_SECONDS = 75;
-const TARGET_DURATION_IDEAL_MAX_SECONDS = 95;
+const TARGET_DURATION_IDEAL_SECONDS = 90;
+const TARGET_TOTAL_WORDS_MIN = 300;
+const TARGET_TOTAL_WORDS_MAX = 360;
 const ESTIMATED_WORDS_PER_SECOND = 2.65;
 const ESTIMATED_TURN_OVERHEAD_SECONDS = 0.25;
 
@@ -61,6 +62,49 @@ function sanitizeJobId(jobId) {
 
 function humanizeAgentName(agentName) {
   return agentName.replace(/_/g, " ");
+}
+
+function normalizeAgentIdKey(agentId) {
+  return String(agentId ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/['’]/g, "")
+    .replace(/&/g, " AND ")
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function buildAgentIdLookup(agentIds) {
+  const lookup = new Map();
+
+  for (const agentId of agentIds) {
+    const normalizedAgentId = normalizeAgentIdKey(agentId);
+    const normalizedHumanName = normalizeAgentIdKey(humanizeAgentName(agentId));
+
+    for (const key of [
+      normalizedAgentId,
+      normalizedHumanName,
+      normalizedAgentId.replace(/_/g, ""),
+      normalizedHumanName.replace(/_/g, ""),
+    ]) {
+      if (key) {
+        lookup.set(key, agentId);
+      }
+    }
+  }
+
+  return lookup;
+}
+
+function resolveAllowedAgentId(rawAgentId, agentIdLookup) {
+  const trimmedAgentId = String(rawAgentId ?? "").trim();
+  const normalizedAgentId = normalizeAgentIdKey(trimmedAgentId);
+
+  return (
+    agentIdLookup.get(normalizedAgentId) ??
+    agentIdLookup.get(normalizedAgentId.replace(/_/g, "")) ??
+    trimmedAgentId
+  );
 }
 
 function parseAgentListProp(value) {
@@ -256,6 +300,116 @@ function splitTranscriptWords(text) {
     .filter((word) => word.trim().length > 0);
 }
 
+const CONTRACTION_REPAIRS = new Map([
+  ["aint", "ain't"],
+  ["arent", "aren't"],
+  ["cant", "can't"],
+  ["couldnt", "couldn't"],
+  ["didnt", "didn't"],
+  ["doesnt", "doesn't"],
+  ["dont", "don't"],
+  ["hadnt", "hadn't"],
+  ["hasnt", "hasn't"],
+  ["havent", "haven't"],
+  ["heres", "here's"],
+  ["hes", "he's"],
+  ["hows", "how's"],
+  ["id", "I'd"],
+  ["ill", "I'll"],
+  ["im", "I'm"],
+  ["isnt", "isn't"],
+  ["ive", "I've"],
+  ["lets", "let's"],
+  ["shes", "she's"],
+  ["shouldnt", "shouldn't"],
+  ["thats", "that's"],
+  ["theyd", "they'd"],
+  ["theyll", "they'll"],
+  ["theyre", "they're"],
+  ["theyve", "they've"],
+  ["theres", "there's"],
+  ["wasnt", "wasn't"],
+  ["werent", "weren't"],
+  ["whats", "what's"],
+  ["wheres", "where's"],
+  ["whos", "who's"],
+  ["wont", "won't"],
+  ["wouldnt", "wouldn't"],
+  ["yall", "y'all"],
+  ["youd", "you'd"],
+  ["youll", "you'll"],
+  ["youre", "you're"],
+  ["youve", "you've"],
+]);
+
+function applyReplacementCase(originalToken, replacement) {
+  if (originalToken === originalToken.toUpperCase() && originalToken !== "ID") {
+    return replacement.toUpperCase();
+  }
+
+  if (/^[A-Z]/.test(originalToken) && !replacement.startsWith("I'")) {
+    return `${replacement.charAt(0).toUpperCase()}${replacement.slice(1)}`;
+  }
+
+  return replacement;
+}
+
+function repairCommonContractions(text) {
+  return String(text).replace(/\b[A-Za-z]+\b/g, (token) => {
+    if (token === "ID") {
+      return token;
+    }
+
+    const replacement = CONTRACTION_REPAIRS.get(token.toLowerCase());
+    return replacement ? applyReplacementCase(token, replacement) : token;
+  });
+}
+
+function ensureDialoguePunctuation(text) {
+  const trimmed = String(text ?? "").trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  const punctuationMatches = trimmed.match(/[,.!?;:…。！？，；：]/g) ?? [];
+  const hasFinalSentencePunctuation = /[.!?。！？]$/.test(trimmed);
+  const needsInternalPunctuation =
+    words.length >= 12 &&
+    (punctuationMatches.length === 0 ||
+      (punctuationMatches.length === 1 && hasFinalSentencePunctuation));
+
+  if (!needsInternalPunctuation) {
+    return hasFinalSentencePunctuation ? trimmed : `${trimmed}.`;
+  }
+
+  const finalPunctuation = hasFinalSentencePunctuation
+    ? trimmed.slice(-1)
+    : ".";
+  const cleanedWords = words.map((word, index) => {
+    if (index !== words.length - 1) {
+      return word.replace(/[,.!?;:…。！？，；：]+$/g, "");
+    }
+
+    return word.replace(/[,.!?;:…。！？，；：]+$/g, "");
+  });
+  const groupSize = Math.max(6, Math.min(9, Math.round(words.length / 3)));
+
+  return cleanedWords
+    .map((word, index) => {
+      if (index === cleanedWords.length - 1) {
+        return `${word}${finalPunctuation}`;
+      }
+
+      if ((index + 1) % groupSize === 0) {
+        return `${word},`;
+      }
+
+      return word;
+    })
+    .join(" ");
+}
+
 function sanitizePlaintextDialogueText(text) {
   let sanitized = String(text ?? "");
 
@@ -268,6 +422,12 @@ function sanitizePlaintextDialogueText(text) {
   sanitized = sanitized.replace(/\s+/g, " ").trim();
 
   return sanitized;
+}
+
+function normalizeDialogueTextForSpeech(text) {
+  return ensureDialoguePunctuation(
+    repairCommonContractions(sanitizePlaintextDialogueText(text)),
+  );
 }
 
 function normalizeSearchToken(token) {
@@ -294,6 +454,7 @@ function parseTranscriptPayload(payload, allowedAgentIds = []) {
     payload && typeof payload === "object" ? payload : {};
   const transcript = candidatePayload.transcript;
   const allowedAgentIdSet = new Set(allowedAgentIds);
+  const allowedAgentIdLookup = buildAgentIdLookup(allowedAgentIds);
 
   if (!Array.isArray(transcript) || transcript.length === 0) {
     throw new Error(
@@ -311,16 +472,17 @@ function parseTranscriptPayload(payload, allowedAgentIds = []) {
       throw new Error(`Invalid transcript entry at index ${index}`);
     }
 
-    const sanitizedText = sanitizePlaintextDialogueText(entry.text);
+    const sanitizedText = normalizeDialogueTextForSpeech(entry.text);
     if (!sanitizedText) {
       throw new Error(`Transcript entry at index ${index} has empty text`);
     }
 
-    const agentId = entry.agentId.trim();
+    const rawAgentId = entry.agentId.trim();
+    const agentId = resolveAllowedAgentId(rawAgentId, allowedAgentIdLookup);
 
     if (allowedAgentIdSet.size > 0 && !allowedAgentIdSet.has(agentId)) {
       throw new Error(
-        `Transcript entry at index ${index} used unsupported agentId ${agentId}`,
+        `Transcript entry at index ${index} used unsupported agentId ${rawAgentId}`,
       );
     }
 
@@ -375,6 +537,7 @@ function parseDialogueEmotionsPayload(payload, { transcript, allowedAgentIds }) 
     ? candidatePayload.dialogueEmotions
     : [];
   const allowedAgentIdSet = new Set(allowedAgentIds);
+  const allowedAgentIdLookup = buildAgentIdLookup(allowedAgentIds);
   const supportedEmotionSet = new Set(SUPPORTED_DIALOGUE_EMOTIONS);
   const emotionsByEntryIndex = new Map();
 
@@ -402,12 +565,13 @@ function parseDialogueEmotionsPayload(payload, { transcript, allowedAgentIds }) 
       );
     }
 
-    const agentId = selection.agentId.trim();
+    const rawAgentId = selection.agentId.trim();
+    const agentId = resolveAllowedAgentId(rawAgentId, allowedAgentIdLookup);
     const emotion = selection.emotion.trim();
 
     if (allowedAgentIdSet.size > 0 && !allowedAgentIdSet.has(agentId)) {
       throw new Error(
-        `Dialogue emotion entry ${index} used unsupported agentId ${agentId}`,
+        `Dialogue emotion entry ${index} used unsupported agentId ${rawAgentId}`,
       );
     }
 
@@ -683,30 +847,67 @@ function formatAgentList(agentIds) {
 function getTranscriptShapeTargets(agentCount) {
   const safeAgentCount = Math.max(agentCount, 1);
 
+  if (safeAgentCount <= 4) {
+    return {
+      targetTurns: 12,
+      minWordsPerTurn: 24,
+      maxWordsPerTurn: 30,
+      targetTotalWordsMin: TARGET_TOTAL_WORDS_MIN,
+      targetTotalWordsMax: TARGET_TOTAL_WORDS_MAX,
+    };
+  }
+
+  if (safeAgentCount === 5) {
+    return {
+      targetTurns: 15,
+      minWordsPerTurn: 20,
+      maxWordsPerTurn: 24,
+      targetTotalWordsMin: TARGET_TOTAL_WORDS_MIN,
+      targetTotalWordsMax: TARGET_TOTAL_WORDS_MAX,
+    };
+  }
+
+  if (safeAgentCount === 6) {
+    return {
+      targetTurns: 18,
+      minWordsPerTurn: 17,
+      maxWordsPerTurn: 20,
+      targetTotalWordsMin: TARGET_TOTAL_WORDS_MIN,
+      targetTotalWordsMax: TARGET_TOTAL_WORDS_MAX,
+    };
+  }
+
+  if (safeAgentCount === 7) {
+    return {
+      targetTurns: 14,
+      minWordsPerTurn: 22,
+      maxWordsPerTurn: 26,
+      targetTotalWordsMin: TARGET_TOTAL_WORDS_MIN,
+      targetTotalWordsMax: TARGET_TOTAL_WORDS_MAX,
+    };
+  }
+
   return {
-    maxTurns:
-      safeAgentCount >= 7 ? Math.min(12, safeAgentCount + 2) : 10,
-    maxWordsPerTurn:
-      safeAgentCount >= 9
-        ? 16
-        : safeAgentCount >= 6
-          ? 18
-          : safeAgentCount >= 4
-            ? 22
-            : 26,
+    targetTurns: 16,
+    minWordsPerTurn: 19,
+    maxWordsPerTurn: 23,
+    targetTotalWordsMin: TARGET_TOTAL_WORDS_MIN,
+    targetTotalWordsMax: TARGET_TOTAL_WORDS_MAX,
   };
 }
 
-function getCastPacingInstruction(agentIds) {
-  if (agentIds.length >= 8) {
-    return `Because there are ${agentIds.length} speakers, most of them should get exactly one short turn. Only give a tiny second turn to one or two speakers if the runtime budget still allows it.`;
-  }
+function buildSpeakerTurnPlan(agentIds, targetTurns) {
+  return Array.from({ length: targetTurns }, (_, index) => {
+    return agentIds[index % agentIds.length];
+  });
+}
 
-  if (agentIds.length >= 5) {
-    return "Keep the cast moving quickly. Give everyone a short turn before letting anyone take a longer follow-up.";
-  }
+function getCastPacingInstruction(agentIds, targets) {
+  const speakerTurnPlan = buildSpeakerTurnPlan(agentIds, targets.targetTurns);
 
-  return "Use a brisk back-and-forth with several short turns instead of a few long monologues.";
+  return `Use exactly ${targets.targetTurns} transcript entries in this exact agentId order: ${speakerTurnPlan.join(
+    ", ",
+  )}. Each entry should be ${targets.minWordsPerTurn}-${targets.maxWordsPerTurn} spoken words, usually 2 punchy sentences. The full transcript should land around ${TARGET_DURATION_IDEAL_SECONDS} seconds by totaling ${targets.targetTotalWordsMin}-${targets.targetTotalWordsMax} spoken words. Do not give each speaker only one tiny line; every selected speaker should receive the repeated turns shown in the order above.`;
 }
 
 function estimateTranscriptDurationSeconds(transcript) {
@@ -722,23 +923,39 @@ function estimateTranscriptDurationSeconds(transcript) {
 }
 
 function validateTranscriptTiming(transcript, agentIds) {
-  const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(
-    agentIds.length,
-  );
+  const targets = getTranscriptShapeTargets(agentIds.length);
+  const warnings = [];
 
-  if (transcript.length > maxTurns) {
-    throw new Error(
-      `Transcript used ${transcript.length} turns, which exceeds the cap of ${maxTurns} turns`,
+  if (transcript.length !== targets.targetTurns) {
+    warnings.push(
+      `Transcript used ${transcript.length} turns, expected ${targets.targetTurns} turns`,
     );
   }
 
+  const totalWords = transcript.reduce(
+    (sum, entry) => sum + splitTranscriptWords(entry.text).length,
+    0,
+  );
+
   for (const entry of transcript) {
     const wordCount = splitTranscriptWords(entry.text).length;
-    if (wordCount > maxWordsPerTurn) {
-      throw new Error(
-        `Transcript line for ${entry.agentId} exceeded ${maxWordsPerTurn} words`,
+    if (
+      wordCount < targets.minWordsPerTurn ||
+      wordCount > targets.maxWordsPerTurn
+    ) {
+      warnings.push(
+        `Transcript line for ${entry.agentId} used ${wordCount} words, expected ${targets.minWordsPerTurn}-${targets.maxWordsPerTurn}`,
       );
     }
+  }
+
+  if (
+    totalWords < targets.targetTotalWordsMin ||
+    totalWords > targets.targetTotalWordsMax
+  ) {
+    warnings.push(
+      `Transcript used ${totalWords} total words, expected ${targets.targetTotalWordsMin}-${targets.targetTotalWordsMax}`,
+    );
   }
 
   const estimatedDurationSeconds = estimateTranscriptDurationSeconds(transcript);
@@ -746,7 +963,7 @@ function validateTranscriptTiming(transcript, agentIds) {
     estimatedDurationSeconds < TARGET_DURATION_MIN_SECONDS ||
     estimatedDurationSeconds > TARGET_DURATION_MAX_SECONDS
   ) {
-    throw new Error(
+    warnings.push(
       `Transcript estimated runtime ${estimatedDurationSeconds.toFixed(
         1,
       )}s fell outside the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS}s target`,
@@ -755,33 +972,27 @@ function validateTranscriptTiming(transcript, agentIds) {
 
   return {
     estimatedDurationSeconds,
-    totalWords: transcript.reduce(
-      (sum, entry) => sum + splitTranscriptWords(entry.text).length,
-      0,
-    ),
+    totalWords,
+    warnings,
   };
 }
 
 function buildMockTranscript({ topic, agents }) {
   const safeAgents = agents.slice(0, Math.min(agents.length, 10));
-  const { maxTurns } = getTranscriptShapeTargets(safeAgents.length);
-  const exchangeCount = Math.max(
-    safeAgents.length,
-    safeAgents.length >= 7 ? safeAgents.length + 1 : Math.min(maxTurns, 8),
-  );
+  const targets = getTranscriptShapeTargets(safeAgents.length);
+  const speakerTurnPlan = buildSpeakerTurnPlan(safeAgents, targets.targetTurns);
 
-  return Array.from({ length: exchangeCount }, (_, index) => {
-    const agentId = safeAgents[index % safeAgents.length];
+  return speakerTurnPlan.map((agentId, index) => {
     const humanName = humanizeAgentName(agentId);
 
     return {
       agentId,
       text:
         index === 0
-          ? `I cannot believe we are doing a fal proof of concept about ${topic}, and I am keeping this opener short on purpose.`
-          : index === exchangeCount - 1
-            ? `Good, because ${humanName} gets one last quick jab about ${topic} without dragging the video past the runtime target.`
-            : `${humanName} drops a compact, chaotic take on ${topic} so the conversation stays punchy instead of rambling forever.`,
+          ? `I cannot believe we are doing a fal proof of concept about ${topic}, and I am stretching this opener into a real setup instead of a tiny one-liner.`
+          : index === speakerTurnPlan.length - 1
+            ? `Good, because ${humanName} gets one last pointed closer about ${topic}, tying the argument together while keeping the pacing sharp and complete.`
+            : `${humanName} pushes the ${topic} argument forward with a full beat, adds a specific jab, and leaves enough material for a real ninety second video.`,
     };
   });
 }
@@ -799,11 +1010,11 @@ async function getTranscriptWithRetry({
     });
   }
 
-  const { maxTurns, maxWordsPerTurn } = getTranscriptShapeTargets(agents.length);
+  const targets = getTranscriptShapeTargets(agents.length);
   const agentList = formatAgentList(agents);
-  const castPacingInstruction = getCastPacingInstruction(agents);
-  const systemPrompt = `Create a dialogue for a conversation on the topic of ${topic}. The conversation should include these agents: ${agentList}. Every selected agent must speak at least once. The finished video must land between ${TARGET_DURATION_MIN_SECONDS} and ${TARGET_DURATION_MAX_SECONDS} seconds total, ideally ${TARGET_DURATION_IDEAL_MIN_SECONDS} to ${TARGET_DURATION_IDEAL_MAX_SECONDS} seconds. Aim for roughly 160 to 280 total spoken words across the full transcript. Keep every turn to 1 or 2 short sentences and no more than ${maxWordsPerTurn} words in a single turn. Use ${maxTurns} transcript entries or fewer. ${castPacingInstruction} They should all act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane, shocking, and funny way possible. The agentId attribute must always be one of: ${agents.join(", ")}. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agents[0]}","text":"line here"}]}. Every text field must be plain spoken dialogue only. Never include markdown, bullet points, emphasis markers, asterisks, brackets, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use *, **, _, ~, \`, [, ], {, }, <, > anywhere in any transcript text. The text must look like literal words that should be spoken aloud by TTS. Do not include markdown fences or any explanation outside the JSON.`;
-  const prompt = `Generate a video transcript about ${topic}. Keep the whole thing in the ${TARGET_DURATION_MIN_SECONDS}-${TARGET_DURATION_MAX_SECONDS} second range. Do not let the cast ramble. If there are lots of speakers, keep each line short so everyone fits without making the video longer than the target window.`;
+  const castPacingInstruction = getCastPacingInstruction(agents, targets);
+  const systemPrompt = `Create a dialogue for a conversation on the topic of ${topic}. The conversation should include these agents: ${agentList}. ${castPacingInstruction} They should all act as extreme, over-the-top caricatures of themselves with wildly exaggerated personality traits and mannerisms. The dialogue should still provide insights into ${topic} but do so in the most profane, shocking, and funny way possible. The agentId attribute must always be one of these exact uppercase IDs, including underscores exactly as shown: ${agents.join(", ")}. Never use display names like "Patrick Bateman" or "PATRICK BATEMAN" in agentId. Return valid JSON only with this exact shape: {"transcript":[{"agentId":"${agents[0]}","text":"line here"}]}. Every text field must be plain spoken dialogue with normal punctuation. Use commas, periods, question marks, and exclamation marks where a human speaker would pause or emphasize a phrase, because punctuation controls TTS pronunciation and sprite emotion timing. Preserve apostrophes in contractions like I'd, I'm, don't, you're, and y'all; never write Id when you mean I'd. Never include markdown, bullet points, emphasis markers, stage directions, action cues, quoted wrappers, emojis, speaker labels inside the text, or any meta commentary. Do not use markdown/control symbols *, **, _, ~, \`, [, ], {, }, <, > in dialogue text, but normal punctuation and apostrophes are required. Do not include markdown fences or any explanation outside the JSON.`;
+  const prompt = `Generate the full transcript about ${topic}. Target roughly ${TARGET_DURATION_IDEAL_SECONDS} seconds. Use exactly ${targets.targetTurns} transcript entries and ${targets.targetTotalWordsMin}-${targets.targetTotalWordsMax} total words. Follow the requested speaker order exactly.`;
 
   return runStructuredOpenRouterTaskWithRetry({
     taskName: "transcript",
@@ -829,6 +1040,13 @@ async function getTranscriptWithRetry({
           1,
         )}s`,
       );
+      if (validation.warnings.length > 0) {
+        console.warn(
+          `[transcript] Continuing despite target diagnostics: ${validation.warnings.join(
+            "; ",
+          )}`,
+        );
+      }
 
       return transcript;
     },
@@ -953,18 +1171,38 @@ function extractSrtEntries(srtContent) {
     .filter(Boolean);
 }
 
-function splitIntoSentenceLikeSegments(text) {
-  const normalized = sanitizePlaintextDialogueText(text);
-  if (!normalized) {
-    return [];
+function hasEmotionPunctuationBoundary(text) {
+  return /[,.!?;:…。！？，；：]|--|—|–/.test(String(text ?? ""));
+}
+
+function buildPunctuationEmotionSegments(entries) {
+  const segments = [];
+  let currentEntries = [];
+
+  function flush() {
+    if (currentEntries.length === 0) {
+      return;
+    }
+
+    segments.push({
+      entries: currentEntries,
+      text: sanitizePlaintextDialogueText(
+        currentEntries.map((entry) => entry.text).join(" "),
+      ),
+    });
+    currentEntries = [];
   }
 
-  const rawSegments = normalized
-    .split(/(?<=[.!?])\s+/)
-    .map((segment) => sanitizePlaintextDialogueText(segment))
-    .filter(Boolean);
+  for (const entry of entries) {
+    currentEntries.push(entry);
 
-  return rawSegments.length > 0 ? rawSegments : [normalized];
+    if (hasEmotionPunctuationBoundary(entry.text)) {
+      flush();
+    }
+  }
+
+  flush();
+  return segments.filter((segment) => segment.text.length > 0);
 }
 
 async function getSubtitleDialogueEmotions({
@@ -972,44 +1210,28 @@ async function getSubtitleDialogueEmotions({
   model,
   useMockServices,
 }) {
-  const sentenceSelections = [];
+  const punctuationSelections = [];
 
   for (const [srtFileIndex, subtitleFile] of subtitleFiles.entries()) {
     const srtContent = await fs.readFile(subtitleFile.path, "utf8");
     const entries = extractSrtEntries(srtContent);
+    const punctuationSegments = buildPunctuationEmotionSegments(entries);
 
-    for (const entry of entries) {
-      const subtitleWords = entry.text.split(/\s+/).filter(Boolean);
-      const sentenceSegments = splitIntoSentenceLikeSegments(entry.text);
-      let cursor = 0;
-
-      for (const sentence of sentenceSegments) {
-        const sentenceWordCount = sentence.split(/\s+/).filter(Boolean).length;
-        const startWordIndexInclusive = Math.max(0, cursor);
-        const endWordIndexInclusive = Math.min(
-          subtitleWords.length - 1,
-          Math.max(startWordIndexInclusive, cursor + sentenceWordCount - 1),
-        );
-
-        sentenceSelections.push({
-          srtFileIndex,
-          subtitleEntryIndex: entry.subtitleEntryIndex,
-          startWordIndexInclusive,
-          endWordIndexInclusive,
-          agentId: subtitleFile.person,
-          text: sentence,
-        });
-
-        cursor = endWordIndexInclusive + 1;
-      }
+    for (const segment of punctuationSegments) {
+      punctuationSelections.push({
+        srtFileIndex,
+        agentId: subtitleFile.person,
+        text: segment.text,
+        entries: segment.entries,
+      });
     }
   }
 
-  if (sentenceSelections.length === 0) {
+  if (punctuationSelections.length === 0) {
     return [];
   }
 
-  const transcriptLikeInput = sentenceSelections.map((entry) => ({
+  const transcriptLikeInput = punctuationSelections.map((entry) => ({
     agentId: entry.agentId,
     text: entry.text,
   }));
@@ -1021,15 +1243,19 @@ async function getSubtitleDialogueEmotions({
     useMockServices,
   });
 
-  return sentenceSelections.map((entry, entryIndex) => ({
-    srtFileIndex: entry.srtFileIndex,
-    subtitleEntryIndex: entry.subtitleEntryIndex,
-    startWordIndexInclusive: entry.startWordIndexInclusive,
-    endWordIndexInclusive: entry.endWordIndexInclusive,
-    agentId: entry.agentId,
-    emotion: dialogueEmotions[entryIndex]?.emotion ?? DEFAULT_DIALOGUE_EMOTION,
-    reason: dialogueEmotions[entryIndex]?.reason ?? null,
-  }));
+  return punctuationSelections.flatMap((selection, selectionIndex) => {
+    const dialogueEmotion = dialogueEmotions[selectionIndex];
+
+    return selection.entries.map((entry) => ({
+      srtFileIndex: selection.srtFileIndex,
+      subtitleEntryIndex: entry.subtitleEntryIndex,
+      startWordIndexInclusive: 0,
+      endWordIndexInclusive: Math.max(0, splitTranscriptWords(entry.text).length - 1),
+      agentId: selection.agentId,
+      emotion: dialogueEmotion?.emotion ?? DEFAULT_DIALOGUE_EMOTION,
+      reason: dialogueEmotion?.reason ?? null,
+    }));
+  });
 }
 
 async function getDialogueEmotionsWithRetry({
@@ -1049,8 +1275,8 @@ async function getDialogueEmotionsWithRetry({
   }));
   const speakerTargets = buildDialogueEmotionSpeakerTargets(transcript);
   const supportedEmotionList = SUPPORTED_DIALOGUE_EMOTIONS.join(", ");
-  const systemPrompt = `You are assigning a single sprite emotion label to every dialogue turn in a chaotic short-form video conversation. For every transcript entry, choose exactly one emotion from this fixed list and do not invent any new labels: ${supportedEmotionList}. Pick the emotion for how the speaking character should visually look while delivering that line, not how the listeners feel. Across the full transcript, each speaker should feel expressive and dynamic rather than locked into one default face. For any speaker with 3 or more lines, use at least 3 distinct emotions across their lines unless the transcript truly makes that impossible. Avoid flattening an entire speaker into one repeated expression like all neutral, all smug, or all angry. Let the emotions evolve with the joke beats, rebuttals, panic moments, punchlines, and recoveries. You must return exactly one emotion label for every transcript entry. Return valid JSON only with this exact shape: {"dialogueEmotions":[{"entryIndex":0,"agentId":"${agents[0]}","emotion":"neutral","reason":"brief why"}]}. Preserve the original entryIndex values and agentId values exactly.`;
-  const prompt = `Assign one sprite emotion to every transcript entry.
+  const systemPrompt = `You are assigning a single sprite emotion label to every punctuation-delimited dialogue beat in a chaotic short-form video conversation. For every transcript entry, choose exactly one emotion from this fixed list and do not invent any new labels: ${supportedEmotionList}. Pick the emotion for how the speaking character should visually look while delivering that beat, not how the listeners feel. Across the full transcript, each speaker should feel expressive and dynamic rather than locked into one default face. For any speaker with 3 or more beats, use at least 3 distinct emotions across their beats unless the transcript truly makes that impossible. Avoid flattening an entire speaker into one repeated expression like all neutral, all smug, or all angry. Let the emotions evolve at punctuation boundaries, rebuttals, panic moments, punchlines, and recoveries. You must return exactly one emotion label for every transcript entry. Return valid JSON only with this exact shape: {"dialogueEmotions":[{"entryIndex":0,"agentId":"${agents[0]}","emotion":"neutral","reason":"brief why"}]}. Preserve the original entryIndex values and agentId values exactly.`;
+  const prompt = `Assign one sprite emotion to every punctuation-delimited transcript entry.
 
 Speaker variety targets:
 ${JSON.stringify(speakerTargets, null, 2)}

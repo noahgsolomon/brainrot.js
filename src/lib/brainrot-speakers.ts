@@ -19,6 +19,24 @@ export const BRAINROT_SPEAKER_IDS = [
   "SAUL_GOODMAN",
   "TYLER_DURDEN",
   "WALTER_WHITE",
+  "ANDREW_HUBERMAN",
+  "BILL_CLINTON",
+  "BILLIE_EILISH",
+  "BOJACK_HORSEMAN",
+  "BRAD_PITT",
+  "CHARLIE_KIRK",
+  "CLAVICULAR",
+  "DRAKE",
+  "HEATH_HUSSAR",
+  "HILLARY_CLINTON",
+  "JOHNNY_DEPP",
+  "JOHN_WICK",
+  "KANYE_WEST",
+  "LEX_FRIDMAN",
+  "MARGOT_ROBBIE",
+  "MICHELLE_OBAMA",
+  "MRBEAST",
+  "PATRICK_BATEMAN",
 ] as const;
 
 export const MIN_BRAINROT_SPEAKERS = 2;
@@ -126,4 +144,3 @@ export function formatSpeakerNames(
 export function getSpeakerImagePath(speakerName: string): string {
   return `/img/${speakerName}.png`;
 }
-
