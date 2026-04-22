@@ -5,7 +5,7 @@ import { fal } from "@fal-ai/client";
 import { buildFalWebhookHeaders } from "@/lib/fal-jobs";
 
 const DEFAULT_FAL_SMOKE_TEST_ENDPOINT =
-  "remotion-proxy-spike";
+  "noah-t9ec484ea829/remotion-proxy-spike";
 const DEFAULT_FAL_SMOKE_TEST_VIDEO_URL =
   "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
 

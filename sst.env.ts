@@ -28,4 +28,6 @@ export const NextEnv = {
   TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET!,
   TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID!,
   MUSIC_DOWNLOAD_KEY: process.env.MUSIC_DOWNLOAD_KEY!,
+  FAL_APP_OWNER: "noah-t9ec484ea829",
+  FAL_REMOTION_SPIKE_ENDPOINT_ID: "noah-t9ec484ea829/remotion-proxy-spike",
 };

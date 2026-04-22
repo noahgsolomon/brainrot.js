@@ -76,6 +76,7 @@ class EgressResponse(BaseModel):
 
 class RemotionProxySpike(fal.App):
     app_name = "remotion-proxy-spike"
+    app_auth = "private"
     local_python_modules = ["bridge"]
     app_files_ignore = [
         r"\.pyc$",

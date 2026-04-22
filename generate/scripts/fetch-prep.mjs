@@ -53,7 +53,8 @@ loadEnvFile(path.join(REPO_ROOT, ".env"));
 
 const { fal } = await import("@fal-ai/client");
 
-const DEFAULT_FAL_APP_ID = "remotion-proxy-spike";
+const DEFAULT_FAL_APP_ID =
+  "noah-t9ec484ea829/remotion-proxy-spike";
 const POLL_INTERVAL_MS = 3_000;
 
 // ---------------------------------------------------------------------------
