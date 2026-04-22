@@ -5,7 +5,7 @@ import { fal } from "@fal-ai/client";
 import { buildFalWebhookHeaders } from "@/lib/fal-jobs";
 
 const DEFAULT_FAL_REMOTION_SPIKE_ENDPOINT =
-  "remotion-proxy-spike";
+  "noah-t9ec484ea829/remotion-proxy-spike";
 
 interface SubmitFalBrainrotRenderJobOptions {
   videoId: string;
