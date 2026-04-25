@@ -29,12 +29,14 @@ const TRAINING_AUDIO_FILE_MAP = {
   ANDREW_TATE: "tate.mp3",
   BANE: "bane.mp3",
   BARACK_OBAMA: "obama.mp3",
+  BATMAN: "batman.wav",
   BEN_SHAPIRO: "benshapiroaudio.mp3",
   BILLIE_EILISH: "billieeilish.mp3",
   BILL_CLINTON: "billclinton.mp3",
   BOJACK_HORSEMAN: "bojackhorseman.mp3",
   BRAD_PITT: "bradpitt.mp3",
   CHARLIE_KIRK: "charliekirk.mp3",
+  CHRISTIAN_BALE: "Christianbale.mp3",
   CILLIAN_MURPHY: "cillianmurphy.mp3",
   CLAVICULAR: "clavicular.mp3",
   DONALD_TRUMP: "trumpaudio.mp3",
@@ -62,10 +64,18 @@ const TRAINING_AUDIO_FILE_MAP = {
   NAVAL_RAVIKANT: "navalravikant.mp3",
   PATRICK_BATEMAN: "patrickbateman.mp3",
   PEDRO_PASCAL: "pedropascal.mp3",
+  PLAYBOI_CARTI: "playboicarti.mp3",
+  RYAN_GOSLING: "ryangosling.wav",
   RYAN_REYNOLDS: "ryanreynolds.mp3",
   SAUL_GOODMAN: "saulgoodman.mp3",
+  SPONGEBOB_SQUAREPANTS: "spongebob.wav",
+  SYDNEY_SWEENEY: "sydneysweeney.wav",
+  THE_WEEKND: "theweeknd.wav",
+  TOM_HOLLAND: "tomholland.wav",
+  TONY_HINCHCLIFFE: "tonyhinchcliffe.mp3",
   TYLER_DURDEN: "tylerdurden.mp3",
   WALTER_WHITE: "walterwhite.mp3",
+  ZANE_HIJAZI: "zanehijazi.mp3",
 };
 
 const HARDCODED_MINIMAX_CUSTOM_VOICE_IDS = {
@@ -297,10 +307,7 @@ async function loadFileCustomVoiceIdMap() {
   try {
     const stat = await fs.stat(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
 
-    if (
-      fileCustomVoiceIdMap &&
-      fileCustomVoiceIdMapMtimeMs === stat.mtimeMs
-    ) {
+    if (fileCustomVoiceIdMap && fileCustomVoiceIdMapMtimeMs === stat.mtimeMs) {
       return fileCustomVoiceIdMap;
     }
 
@@ -357,11 +364,17 @@ async function persistCustomVoiceIdUnlocked(agentId, customVoiceId) {
   const registryDir = path.dirname(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
   const tempPath = path.join(
     registryDir,
-    `.${path.basename(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH)}.${process.pid}.tmp`,
+    `.${path.basename(MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH)}.${
+      process.pid
+    }.tmp`,
   );
 
   await fs.mkdir(registryDir, { recursive: true });
-  await fs.writeFile(tempPath, `${JSON.stringify(sortedMap, null, 2)}\n`, "utf8");
+  await fs.writeFile(
+    tempPath,
+    `${JSON.stringify(sortedMap, null, 2)}\n`,
+    "utf8",
+  );
   await fs.rename(tempPath, MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH);
 
   fileCustomVoiceIdMap = sortedMap;
@@ -452,45 +465,53 @@ async function getAudioDurationSeconds(filePath) {
 }
 
 async function getPreparedTrainingAudioFilePath(agentId) {
-  return memoizePromise(preparedTrainingAudioPathPromises, agentId, async () => {
-    const sourcePath = await getTrainingAudioFilePath(agentId);
-    const sourceDurationSeconds = await getAudioDurationSeconds(sourcePath);
-    const preparedFileName = `${agentId.toLowerCase()}-prepared.mp3`;
-    const preparedPath = path.join(PREPARED_TRAINING_AUDIO_DIR, preparedFileName);
+  return memoizePromise(
+    preparedTrainingAudioPathPromises,
+    agentId,
+    async () => {
+      const sourcePath = await getTrainingAudioFilePath(agentId);
+      const sourceDurationSeconds = await getAudioDurationSeconds(sourcePath);
+      const preparedFileName = `${agentId.toLowerCase()}-prepared.mp3`;
+      const preparedPath = path.join(
+        PREPARED_TRAINING_AUDIO_DIR,
+        preparedFileName,
+      );
 
-    await fs.mkdir(PREPARED_TRAINING_AUDIO_DIR, { recursive: true });
+      await fs.mkdir(PREPARED_TRAINING_AUDIO_DIR, { recursive: true });
 
-    await execFileAsync("ffmpeg", [
-      "-y",
-      "-i",
-      sourcePath,
-      "-vn",
-      "-ac",
-      "1",
-      "-ar",
-      String(MINIMAX_TRAINING_AUDIO_SAMPLE_RATE),
-      "-b:a",
-      MINIMAX_TRAINING_AUDIO_BITRATE,
-      "-t",
-      String(MINIMAX_TRAINING_AUDIO_MAX_DURATION_SECONDS),
-      preparedPath,
-    ]);
-
-    const preparedDurationSeconds = await getAudioDurationSeconds(preparedPath);
-
-    console.log(
-      JSON.stringify({
-        type: "minimax_training_audio_prepared",
-        agentId,
+      await execFileAsync("ffmpeg", [
+        "-y",
+        "-i",
         sourcePath,
-        sourceDurationSeconds,
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        String(MINIMAX_TRAINING_AUDIO_SAMPLE_RATE),
+        "-b:a",
+        MINIMAX_TRAINING_AUDIO_BITRATE,
+        "-t",
+        String(MINIMAX_TRAINING_AUDIO_MAX_DURATION_SECONDS),
         preparedPath,
-        preparedDurationSeconds,
-      }),
-    );
+      ]);
 
-    return preparedPath;
-  });
+      const preparedDurationSeconds =
+        await getAudioDurationSeconds(preparedPath);
+
+      console.log(
+        JSON.stringify({
+          type: "minimax_training_audio_prepared",
+          agentId,
+          sourcePath,
+          sourceDurationSeconds,
+          preparedPath,
+          preparedDurationSeconds,
+        }),
+      );
+
+      return preparedPath;
+    },
+  );
 }
 
 export async function resolveBundledMusicPath(musicName) {
@@ -610,8 +631,7 @@ export async function getCustomVoiceId(agentId) {
             agentId,
             customVoiceId,
             attempt,
-            persistHint:
-              `Will persist \"${agentId}\": \"${customVoiceId}\" to ${MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH}.`,
+            persistHint: `Will persist \"${agentId}\": \"${customVoiceId}\" to ${MINIMAX_CUSTOM_VOICE_ID_REGISTRY_PATH}.`,
           }),
         );
 
@@ -636,7 +656,9 @@ export async function getCustomVoiceId(agentId) {
       } catch (error) {
         lastError = error;
         const message =
-          error instanceof Error ? error.message : String(error ?? "unknown error");
+          error instanceof Error
+            ? error.message
+            : String(error ?? "unknown error");
 
         console.warn(
           JSON.stringify({
@@ -704,7 +726,9 @@ export async function synthesizeMiniMaxSpeech({ agentId, text, outputPath }) {
       const audioUrl = result.data?.audio?.url;
 
       if (!audioUrl) {
-        throw new Error(`MiniMax TTS did not return an audio URL for ${agentId}`);
+        throw new Error(
+          `MiniMax TTS did not return an audio URL for ${agentId}`,
+        );
       }
 
       console.log(

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -42,6 +38,7 @@ import {
   type BrainrotSpeakerId,
   MAX_BRAINROT_SPEAKERS,
   MIN_BRAINROT_SPEAKERS,
+  getSpeakerImagePath,
   humanizeSpeakerName,
 } from "@/lib/brainrot-speakers";
 import { MAX_VIDEO_TOPIC_LENGTH } from "@/lib/video-topic";
@@ -122,11 +119,17 @@ const BRAINROT_CHARACTER_OPTIONS: CharacterOption[] = [
   { id: 36, name: "MICHELLE_OBAMA", requiresPro: true },
   { id: 37, name: "MRBEAST", requiresPro: true },
   { id: 38, name: "PATRICK_BATEMAN", requiresPro: true },
+  { id: 39, name: "BATMAN", requiresPro: true },
+  { id: 40, name: "CHRISTIAN_BALE", requiresPro: true },
+  { id: 41, name: "PLAYBOI_CARTI", requiresPro: true },
+  { id: 42, name: "RYAN_GOSLING", requiresPro: true },
+  { id: 43, name: "SPONGEBOB_SQUAREPANTS", requiresPro: true },
+  { id: 44, name: "SYDNEY_SWEENEY", requiresPro: true },
+  { id: 45, name: "THE_WEEKND", requiresPro: true },
+  { id: 46, name: "TOM_HOLLAND", requiresPro: true },
+  { id: 47, name: "TONY_HINCHCLIFFE", requiresPro: true },
+  { id: 48, name: "ZANE_HIJAZI", requiresPro: true },
 ];
-
-function getCharacterImageSrc(characterName: string) {
-  return `/img/${characterName}.png`;
-}
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -351,7 +354,9 @@ export default function CreateVideo({
               <div className="relative flex w-full items-center">
                 <div className="absolute left-0">
                   <Image
-                    src={getCharacterImageSrc(selectedAgent ?? "JORDAN_PETERSON")}
+                    src={getSpeakerImagePath(
+                      selectedAgent ?? "JORDAN_PETERSON",
+                    )}
                     width={48}
                     height={48}
                     alt="agent"
@@ -561,8 +566,8 @@ export default function CreateVideo({
       ? agent.length >= MIN_BRAINROT_SPEAKERS &&
         agent.length <= MAX_BRAINROT_SPEAKERS
       : videoDetails.mode === "monologue" || videoDetails.mode === "rap"
-        ? agent.length === 1
-        : agent.length === 2;
+      ? agent.length === 1
+      : agent.length === 2;
 
   return (
     <>
@@ -594,12 +599,7 @@ export default function CreateVideo({
                 className="flex items-center gap-2 pb-2"
               >
                 <h4>1.{")"} Choose a topic.</h4>
-                <Image
-                  height={30}
-                  width={30}
-                  src={"/book.gif"}
-                  alt="book"
-                />
+                <Image height={30} width={30} src={"/book.gif"} alt="book" />
               </motion.div>
 
               <div>
@@ -653,67 +653,143 @@ export default function CreateVideo({
           )}
 
           <AnimatePresence mode="wait">
-          {videoDetails.mode === "monologue" ||
-          videoDetails.mode === "brainrot" ? (
-            <motion.div
-              key="brainrot-monologue"
-              className="flex flex-col gap-2"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <motion.div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <h4>
-                    2.{")"} Choose your{" "}
-                    {videoDetails.mode === "monologue" ? "speaker" : "fighters"}!
-                  </h4>
-                  <Image
-                    height={20}
-                    width={20}
-                    src={"/fire.gif"}
-                    alt="fire"
-                  />
-                </div>
-                <div className="w-[150px]">
-                  <Input
-                    value={characterSearch}
-                    onChange={(e) => setCharacterSearch(e.target.value)}
-                    placeholder="Search fighters"
-                    className="h-8 text-xs"
-                  />
-                </div>
-              </motion.div>
-
+            {videoDetails.mode === "monologue" ||
+            videoDetails.mode === "brainrot" ? (
               <motion.div
-                className="max-h-[176px] overflow-y-auto pr-1"
-                variants={staggerContainer}
+                key="brainrot-monologue"
+                className="flex flex-col gap-2"
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
-                <div className="grid grid-cols-4 gap-2">
-                  {filteredBrainrotCharacters.map((character) => {
-                    const isSelected = agent.some((a) => a.name === character.name);
-                    const shouldShowProLock =
-                      character.requiresPro &&
-                      !userDB?.subscribed &&
-                      character.id <= 8;
-                    const tile = (
+                <motion.div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <h4>
+                      2.{")"} Choose your{" "}
+                      {videoDetails.mode === "monologue"
+                        ? "speaker"
+                        : "fighters"}
+                      !
+                    </h4>
+                    <Image
+                      height={20}
+                      width={20}
+                      src={"/fire.gif"}
+                      alt="fire"
+                    />
+                  </div>
+                  <div className="w-[150px]">
+                    <Input
+                      value={characterSearch}
+                      onChange={(e) => setCharacterSearch(e.target.value)}
+                      placeholder="Search fighters"
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  className="max-h-[176px] overflow-y-auto pr-1"
+                  variants={staggerContainer}
+                >
+                  <div className="grid grid-cols-4 gap-2">
+                    {filteredBrainrotCharacters.map((character) => {
+                      const isSelected = agent.some(
+                        (a) => a.name === character.name,
+                      );
+                      const shouldShowProLock =
+                        character.requiresPro &&
+                        !userDB?.subscribed &&
+                        character.id <= 8;
+                      const tile = (
+                        <motion.div
+                          key={character.name}
+                          variants={agentAnimation}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                          onClick={() =>
+                            handleAgentSelection({
+                              name: character.name,
+                              id: character.id,
+                            })
+                          }
+                        >
+                          <Image
+                            className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
+                              isSelected ? "opacity-40" : "opacity-0"
+                            }`}
+                            height={75}
+                            width={75}
+                            src={"/fireball.gif"}
+                            alt="fire"
+                          />
+                          <Image
+                            className="z-10 h-[60px] w-[60px] scale-[110%] object-contain xs:h-[75px] xs:w-[75px]"
+                            src={getSpeakerImagePath(character.name)}
+                            width={75}
+                            height={75}
+                            alt={humanizeSpeakerName(character.name)}
+                          />
+                        </motion.div>
+                      );
+
+                      if (shouldShowProLock) {
+                        return (
+                          <ProButton key={`${character.name}-pro`}>
+                            <div className="relative">
+                              <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
+                                <Crown className="size-4 text-secondary dark:text-primary" />
+                              </div>
+                              {tile}
+                            </div>
+                          </ProButton>
+                        );
+                      }
+
+                      return tile;
+                    })}
+                  </div>
+                </motion.div>
+              </motion.div>
+            ) : videoDetails.mode === "podcast" ? (
+              <motion.div
+                key="podcast"
+                className="flex flex-col gap-8"
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <motion.div className="flex items-center gap-2">
+                  <h4>2.{")"} Choose your host</h4>
+                </motion.div>
+
+                <motion.div
+                  className="flex flex-wrap gap-2"
+                  variants={staggerContainer}
+                >
+                  {["JOE_ROGAN", "JORDAN_PETERSON", "LEX_FRIDMAN"].map(
+                    (hostName) => (
                       <motion.div
-                        key={character.name}
+                        key={hostName}
                         variants={agentAnimation}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
                         onClick={() =>
                           handleAgentSelection({
-                            name: character.name,
-                            id: character.id,
+                            name: hostName as PodcastHost,
+                            id: 1,
                           })
                         }
                       >
                         <Image
                           className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                            isSelected ? "opacity-40" : "opacity-0"
+                            agent[0]?.name === hostName
+                              ? "opacity-40"
+                              : "opacity-0"
                           }`}
                           height={75}
                           width={75}
@@ -721,106 +797,36 @@ export default function CreateVideo({
                           alt="fire"
                         />
                         <Image
-                          className="z-10 h-[60px] w-[60px] scale-[110%] object-contain xs:h-[75px] xs:w-[75px]"
-                          src={getCharacterImageSrc(character.name)}
+                          className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                          src={`/img/${hostName}.png`}
                           width={75}
                           height={75}
-                          alt={humanizeSpeakerName(character.name)}
+                          alt={hostName.toLowerCase()}
                         />
                       </motion.div>
-                    );
+                    ),
+                  )}
+                </motion.div>
 
-                    if (shouldShowProLock) {
-                      return (
-                        <ProButton key={`${character.name}-pro`}>
-                          <div className="relative">
-                            <div className="absolute z-30 flex h-full w-full items-center justify-center rounded-full bg-black/40">
-                              <Crown className="size-4 text-secondary dark:text-primary" />
-                            </div>
-                            {tile}
-                          </div>
-                        </ProButton>
-                      );
-                    }
-
-                    return tile;
-                  })}
-                </div>
-              </motion.div>
-            </motion.div>
-          ) : videoDetails.mode === "podcast" ? (
-            <motion.div
-              key="podcast"
-              className="flex flex-col gap-8"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <motion.div className="flex items-center gap-2">
-                <h4>2.{")"} Choose your host</h4>
-              </motion.div>
-
-              <motion.div
-                className="flex flex-wrap gap-2"
-                variants={staggerContainer}
-              >
-                {["JOE_ROGAN", "JORDAN_PETERSON", "LEX_FRIDMAN"].map(
-                  (hostName) => (
+                <AnimatePresence>
+                  {agent[0]?.name && (
                     <motion.div
-                      key={hostName}
-                      variants={agentAnimation}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                      onClick={() =>
-                        handleAgentSelection({
-                          name: hostName as PodcastHost,
-                          id: 1,
-                        })
-                      }
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={fadeIn}
                     >
-                      <Image
-                        className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                          agent[0]?.name === hostName
-                            ? "opacity-40"
-                            : "opacity-0"
-                        }`}
-                        height={75}
-                        width={75}
-                        src={"/fireball.gif"}
-                        alt="fire"
-                      />
-                      <Image
-                        className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                        src={`/img/${hostName}.png`}
-                        width={75}
-                        height={75}
-                        alt={hostName.toLowerCase()}
-                      />
-                    </motion.div>
-                  ),
-                )}
-              </motion.div>
+                      <motion.div className="flex items-center gap-2">
+                        <h4>3.{")"} Choose your guest</h4>
+                      </motion.div>
 
-              <AnimatePresence>
-                {agent[0]?.name && (
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={fadeIn}
-                  >
-                    <motion.div className="flex items-center gap-2">
-                      <h4>3.{")"} Choose your guest</h4>
-                    </motion.div>
-
-                    <motion.div
-                      className="flex flex-wrap gap-2"
-                      variants={staggerContainer}
-                    >
-                      {PODCAST_GUEST_OPTIONS[agent[0].name as PodcastHost].map(
-                        (guestName) => (
+                      <motion.div
+                        className="flex flex-wrap gap-2"
+                        variants={staggerContainer}
+                      >
+                        {PODCAST_GUEST_OPTIONS[
+                          agent[0].name as PodcastHost
+                        ].map((guestName) => (
                           <motion.div
                             key={guestName}
                             variants={agentAnimation}
@@ -853,253 +859,251 @@ export default function CreateVideo({
                               alt={guestName.toLowerCase()}
                             />
                           </motion.div>
-                        ),
-                      )}
+                        ))}
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ) : videoDetails.mode === "rap" ? (
-            <motion.div
-              key="rap"
-              className="flex flex-col gap-8"
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ) : videoDetails.mode === "rap" ? (
               <motion.div
+                key="rap"
+                className="flex flex-col gap-8"
+                variants={fadeIn}
                 initial="hidden"
                 animate="visible"
-                variants={fadeIn}
-                className="flex flex-col gap-4"
+                exit="exit"
               >
-                <motion.div className="flex items-center gap-2">
-                  <h4>1.{")"} Choose a song to rap over</h4>
-                  <Music className="h-4 w-4" />
-                </motion.div>
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={fadeIn}
+                  className="flex flex-col gap-4"
+                >
+                  <motion.div className="flex items-center gap-2">
+                    <h4>1.{")"} Choose a song to rap over</h4>
+                    <Music className="h-4 w-4" />
+                  </motion.div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <motion.div
-                      className="relative"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ type: "spring", visualDuration: 0.3, bounce: 0.1 }}
-                    >
-                      <Input
-                        placeholder="Search for a song..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setSearchError("");
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <motion.div
+                        className="relative"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          type: "spring",
+                          visualDuration: 0.3,
+                          bounce: 0.1,
                         }}
-                        className="pr-10"
-                      />
-                      {isSearching && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                    </motion.div>
-                    <AnimatePresence>
-                      {searchError && (
-                        <motion.p
-                          className="text-sm text-destructive"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          {searchError}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                      >
+                        <Input
+                          placeholder="Search for a song..."
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setSearchError("");
+                          }}
+                          className="pr-10"
+                        />
+                        {isSearching && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                      </motion.div>
+                      <AnimatePresence>
+                        {searchError && (
+                          <motion.p
+                            className="text-sm text-destructive"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            {searchError}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
 
-                  <div className="space-y-2">
-                    <AnimatePresence mode="wait">
-                      {selectedTrack ? (
-                        <motion.div
-                          key="selected-track"
-                          variants={selectedTrackAnimation}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="flex cursor-pointer items-center justify-between rounded-lg border border-blue bg-blue/20 p-[1.125rem] transition-colors duration-200"
-                          onClick={() => handleSelectTrack(selectedTrack)}
-                        >
-                          <div className="flex items-center gap-4">
-                            {selectedTrack.album.images[0] && (
-                              <div className="relative h-12 w-12">
-                                <img
-                                  src={selectedTrack.album.images[0].url}
-                                  alt={`${selectedTrack.name} album artwork`}
-                                  className="h-12 w-12 rounded-md object-cover"
-                                />
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-medium">
-                                {selectedTrack.name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {selectedTrack.artists
-                                  .map((a) => a.name)
-                                  .join(", ")}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="flex h-8 w-8 items-center justify-center text-blue">
-                              <Check className="h-4 w-4" />
-                            </div>
-                          </div>
-                        </motion.div>
-                      ) : tracks.length > 0 ? (
-                        <motion.div
-                          key="track-list"
-                          variants={songListAnimation}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                        >
-                          {tracks.map((track) => (
-                            <motion.div
-                              key={track.id}
-                              variants={songCardAnimation}
-                              className="flex cursor-pointer items-center justify-between rounded-lg border p-[1.125rem] transition-colors duration-200 hover:border-blue hover:bg-blue/20"
-                              onClick={() => handleSelectTrack(track)}
-                            >
-                              <div className="flex items-center gap-4">
-                                {track.album.images[0] && (
-                                  <div className="relative h-12 w-12">
-                                    <img
-                                      src={track.album.images[0].url}
-                                      alt={`${track.name} album artwork`}
-                                      className="h-12 w-12 rounded-md object-cover"
-                                    />
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="font-medium">{track.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {track.artists
-                                      .map((a) => a.name)
-                                      .join(", ")}
-                                  </p>
+                    <div className="space-y-2">
+                      <AnimatePresence mode="wait">
+                        {selectedTrack ? (
+                          <motion.div
+                            key="selected-track"
+                            variants={selectedTrackAnimation}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="flex cursor-pointer items-center justify-between rounded-lg border border-blue bg-blue/20 p-[1.125rem] transition-colors duration-200"
+                            onClick={() => handleSelectTrack(selectedTrack)}
+                          >
+                            <div className="flex items-center gap-4">
+                              {selectedTrack.album.images[0] && (
+                                <div className="relative h-12 w-12">
+                                  <img
+                                    src={selectedTrack.album.images[0].url}
+                                    alt={`${selectedTrack.name} album artwork`}
+                                    className="h-12 w-12 rounded-md object-cover"
+                                  />
                                 </div>
+                              )}
+                              <div>
+                                <p className="font-medium">
+                                  {selectedTrack.name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedTrack.artists
+                                    .map((a) => a.name)
+                                    .join(", ")}
+                                </p>
                               </div>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      ) : isSearching && searchQuery.length > 0 ? (
-                        <motion.div
-                          key="searching"
-                          variants={fadeIn}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="rounded-md border border-dashed p-8 text-center"
-                        >
-                          <p className="text-sm text-muted-foreground">
-                            Searching...
-                          </p>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="empty-state"
-                          variants={fadeIn}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="rounded-md border border-dashed p-8 text-center"
-                        >
-                          <p className="text-sm text-muted-foreground">
-                            {searchQuery.length > 0
-                              ? "No tracks found. Try a different search."
-                              : "Search for a song to get started."}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="flex h-8 w-8 items-center justify-center text-blue">
+                                <Check className="h-4 w-4" />
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : tracks.length > 0 ? (
+                          <motion.div
+                            key="track-list"
+                            variants={songListAnimation}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                          >
+                            {tracks.map((track) => (
+                              <motion.div
+                                key={track.id}
+                                variants={songCardAnimation}
+                                className="flex cursor-pointer items-center justify-between rounded-lg border p-[1.125rem] transition-colors duration-200 hover:border-blue hover:bg-blue/20"
+                                onClick={() => handleSelectTrack(track)}
+                              >
+                                <div className="flex items-center gap-4">
+                                  {track.album.images[0] && (
+                                    <div className="relative h-12 w-12">
+                                      <img
+                                        src={track.album.images[0].url}
+                                        alt={`${track.name} album artwork`}
+                                        className="h-12 w-12 rounded-md object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="font-medium">{track.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {track.artists
+                                        .map((a) => a.name)
+                                        .join(", ")}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        ) : isSearching && searchQuery.length > 0 ? (
+                          <motion.div
+                            key="searching"
+                            variants={fadeIn}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="rounded-md border border-dashed p-8 text-center"
+                          >
+                            <p className="text-sm text-muted-foreground">
+                              Searching...
+                            </p>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="empty-state"
+                            variants={fadeIn}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="rounded-md border border-dashed p-8 text-center"
+                          >
+                            <p className="text-sm text-muted-foreground">
+                              {searchQuery.length > 0
+                                ? "No tracks found. Try a different search."
+                                : "Search for a song to get started."}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-
-              <motion.div className="flex items-center gap-2">
-                <h4>2.{")"} Choose your rapper</h4>
-                <Image
-                  height={20}
-                  width={20}
-                  src={"/fire.gif"}
-                  alt="fire"
-                />
-              </motion.div>
-
-              <motion.div
-                className="flex flex-wrap gap-2"
-                variants={staggerContainer}
-              >
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "SPONGEBOB", id: 1 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                      agent.some((a) => a.name === "SPONGEBOB")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/SPONGEBOB.png"}
-                    width={75}
-                    height={75}
-                    alt="spongebob"
-                  />
                 </motion.div>
-                <motion.div
-                  variants={agentAnimation}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
-                  onClick={() =>
-                    handleAgentSelection({ name: "BARACK_OBAMA", id: 2 })
-                  }
-                >
-                  <Image
-                    className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
-                      agent.some((a) => a.name === "BARACK_OBAMA")
-                        ? "opacity-40"
-                        : "opacity-0"
-                    }`}
-                    height={75}
-                    width={75}
-                    src={"/fireball.gif"}
-                    alt="fire"
-                  />
-                  <Image
-                    className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
-                    src={"/img/BARACK_OBAMA.png"}
-                    width={75}
-                    height={75}
-                    alt="barack obama"
-                  />
-                </motion.div>
-              </motion.div>
 
-              {/* <motion.div className="flex flex-col gap-2">
+                <motion.div className="flex items-center gap-2">
+                  <h4>2.{")"} Choose your rapper</h4>
+                  <Image height={20} width={20} src={"/fire.gif"} alt="fire" />
+                </motion.div>
+
+                <motion.div
+                  className="flex flex-wrap gap-2"
+                  variants={staggerContainer}
+                >
+                  <motion.div
+                    variants={agentAnimation}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                    onClick={() =>
+                      handleAgentSelection({ name: "SPONGEBOB", id: 1 })
+                    }
+                  >
+                    <Image
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
+                        agent.some((a) => a.name === "SPONGEBOB")
+                          ? "opacity-40"
+                          : "opacity-0"
+                      }`}
+                      height={75}
+                      width={75}
+                      src={"/fireball.gif"}
+                      alt="fire"
+                    />
+                    <Image
+                      className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                      src={"/img/SPONGEBOB.png"}
+                      width={75}
+                      height={75}
+                      alt="spongebob"
+                    />
+                  </motion.div>
+                  <motion.div
+                    variants={agentAnimation}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative cursor-pointer overflow-hidden rounded-full border border-border bg-secondary"
+                    onClick={() =>
+                      handleAgentSelection({ name: "BARACK_OBAMA", id: 2 })
+                    }
+                  >
+                    <Image
+                      className={`absolute bottom-0 left-0 right-0 top-0 transition-all ${
+                        agent.some((a) => a.name === "BARACK_OBAMA")
+                          ? "opacity-40"
+                          : "opacity-0"
+                      }`}
+                      height={75}
+                      width={75}
+                      src={"/fireball.gif"}
+                      alt="fire"
+                    />
+                    <Image
+                      className="z-10 h-[60px] w-[60px] scale-[110%] xs:h-[75px] xs:w-[75px]"
+                      src={"/img/BARACK_OBAMA.png"}
+                      width={75}
+                      height={75}
+                      alt="barack obama"
+                    />
+                  </motion.div>
+                </motion.div>
+
+                {/* <motion.div className="flex flex-col gap-2">
                 <h4>3.{")"} Choose your output type</h4>
                 <div className="flex gap-2">
                   <button
@@ -1130,8 +1134,8 @@ export default function CreateVideo({
                   </button>
                 </div>
               </motion.div> */}
-            </motion.div>
-          ) : null}
+              </motion.div>
+            ) : null}
           </AnimatePresence>
           {null}
 
@@ -1192,7 +1196,10 @@ export default function CreateVideo({
             >
               <div className="flex items-center justify-between rounded-lg border border-dashed bg-secondary/50 p-4">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="pitch-mode" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="pitch-mode"
+                    className="cursor-pointer text-sm"
+                  >
                     Pitch Mode
                   </Label>
                   <p className="text-xs text-muted-foreground">
@@ -1260,10 +1267,14 @@ export default function CreateVideo({
                   });
 
                   // Optimistic update: close dialog and show pending card immediately
-                  setSubmittedAgents(agent.map((selectedAgent) => selectedAgent.name));
+                  setSubmittedAgents(
+                    agent.map((selectedAgent) => selectedAgent.name),
+                  );
                   setSubmittedTitle(resolvedTitle);
                   setIsOpen(false);
-                  toast.info("Your video is currently in queue", { icon: "🕒" });
+                  toast.info("Your video is currently in queue", {
+                    icon: "🕒",
+                  });
 
                   createVideoMutation.mutate({
                     title: resolvedTitle,
@@ -1272,7 +1283,9 @@ export default function CreateVideo({
                     agents: agent.map((selectedAgent) => selectedAgent.id),
                     agent1Name: agent[0]?.name ?? "JORDAN_PETERSON",
                     agent2Name: agent[1]?.name ?? "BEN_SHAPIRO",
-                    agentNames: agent.map((selectedAgent) => selectedAgent.name),
+                    agentNames: agent.map(
+                      (selectedAgent) => selectedAgent.name,
+                    ),
                     cost: credits,
                     remainingCredits: userDB?.credits ?? 0,
                     music: "WII_SHOP_CHANNEL_TRAP",
