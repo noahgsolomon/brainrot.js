@@ -37,6 +37,16 @@ export const BRAINROT_SPEAKER_IDS = [
   "MICHELLE_OBAMA",
   "MRBEAST",
   "PATRICK_BATEMAN",
+  "BATMAN",
+  "CHRISTIAN_BALE",
+  "PLAYBOI_CARTI",
+  "RYAN_GOSLING",
+  "SPONGEBOB_SQUAREPANTS",
+  "SYDNEY_SWEENEY",
+  "THE_WEEKND",
+  "TOM_HOLLAND",
+  "TONY_HINCHCLIFFE",
+  "ZANE_HIJAZI",
 ] as const;
 
 export const MIN_BRAINROT_SPEAKERS = 2;
@@ -138,7 +148,9 @@ export function formatSpeakerNames(
     return `${normalized[0]} ${conjunction} ${normalized[1]}`;
   }
 
-  return `${normalized.slice(0, -1).join(", ")}, ${conjunction} ${normalized.at(-1)}`;
+  return `${normalized.slice(0, -1).join(", ")}, ${conjunction} ${normalized.at(
+    -1,
+  )}`;
 }
 
 export function getSpeakerImagePath(speakerName: string): string {
